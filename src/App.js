@@ -1,25 +1,28 @@
-import logo from './logo.svg';
+import React, { useEffect, useRef } from 'react';
 import './App.css';
-
+import './scripts';
 function App() {
-  return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+   const mountRef = useRef(null);
+     return (
+    <div className="container">
+      <nav className="sidebar">
+        <h1>Home</h1>
+        <ul>
+          <li>Section A</li>
+          <li>Section B</li>
+          <li>Section C</li>
+          <li>Section D</li>
+          <li>Section E</li>
+          <li>Footer</li>
+        </ul>
+      </nav>
+
+      <main className="main-content" ref={mountRef}>
+        
+      </main>
     </div>
   );
 }
 
 export default App;
+  
