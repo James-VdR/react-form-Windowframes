@@ -6,7 +6,7 @@ import { initThree } from './scripts';
 
 function App() {
   const mountRef = useRef(null);
-// needs to be put in react like this or the render will give an error because react.
+// needs to be put in react like this or the render will give an error because
 useEffect(() => {
   if (mountRef.current) {
     initThree(mountRef.current);
