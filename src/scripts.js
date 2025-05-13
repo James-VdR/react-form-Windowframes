@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import {OrbitControls} from 'three/examples/jsm/controls/OrbitControls.js';
-import * as dat from 'dat.gui';
+import GUI from 'lil-gui';
 
 import pandabaas from './Images/PandaBaas.jpg';
 import bedrijfslogo from './Images/reuzenpandalogo.jpg';
@@ -62,44 +62,19 @@ sphere.position.set(-10,10,0);
 sphere.castShadow = true;
     //Geometry
 
-//lighting
+//Lighting
 
 const ambientLight = new THREE.AmbientLight(0x333333);
 scene.add(ambientLight);
 
-    // Orthographic Lighting
 
-//const directionalLight = new THREE.DirectionalLight(0xFFFFFF,2);
-//scene.add(directionalLight);
-//directionalLight.position.set(-30,50,0);
-//directionalLight.castShadow = true;
-//directionalLight.shadow.camera.bottom = -14;
-//directionalLight.shadow.camera.left = -14;
-//directionalLight.shadow.camera.right = 14;
-//directionalLight.shadow.camera.top = 14;
-
-
-
-//Helpers , visual helping tool.
-//const directionalLightHelper = new THREE.DirectionalLightHelper(directionalLight, 5);
-//scene.add(directionalLightHelper);
-
-//const directionalLightShadowHelper = new THREE.CameraHelper(directionalLight.shadow.camera);
-//scene.add(directionalLightShadowHelper);
-
-//Helpers , visual helping tool.
-
-    // Orthographic Lighting
-
-
-
-    // Cone Lighting (spotlight)
-    const spotLight = new THREE.SpotLight(0xFFFFFF,5000);
-    scene.add(spotLight);
-    spotLight.position.set(-100, 100, 0);
-    spotLight.castShadow = true;
-    spotLight.angle = 0.15;
-    // Cone Lighting (spotlight)
+        // Cone Lighting (spotlight)
+            const spotLight = new THREE.SpotLight(0xFFFFFF,5000);
+            scene.add(spotLight);
+            spotLight.position.set(-100, 100, 0);
+            spotLight.castShadow = true;
+            spotLight.angle = 0.15;
+        // Cone Lighting (spotlight)
 
         //SpotLight Helper (draws helping line to visualize the angle of the spotline)
         const spotLightHelper = new THREE.SpotLightHelper(spotLight);
@@ -108,37 +83,52 @@ scene.add(ambientLight);
 
             //Fog
                 scene.fog = new THREE.Fog(0xFFFFFF, 0, 250);
-                
             //Fog
-            renderer.setClearColor(0xA3D69C)
+//Lighting
+            //Background Color
+                renderer.setClearColor(0xA3D69C)
+            //Background Color
 
-                //Background (with Image JPG)
-                    //const textureLoader = new THREE.TextureLoader();
-                    //scene.background = textureLoader.load(pandabaas);
-                    
-                    
-        //  const cubeTextureLoader = new THREE.CubeTextureLoader();
-        //  scene.background = cubeTextureLoader.load([
+    /*------------------------------------------------------------------------------------------------------------
+
+
+            //Background (with Image JPG) 
+        
+        //Loads Textures
+        const textureLoader = new THREE.TextureLoader();
+        //Loads Textures
+
+        // This line wil allow you to set a image as a background but it will look 2d
+        
+        scene.background = textureLoader.load(pandabaas);
+        
+        // This line wil allow you to set a image as a background but it will look 2d
+
+        
+        // set each side of the 3D Cube background a diffrent JPG
+        
+          const cubeTextureLoader = new THREE.CubeTextureLoader();
+          scene.background = cubeTextureLoader.load([
                        
-            //  img,
-            //  img,
-            //  img,
-            //  img,
-            //  img,
-            //  img
+              JPG,
+              JPG,
+              JPG,
+              JPG,
+              JPG,
+              JPG
 
         //    ]);
 
-                //Background (with Image JPG)
+                Background (with Image JPG)
 
-    
+    ------------------------------------------------------------------------------------------------------------*/
 
 //Lighting
 
 //Dat.GUI
 
  if (!gui) {
-    gui = new dat.GUI(); // Only create once
+    gui = new GUI(); // Only create once
   }
 
 let options = {
@@ -147,7 +137,9 @@ let options = {
   angle: 0.2,
   penumbra: 0,
   intensity: 5000,
-  
+  sphereX: -10,
+  sphereY: 10,
+  sphereZ: 0
 };
 
 
@@ -163,31 +155,48 @@ if (!guiInitialized) {
   gui.add(options, 'angle', 0, 1); // angle of light (activate helper too see);
   gui.add(options, 'penumbra', 0, 1); // Blur;
   gui.add(options, 'intensity', 0, 10000); // Intensity of light;
- 
+  gui.add(options, 'sphereX', -30, 30).step(0.01).name ('Sphere X');
+  gui.add(options, 'sphereY', -30 ,30).step(0.01).name ('Sphere Y');
+  gui.add(options, 'sphereZ', -30, 30).step(0.01).name ('Sphere Z');
+
 
   guiInitialized = true;
 }
-//Dat.GUI
+//lil.GUI
+
+
+
 
 //Grid Lines
-const gridHelper = new THREE.GridHelper(30);
-scene.add(gridHelper);
+    const gridHelper = new THREE.GridHelper(30);
+    scene.add(gridHelper);
 //Gird Lines
+    
+        //Animations (lets you see your changes in real time)
+            function animate(){
+        
 
-    //Rotation
-function animate(){
-        box.rotation.x += 0.01;
-        box.rotation.y += 0.01;
+            spotLight.angle = options.angle;
+            spotLight.penumbra = options.penumbra;
+            spotLight.intensity = options.intensity;
+            spotLight.positionx = options.positionx;
+            spotLightHelper.update();
 
-        spotLight.angle = options.angle;
-        spotLight.penumbra = options.penumbra;
-        spotLight.intensity = options.intensity;
-        spotLight.positionx = options.positionx;
-        spotLightHelper.update();
+            sphere.position.set(options.sphereX, options.sphereY, options.sphereZ);
 
-        renderer.render(scene,camera);
+            renderer.render(scene,camera);
 
-    }
-    //Rotation
-renderer.setAnimationLoop(animate);
+                                }
+
+            renderer.setAnimationLoop(animate);
+        //Animations (lets you see your changes in real time)
+    
+    //When opening the dev console the window would not size back this function fixes that
+    window.addEventListener('resize', function(){
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    //When opening the dev console the window would not size back this function fixes that
+
+})
 }
