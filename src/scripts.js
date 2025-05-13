@@ -2,31 +2,33 @@ import * as THREE from 'three';
 import {OrbitControls} from 'three/examples/jsm/controls/OrbitControls.js';
 import * as dat from 'dat.gui';
 
+import pandabaas from './Images/PandaBaas.jpg';
+import bedrijfslogo from './Images/reuzenpandalogo.jpg';
+
 let gui; 
 let guiInitialized = false;
  
 export function initThree(container) {
   const width = container.clientWidth;
   const height = container.clientHeight;
-
   const renderer = new THREE.WebGLRenderer();
   
   //enables shadows
-  renderer.shadowMap.enabled = true;
+    renderer.shadowMap.enabled = true;
   //enables shadows
 
-  renderer.setSize(width, height);
-  container.appendChild(renderer.domElement);
+        renderer.setSize(width, height);
+        container.appendChild(renderer.domElement);
 
-  const scene = new THREE.Scene();
+        const scene = new THREE.Scene();
 
   //camera
-const camera = new THREE.PerspectiveCamera(
-    45, 
-    width / 
-    height, 
-    0.1, 
-    1000);
+        const camera = new THREE.PerspectiveCamera(
+        45, 
+        width / 
+        height, 
+        0.1, 
+        1000);
 
         //Rotate around object
         const orbit = new OrbitControls(camera, renderer.domElement)
@@ -36,7 +38,7 @@ const camera = new THREE.PerspectiveCamera(
 
   //camera
 
-  //Geometry
+    //Geometry
 const boxGeometry = new THREE.BoxGeometry();
 const boxMaterial = new THREE.MeshBasicMaterial({color: 0x00ff00})
 const box = new THREE.Mesh(boxGeometry,boxMaterial);
@@ -58,12 +60,14 @@ const sphere = new THREE.Mesh(sphereGeometry,sphereMaterial);
 scene.add(sphere);
 sphere.position.set(-10,10,0);
 sphere.castShadow = true;
-//Geometry
+    //Geometry
 
 //lighting
 
 const ambientLight = new THREE.AmbientLight(0x333333);
 scene.add(ambientLight);
+
+    // Orthographic Lighting
 
 //const directionalLight = new THREE.DirectionalLight(0xFFFFFF,2);
 //scene.add(directionalLight);
@@ -82,19 +86,55 @@ scene.add(ambientLight);
 
 //const directionalLightShadowHelper = new THREE.CameraHelper(directionalLight.shadow.camera);
 //scene.add(directionalLightShadowHelper);
+
 //Helpers , visual helping tool.
 
+    // Orthographic Lighting
 
 
-//lighting
-const spotLight = new THREE.SpotLight(0xFFFFFF,5000);
-scene.add(spotLight);
-spotLight.position.set(-100, 100, 0);
-spotLight.castShadow = true;
-spotLight.angle = 0.15;
 
-const spotLightHelper = new THREE.SpotLightHelper(spotLight);
-scene.add(spotLightHelper);
+    // Cone Lighting (spotlight)
+    const spotLight = new THREE.SpotLight(0xFFFFFF,5000);
+    scene.add(spotLight);
+    spotLight.position.set(-100, 100, 0);
+    spotLight.castShadow = true;
+    spotLight.angle = 0.15;
+    // Cone Lighting (spotlight)
+
+        //SpotLight Helper (draws helping line to visualize the angle of the spotline)
+        const spotLightHelper = new THREE.SpotLightHelper(spotLight);
+        scene.add(spotLightHelper);
+        //SpotLight Helper (draws helping line to visualize the angle of the spotline)
+
+            //Fog
+                scene.fog = new THREE.Fog(0xFFFFFF, 0, 250);
+                
+            //Fog
+            renderer.setClearColor(0xA3D69C)
+
+                //Background (with Image JPG)
+                    //const textureLoader = new THREE.TextureLoader();
+                    //scene.background = textureLoader.load(pandabaas);
+                    
+                    
+        //  const cubeTextureLoader = new THREE.CubeTextureLoader();
+        //  scene.background = cubeTextureLoader.load([
+                       
+            //  img,
+            //  img,
+            //  img,
+            //  img,
+            //  img,
+            //  img
+
+        //    ]);
+
+                //Background (with Image JPG)
+
+    
+
+//Lighting
+
 //Dat.GUI
 
  if (!gui) {
@@ -107,7 +147,7 @@ let options = {
   angle: 0.2,
   penumbra: 0,
   intensity: 5000,
-  positionx: 10,
+  
 };
 
 
@@ -120,10 +160,10 @@ if (!guiInitialized) {
     sphere.material.wireframe = e;
   });
 
-  gui.add(options, 'angle', 0, 1);
-  gui.add(options, 'penumbra', 0, 1);
-  gui.add(options, 'intensity', 0, 10000);
-  gui.add(options, 'positionx', -1000,1000);
+  gui.add(options, 'angle', 0, 1); // angle of light (activate helper too see);
+  gui.add(options, 'penumbra', 0, 1); // Blur;
+  gui.add(options, 'intensity', 0, 10000); // Intensity of light;
+ 
 
   guiInitialized = true;
 }

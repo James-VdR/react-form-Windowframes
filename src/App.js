@@ -2,7 +2,7 @@ import React, { useEffect, useRef } from 'react';
 import './App.css';
 
 import { initThree } from './scripts';
-
+import logo from './Images/reuzenpandalogo.jpg';
 
 function App() {
   const mountRef = useRef(null);
@@ -17,6 +17,7 @@ useEffect(() => {
      return (
     <div className="container">
       <nav className="sidebar">
+        <img src={logo} alt="Logo" className="bottom-image" />
         <h1>Home</h1>
         <ul>
           <li>Section A</li>

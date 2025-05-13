@@ -44,6 +44,14 @@ body, html, #root {
   position: relative;
   overflow: hidden;
 }
+.bottom-image {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100px;
+  height: 100px;
+  object-fit: contain;
+}
 
 .overlay-text {
   position: absolute;
