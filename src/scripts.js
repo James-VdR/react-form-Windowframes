@@ -22,7 +22,7 @@ export function initThree(container) {
 
         const scene = new THREE.Scene();
 
-  //camera
+    //camera
         const camera = new THREE.PerspectiveCamera(
         45, 
         width / 
@@ -32,17 +32,17 @@ export function initThree(container) {
 
         //Rotate around object
         const orbit = new OrbitControls(camera, renderer.domElement)
+        
+        //Starting position for camera
         camera.position.set (-10,30,30);
+        //Starting position for camera
+
         orbit.update();
         //Rotate around object
 
-  //camera
+    //camera
 
     //Geometry
-const boxGeometry = new THREE.BoxGeometry();
-const boxMaterial = new THREE.MeshBasicMaterial({color: 0x00ff00})
-const box = new THREE.Mesh(boxGeometry,boxMaterial);
-scene.add(box);
 
 const planeGeometry = new THREE.PlaneGeometry(30,30);
 const planeMaterial = new THREE.MeshStandardMaterial({
@@ -144,24 +144,29 @@ let options = {
 
 
 if (!guiInitialized) {
-  gui.addColor(options, 'sphereColor').onChange((e) => {
+  const sphereFolder = gui.addFolder('Sphere');
+  sphereFolder.addColor(options, 'sphereColor').onChange((e) => {
     sphere.material.color.set(e);
   });
 
-  gui.add(options, 'wireframe').onChange((e) => {
+  sphereFolder.add(options, 'wireframe').onChange((e) => {
     sphere.material.wireframe = e;
   });
+ 
+    sphereFolder.add(options, 'sphereX',-30,30).step(0.01).name('X');
+    sphereFolder.add(options, 'sphereY',-30,30).step(0.01).name('Y');
+    sphereFolder.add(options, 'sphereZ',-30,30).step(0.01).name('Z');
+  sphereFolder.close();
 
-  gui.add(options, 'angle', 0, 1); // angle of light (activate helper too see);
-  gui.add(options, 'penumbra', 0, 1); // Blur;
-  gui.add(options, 'intensity', 0, 10000); // Intensity of light;
-  gui.add(options, 'sphereX', -30, 30).step(0.01).name ('Sphere X');
-  gui.add(options, 'sphereY', -30 ,30).step(0.01).name ('Sphere Y');
-  gui.add(options, 'sphereZ', -30, 30).step(0.01).name ('Sphere Z');
-
-
+  const lightingFolder = gui.addFolder('Lighting');
+    lightingFolder.add(options, 'angle', 0, 1); // angle of light (activate helper too see);
+    lightingFolder.add(options, 'penumbra', 0, 1); // Blur;
+    lightingFolder.add(options, 'intensity', 0, 10000); // Intensity of light;
+  lightingFolder.close();
   guiInitialized = true;
 }
+
+
 //lil.GUI
 
 
