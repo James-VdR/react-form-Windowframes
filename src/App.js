@@ -11,6 +11,7 @@ useEffect(() => {
   if (mountRef.current) {
     initThree(mountRef.current);
   }
+
 }, []);
 
      return (
