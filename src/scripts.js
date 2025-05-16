@@ -47,7 +47,7 @@ export function initThree(container) {
     model.position.sub(center); // center it around origin
 
     const windowFrameMeshes = [];
-
+    
     const materialLibrary = {
     Wood: null,
     Metal: null,
@@ -84,11 +84,11 @@ export function initThree(container) {
     color: 0xffffff,
     metalness: 0,
     roughness: 0.5,
-    transmission: 0.1,       // Enables real glass transparency
+    transmission: 0.1,       // Enables transparency
     thickness: 1,        // Thickness of the glass
     transparent: true,
     opacity: 0.5,
-    side: THREE.DoubleSide, // Optional: ensure both sides are rendered
+    side: THREE.DoubleSide, //Both sides are rendered.
     
   });
 }
