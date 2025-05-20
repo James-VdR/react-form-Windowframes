@@ -110,15 +110,16 @@ model.traverse((child) => {
     const name = child.name?.toLowerCase();
 
     // Dynamic zone assignment based on name
-    if (name.includes('glass')) {
+   if (name.includes('glass')) {
       applyGlassMaterial(child);
       return;
-    }
+   }
 
     const zoneName =  name.includes('window_frame_inside') ? 'frameInside' :
                       name.includes('inside') ? 'inside' :
                       name.includes('outside') ? 'outside' :
                       name.includes('frame') ? 'frame' :
+                      name.includes('glass') ? 'glass':
                       'misc';
 
     if (!zones[zoneName]) zones[zoneName] = [];
@@ -144,7 +145,7 @@ function setupDynamicGUI(zones, scaleParams, pivotGroup) {
     gui.destroy(); // Destroys and cleans the old GUI
   }
   gui = new GUI(); // New GUI instance
-  
+
   const materialNames = Object.keys(materialLibrary);
   if (materialNames.length === 0) {
     console.warn('No materials found to show in GUI.');
@@ -156,6 +157,7 @@ function setupDynamicGUI(zones, scaleParams, pivotGroup) {
     outside: { allowColorChange: true },
     frame: { allowColorChange: true, allowResize: true },
     frameInside: { allowColorChange: true },
+    glass: {allowColorChange: true},
     misc: { allowColorChange: true }
   };
 
@@ -197,18 +199,23 @@ function setupDynamicGUI(zones, scaleParams, pivotGroup) {
 function updateCameraDistance(objectGroup) {
   const size = new THREE.Vector3();
   new THREE.Box3().setFromObject(objectGroup).getSize(size);
-
-  const distance = Math.max(size.x, size.y, size.z) * 1.2 + 2;
-
-  camera.position.set(0, size.y * 1.5, distance);
   const center = new THREE.Vector3();
   new THREE.Box3().setFromObject(objectGroup).getCenter(center);
+
+  const desiredDistance = Math.max(size.x, size.y, size.z) * 1.2 + 2;
+
+  // Get current direction vector from camera to target
+  const direction = new THREE.Vector3();
+  direction.subVectors(camera.position, controls.target).normalize();
+
+  // New camera position = target + direction * desiredDistance
+  const newPosition = new THREE.Vector3().addVectors(center, direction.multiplyScalar(desiredDistance));
+  camera.position.copy(newPosition);
+
   controls.target.copy(center);
   controls.update();
-
-
-  if (controls) controls.update();
 }
+
 
 export function initThree(container, modelPath = '/models/Window_Frame.glb') {
   //  Remove any existing canvas elements to prevent duplicates
