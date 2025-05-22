@@ -3,36 +3,55 @@ import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { GUI } from 'lil-gui';
 
+let scene;
 let gui;
 let camera, controls;
+let modelSwitcher = { model: 'Window_Frame.glb' };
+let currentModelPath = '/models/Window_Frame.glb';
+let scaleParams = { Height: 1, Width: 1, Thickness: 0.35 };
 const materialLibrary = {};
+const modelOptions = ['Window_Frame.glb', 'Window_Frame_Cross.glb'];
+
+function getZoneNameFromMesh(name) {
+  const lname = name.toLowerCase();
+  if (lname.includes('outside') && lname.includes('frame')) return 'outside';
+  if (lname.includes('frame') && lname.includes('inside')) return 'frameInside';
+  if (lname.includes('frame')) return 'frame';
+  if (lname.includes('glass')) return 'glass';
+  if (lname.includes('inside')) return 'inside';
+  if (lname.includes('outside')) return 'outside';
+  return 'misc';
+}
+
+const zoneBehaviors = {
+  frame: { resizeStrategy: 'frame', allowResize: true, allowColorChange: true },
+  frameInside: { resizeStrategy: 'frame', allowColorChange: true },
+  glass: { resizeStrategy: 'uniform' },
+  inside: { allowColorChange: true },
+  outside: { resizeStrategy: 'frame', allowColorChange: true },
+  misc: { allowColorChange: true },
+};
+
+function resizeZoneParts(meshes, scaleParams, strategy) {
+  if (strategy === 'frame') resizeFrameParts(meshes, scaleParams);
+  else if (strategy === 'uniform') resizeUniformParts(meshes, scaleParams);
+}
 
 function loadMaterialLibrary(glbPath = '/models/Materials.glb', onComplete) {
   const loader = new GLTFLoader();
-
   loader.load(glbPath, (gltf) => {
-    const root = gltf.scene;
-    if (!root || typeof root.traverse !== 'function') {
-      console.warn('Invalid .scene in material GLB.');
-      if (onComplete) onComplete();
-      return;
-    }
-
-    root.traverse((child) => {
+    gltf.scene.traverse((child) => {
       if (child.isMesh && child.material) {
         const materials = Array.isArray(child.material) ? child.material : [child.material];
         materials.forEach((mat) => {
           const name = mat.name?.trim();
-          if (name && !materialLibrary[name]) {
-            materialLibrary[name] = mat.clone();
-          }
+          if (name && !materialLibrary[name]) materialLibrary[name] = mat.clone();
         });
       }
     });
-
     if (onComplete) onComplete();
-  }, undefined, (error) => {
-    console.error('Material load error:', error);
+  }, undefined, (err) => {
+    console.error('Material load error:', err);
     if (onComplete) onComplete();
   });
 }
@@ -43,7 +62,7 @@ function applyGlassMaterial(mesh) {
     metalness: 0,
     roughness: 0.5,
     transmission: 0.1,
-    thickness: 1,
+    thickness: 0.35,
     transparent: true,
     opacity: 0.5,
     side: THREE.DoubleSide,
@@ -53,38 +72,29 @@ function applyGlassMaterial(mesh) {
 function resizeFrameParts(meshes, scaleParams) {
   meshes.forEach(mesh => {
     const name = mesh.name.toLowerCase();
-
     if (!mesh.userData.originalScale || !mesh.userData.originalPosition) {
       mesh.userData.originalScale = mesh.scale.clone();
       mesh.userData.originalPosition = mesh.position.clone();
     }
-
     const origScale = mesh.userData.originalScale.clone();
     const origPos = mesh.userData.originalPosition.clone();
 
     mesh.scale.copy(origScale);
     mesh.position.copy(origPos);
 
-    if (name.includes('left') || name.includes('right')) {
+    if (name.includes('left') || name.includes('right') || name.includes('middle_y')) {
       mesh.scale.y = origScale.y * scaleParams.Height;
       mesh.position.x = name.includes('left')
         ? origPos.x - ((scaleParams.Width - 1) * origScale.z)
         : origPos.x + ((scaleParams.Width - 1) * origScale.z);
     }
 
-   if (name.includes('top') || name.includes('bottom')) {
-  mesh.scale.x = origScale.x * scaleParams.Width;
-
-  // Scale only position in Y by half the height delta
-  const yOffset = (scaleParams.Height - 1.0) * origScale.y * 0.955;
-
-  mesh.position.y = name.includes('top')
-    ? origPos.y + yOffset
-    : origPos.y - yOffset;
-
-  mesh.scale.y = origScale.y; // maintain original thickness
-}
-
+    if (name.includes('top') || name.includes('bottom') || name.includes('middle_x')) {
+      mesh.scale.x = origScale.x * scaleParams.Width;
+      const yOffset = (scaleParams.Height - 1.0) * origScale.y * 0.955;
+      mesh.position.y = name.includes('top') ? origPos.y + yOffset : origPos.y - yOffset;
+      mesh.scale.y = origScale.y;
+    }
 
     mesh.scale.z = origScale.z * scaleParams.Thickness;
   });
@@ -96,27 +106,16 @@ function resizeUniformParts(meshes, scaleParams) {
       mesh.userData.originalScale = mesh.scale.clone();
       mesh.userData.originalPosition = mesh.position.clone();
     }
-
     const origScale = mesh.userData.originalScale;
     const origPos = mesh.userData.originalPosition;
-
-    const newScale = new THREE.Vector3(
+    mesh.scale.set(
       origScale.x * scaleParams.Width,
       origScale.y * scaleParams.Height,
       origScale.z * scaleParams.Thickness
     );
-
-    const newPos = new THREE.Vector3(
-      origPos.x, // Keep original X position (avoid drifting)
-      origPos.y, // Same here for Y
-      origPos.z  // Same here for Z
-    );
-
-    mesh.scale.copy(newScale);
-    mesh.position.copy(newPos);
+    mesh.position.copy(origPos);
   });
 }
-
 
 function loadWindowModel(scene, modelPath, scaleParams) {
   const loader = new GLTFLoader();
@@ -126,6 +125,9 @@ function loadWindowModel(scene, modelPath, scaleParams) {
     const center = new THREE.Vector3();
     box.getCenter(center);
     model.position.sub(center);
+
+    const oldPivots = scene.children.filter(c => c.type === 'Group');
+    oldPivots.forEach(obj => scene.remove(obj));
 
     const pivotGroup = new THREE.Group();
     pivotGroup.add(model);
@@ -137,20 +139,16 @@ function loadWindowModel(scene, modelPath, scaleParams) {
     const zones = {};
     model.traverse((child) => {
       if (child.isMesh && child.material) {
-        const name = child.name?.toLowerCase();
-        if (name.includes('glass')) {
-          applyGlassMaterial(child);
-        }
-
+        if (child.name.toLowerCase().includes('glass')) applyGlassMaterial(child);
         child.userData.originalScale = child.scale.clone();
         child.userData.originalPosition = child.position.clone();
 
-        const zoneName = name.includes('window_frame_inside') ? 'frameInside' :
-                         name.includes('inside') ? 'inside' :
-                         name.includes('outside') ? 'outside' :
-                         name.includes('frame') ? 'frame' :
-                         name.includes('glass')? 'glass':
-                         'misc';
+        const zoneName = getZoneNameFromMesh(child.name);
+
+        // Debug log for unknown zone mappings
+        if (!zoneBehaviors[zoneName]) {
+          console.warn(`Unknown zone name: ${child.name} → mapped to "${zoneName}"`);
+        }
 
         if (!zones[zoneName]) zones[zoneName] = [];
         zones[zoneName].push(child);
@@ -163,57 +161,47 @@ function loadWindowModel(scene, modelPath, scaleParams) {
 }
 
 function setupDynamicGUI(zones, scaleParams, pivotGroup) {
+  const guiWrapper = document.getElementById('gui-wrapper');
   if (gui) gui.destroy();
-  gui = new GUI();
+  gui = new GUI({ width: 250, autoPlace: false });
+  guiWrapper.appendChild(gui.domElement);
 
   const materialNames = Object.keys(materialLibrary);
   if (materialNames.length === 0) return;
 
-  const zoneConfig = {
-    inside: { allowColorChange: true },
-    outside: { allowColorChange: true },
-    frame: { allowColorChange: true, allowResize: true },
-    frameInside: { allowColorChange: true, },
-    glass: {},
-    misc: {}
-  };
-
   Object.entries(zones).forEach(([zoneName, meshes]) => {
-    if (!meshes.length) return;
-
-    const config = zoneConfig[zoneName] || {};
+    const config = zoneBehaviors[zoneName] || {};
     const folder = gui.addFolder(`${zoneName.toUpperCase()} Settings`);
-
     if (config.allowColorChange) {
       const params = { material: materialNames[0] };
       folder.add(params, 'material', materialNames).onChange((selected) => {
-        meshes.forEach((mesh) => {
-          mesh.material = materialLibrary[selected];
-        });
+        meshes.forEach(mesh => mesh.material = materialLibrary[selected]);
       });
     }
-
     if (config.allowResize) {
-      folder.add(scaleParams, 'Height', 1, 3).step(0.01).onChange(() => {
-        resizeFrameParts(zones.frame, scaleParams);
-        resizeFrameParts(zones.frameInside || [], scaleParams);
-        resizeUniformParts(zones.glass || [], scaleParams);
-        updateCameraDistance(pivotGroup);
-      });
-      folder.add(scaleParams, 'Width', 1, 4).step(0.01).onChange(() => {
-        resizeFrameParts(zones.frame, scaleParams);
-        resizeFrameParts(zones.frameInside || [], scaleParams);
-        resizeUniformParts(zones.glass || [], scaleParams);
-        updateCameraDistance(pivotGroup);
-      });
-      folder.add(scaleParams, 'Thickness', 0.35, 1).step(0.01).onChange(() => {
-        resizeFrameParts(zones.frame, scaleParams);
-        resizeFrameParts(zones.frameInside || [], scaleParams);
-        resizeUniformParts(zones.glass || [], scaleParams);
-        updateCameraDistance(pivotGroup);
-      });
-    }
+        ['Height', 'Width', 'Thickness'].forEach(param => {
+        let min = 1;
+        let max = 3;
 
+    if (param === 'Thickness') {
+        min = 0.35;
+        max = 0.90;
+  } else if (param === 'Width') {
+        max = 4;
+  }
+
+  folder.add(scaleParams, param, min, max)
+    .step(0.01)
+    .onChange(() => {
+      Object.entries(zones).forEach(([zn, zMeshes]) => {
+        const strategy = zoneBehaviors[zn]?.resizeStrategy;
+        if (strategy) resizeZoneParts(zMeshes, scaleParams, strategy);
+      });
+      updateCameraDistance(pivotGroup);
+    });
+});
+
+    }
     folder.open();
   });
 }
@@ -232,6 +220,16 @@ function updateCameraDistance(objectGroup) {
   controls.update();
 }
 
+function reloadModel(path) {
+  if (gui) {
+    gui.destroy();
+    gui = null;
+  }
+  const pivotGroups = scene.children.filter(child => child.type === 'Group');
+  pivotGroups.forEach(obj => scene.remove(obj));
+  loadWindowModel(scene, path, scaleParams);
+}
+
 export function initThree(container, modelPath = '/models/Window_Frame.glb') {
   while (container.firstChild) container.removeChild(container.firstChild);
 
@@ -244,7 +242,8 @@ export function initThree(container, modelPath = '/models/Window_Frame.glb') {
   container.appendChild(renderer.domElement);
   renderer.setClearColor(0xa3d69c);
 
-  const scene = new THREE.Scene();
+  scene = new THREE.Scene();
+
   camera = new THREE.PerspectiveCamera(50, width / height, 0.1, 1000);
   camera.position.set(0, 5, 10);
 
@@ -276,10 +275,30 @@ export function initThree(container, modelPath = '/models/Window_Frame.glb') {
   ground.receiveShadow = true;
   scene.add(ground);
 
-  const scaleParams = { Height: 1, Width: 1, Thickness: 1 };
-  loadMaterialLibrary('/models/Materials.glb', () => {
-    loadWindowModel(scene, modelPath, scaleParams);
-  });
+  const guiWrapper = document.createElement('div');
+  guiWrapper.id = 'gui-wrapper';
+  guiWrapper.style.position = 'absolute';
+  guiWrapper.style.top = '0';
+  guiWrapper.style.right = '0';
+  guiWrapper.style.display = 'flex';
+  guiWrapper.style.flexDirection = 'row';
+  document.body.appendChild(guiWrapper);
+
+  const switcherGUI = new GUI({ width: 200, autoPlace: false });
+  guiWrapper.appendChild(switcherGUI.domElement);
+
+  const modelFolder = switcherGUI.addFolder('MODEL SWITCHER');
+  modelFolder
+    .add(modelSwitcher, 'model', modelOptions)
+    .name('Select Model')
+    .onChange((value) => {
+      modelSwitcher.model = value;
+      currentModelPath = `/models/${value}`;
+      reloadModel(currentModelPath);
+    });
+  modelFolder.open();
+
+  loadMaterialLibrary('/models/Materials.glb', () => reloadModel(currentModelPath));
 
   function animate() {
     renderer.render(scene, camera);

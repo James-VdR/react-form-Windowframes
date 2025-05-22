@@ -1,3 +1,44 @@
+# Prefixed-based Grouping
+when modeling a new model in blender make sure to use the naming guide lines provided, currently the code will detect the following, Frame , Inside , Outside , Glass.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 # Getting Started with Create React App
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
