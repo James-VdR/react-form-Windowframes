@@ -1,3 +1,5 @@
+
+
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
@@ -12,6 +14,17 @@ let scaleParams = { Height: 1, Width: 1, Thickness: 0.35 };
 const materialLibrary = {};
 const modelOptions = ['Window_Frame.glb', 'Window_Frame_Cross.glb'];
 
+
+
+const zoneBehaviors = {
+  frame: { resizeStrategy: 'frame', allowResize: true, allowColorChange: true },
+  frameInside: { resizeStrategy: 'frame', allowColorChange: true },
+  glass: { resizeStrategy: 'uniform' },
+  inside: { allowColorChange: true },
+  outside: { resizeStrategy: 'frame', allowColorChange: true },
+  misc: { allowColorChange: true },
+};
+
 function getZoneNameFromMesh(name) {
   const lname = name.toLowerCase();
   if (lname.includes('outside') && lname.includes('frame')) return 'outside';
@@ -23,19 +36,52 @@ function getZoneNameFromMesh(name) {
   return 'misc';
 }
 
-const zoneBehaviors = {
-  frame: { resizeStrategy: 'frame', allowResize: true, allowColorChange: true },
-  frameInside: { resizeStrategy: 'frame', allowColorChange: true },
-  glass: { resizeStrategy: 'uniform' },
-  inside: { allowColorChange: true },
-  outside: { resizeStrategy: 'frame', allowColorChange: true },
-  misc: { allowColorChange: true },
-};
-
 function resizeZoneParts(meshes, scaleParams, strategy) {
-  if (strategy === 'frame') resizeFrameParts(meshes, scaleParams);
-  else if (strategy === 'uniform') resizeUniformParts(meshes, scaleParams);
+  resizeFrameParts(meshes, scaleParams); // Apply anchor-based resizing to all
 }
+
+
+function resizeFrameParts(meshes, scaleParams) {
+  const heightAnchor = meshes.find(m => m.name.toLowerCase() === 'bottom_frame');
+  if (!heightAnchor) {
+    console.warn("Bottom anchor mesh not found");
+    return;
+  }
+
+  meshes.forEach(mesh => {
+    const lname = mesh.name.toLowerCase();
+    const origScale = mesh.userData.originalScale;
+    const origPos = mesh.userData.originalPosition;
+
+    // Reset
+    mesh.scale.copy(origScale);
+    mesh.position.copy(origPos);
+
+    const scaleY = scaleParams.Height;
+    const deltaY = origScale.y * (scaleY - 1);
+
+    if (lname === 'bottom_frame') {
+      // Keep locked
+      return;
+    }
+
+    // Scale UP from bottom
+    if (lname === 'left_frame' || lname === 'right_frame') {
+      mesh.scale.y = origScale.y * scaleY;
+      mesh.position.y = heightAnchor.userData.originalPosition.y + (mesh.scale.y / 2);
+
+
+    }
+
+    if (lname === 'top_frame') {
+      mesh.position.y = origPos.y + deltaY; // ✅ just move it up
+    }
+  });
+}
+
+
+
+
 
 function loadMaterialLibrary(glbPath = '/models/Materials.glb', onComplete) {
   const loader = new GLTFLoader();
@@ -44,7 +90,7 @@ function loadMaterialLibrary(glbPath = '/models/Materials.glb', onComplete) {
       if (child.isMesh && child.material) {
         const materials = Array.isArray(child.material) ? child.material : [child.material];
         materials.forEach((mat) => {
-          const name = mat.name?.trim();
+          const name = mat.name?.trim().toLowerCase();
           if (name && !materialLibrary[name]) materialLibrary[name] = mat.clone();
         });
       }
@@ -66,54 +112,6 @@ function applyGlassMaterial(mesh) {
     transparent: true,
     opacity: 0.5,
     side: THREE.DoubleSide,
-  });
-}
-
-function resizeFrameParts(meshes, scaleParams) {
-  meshes.forEach(mesh => {
-    const name = mesh.name.toLowerCase();
-    if (!mesh.userData.originalScale || !mesh.userData.originalPosition) {
-      mesh.userData.originalScale = mesh.scale.clone();
-      mesh.userData.originalPosition = mesh.position.clone();
-    }
-    const origScale = mesh.userData.originalScale.clone();
-    const origPos = mesh.userData.originalPosition.clone();
-
-    mesh.scale.copy(origScale);
-    mesh.position.copy(origPos);
-
-    if (name.includes('left') || name.includes('right') || name.includes('middle_y')) {
-      mesh.scale.y = origScale.y * scaleParams.Height;
-      mesh.position.x = name.includes('left')
-        ? origPos.x - ((scaleParams.Width - 1) * origScale.z)
-        : origPos.x + ((scaleParams.Width - 1) * origScale.z);
-    }
-
-    if (name.includes('top') || name.includes('bottom') || name.includes('middle_x')) {
-      mesh.scale.x = origScale.x * scaleParams.Width;
-      const yOffset = (scaleParams.Height - 1.0) * origScale.y * 0.955;
-      mesh.position.y = name.includes('top') ? origPos.y + yOffset : origPos.y - yOffset;
-      mesh.scale.y = origScale.y;
-    }
-
-    mesh.scale.z = origScale.z * scaleParams.Thickness;
-  });
-}
-
-function resizeUniformParts(meshes, scaleParams) {
-  meshes.forEach(mesh => {
-    if (!mesh.userData.originalScale || !mesh.userData.originalPosition) {
-      mesh.userData.originalScale = mesh.scale.clone();
-      mesh.userData.originalPosition = mesh.position.clone();
-    }
-    const origScale = mesh.userData.originalScale;
-    const origPos = mesh.userData.originalPosition;
-    mesh.scale.set(
-      origScale.x * scaleParams.Width,
-      origScale.y * scaleParams.Height,
-      origScale.z * scaleParams.Thickness
-    );
-    mesh.position.copy(origPos);
   });
 }
 
@@ -144,8 +142,8 @@ function loadWindowModel(scene, modelPath, scaleParams) {
         child.userData.originalPosition = child.position.clone();
 
         const zoneName = getZoneNameFromMesh(child.name);
+        console.log(`Assigning "${child.name}" to zone "${zoneName}"`);
 
-        // Debug log for unknown zone mappings
         if (!zoneBehaviors[zoneName]) {
           console.warn(`Unknown zone name: ${child.name} → mapped to "${zoneName}"`);
         }
@@ -179,28 +177,25 @@ function setupDynamicGUI(zones, scaleParams, pivotGroup) {
       });
     }
     if (config.allowResize) {
-        ['Height', 'Width', 'Thickness'].forEach(param => {
+      ['Height', 'Width', 'Thickness'].forEach(param => {
         let min = 1;
         let max = 3;
-
-    if (param === 'Thickness') {
-        min = 0.35;
-        max = 0.90;
-  } else if (param === 'Width') {
-        max = 4;
-  }
-
-  folder.add(scaleParams, param, min, max)
-    .step(0.01)
-    .onChange(() => {
-      Object.entries(zones).forEach(([zn, zMeshes]) => {
-        const strategy = zoneBehaviors[zn]?.resizeStrategy;
-        if (strategy) resizeZoneParts(zMeshes, scaleParams, strategy);
+        if (param === 'Thickness') {
+          min = 0.35;
+          max = 0.90;
+        } else if (param === 'Width') {
+          max = 4;
+        }
+        folder.add(scaleParams, param, min, max)
+          .step(0.01)
+          .onChange(() => {
+            Object.entries(zones).forEach(([zn, zMeshes]) => {
+              const strategy = zoneBehaviors[zn]?.resizeStrategy;
+              if (strategy) resizeZoneParts(zMeshes, scaleParams, strategy);
+            });
+            updateCameraDistance(pivotGroup);
+          });
       });
-      updateCameraDistance(pivotGroup);
-    });
-});
-
     }
     folder.open();
   });
