@@ -12,6 +12,7 @@ let scaleParams = { Height: 1, Width: 1, Thickness: 0.35 };
 const materialLibrary = {};
 const modelOptions = ['Window_Frame.glb', 'Window_Frame_Cross.glb'];
 
+
 function getZoneNameFromMesh(name) {
   const lname = name.toLowerCase();
   if (lname.includes('outside') && lname.includes('frame')) return 'outside';
@@ -72,33 +73,55 @@ function applyGlassMaterial(mesh) {
 function resizeFrameParts(meshes, scaleParams) {
   meshes.forEach(mesh => {
     const name = mesh.name.toLowerCase();
+
     if (!mesh.userData.originalScale || !mesh.userData.originalPosition) {
       mesh.userData.originalScale = mesh.scale.clone();
       mesh.userData.originalPosition = mesh.position.clone();
     }
-    const origScale = mesh.userData.originalScale.clone();
-    const origPos = mesh.userData.originalPosition.clone();
+
+    const origScale = mesh.userData.originalScale;
+    const origPos = mesh.userData.originalPosition;
 
     mesh.scale.copy(origScale);
     mesh.position.copy(origPos);
 
+    const deltaHeight = scaleParams.Height - 1.0;
+
+    // Compensation to pull Left/Right down a bit on scale up
+    const correctionOffset = -deltaHeight * 0.20; // 
+
     if (name.includes('left') || name.includes('right') || name.includes('middle_y')) {
       mesh.scale.y = origScale.y * scaleParams.Height;
-      mesh.position.x = name.includes('left')
-        ? origPos.x - ((scaleParams.Width - 1) * origScale.z)
-        : origPos.x + ((scaleParams.Width - 1) * origScale.z);
+
+      // Shift DOWN slightly to compensate scaling gap
+      mesh.position.y = origPos.y + correctionOffset;
+
+      if (name.includes('right')) {
+        const deltaWidth = scaleParams.Width - 1.0;
+        const correctionOffsetX = deltaWidth * 1; // same logic as height
+        mesh.position.x = origPos.x + deltaWidth * origScale.z + correctionOffsetX;
+      }
+
     }
 
-    if (name.includes('top') || name.includes('bottom') || name.includes('middle_x')) {
+    if (name.includes('top') || name.includes('middle_x')) {
+  mesh.scale.x = origScale.x * scaleParams.Width;
+
+  const correctionOffset = deltaHeight * 0.90;
+  mesh.position.y = origPos.y + deltaHeight * origScale.y + correctionOffset;
+}
+
+
+    if (name.includes('bottom')) {
       mesh.scale.x = origScale.x * scaleParams.Width;
-      const yOffset = (scaleParams.Height - 1.0) * origScale.y * 0.955;
-      mesh.position.y = name.includes('top') ? origPos.y + yOffset : origPos.y - yOffset;
-      mesh.scale.y = origScale.y;
+      mesh.position.y = origPos.y;
     }
 
     mesh.scale.z = origScale.z * scaleParams.Thickness;
   });
 }
+
+
 
 function resizeUniformParts(meshes, scaleParams) {
   meshes.forEach(mesh => {
@@ -106,16 +129,34 @@ function resizeUniformParts(meshes, scaleParams) {
       mesh.userData.originalScale = mesh.scale.clone();
       mesh.userData.originalPosition = mesh.position.clone();
     }
+
     const origScale = mesh.userData.originalScale;
     const origPos = mesh.userData.originalPosition;
+
+    const deltaHeight = scaleParams.Height - 1.0;
+    const deltaWidth = scaleParams.Width - 1.0;
+
+    const correctionOffsetY = -deltaHeight * 0.20;
+    const correctionOffsetX = -deltaWidth * 0.11;
+
+    // Slightly over-scale width to close the gap on the right
+    const widthCorrectionFactor = 1 + (deltaWidth * 0.03); // tune this
+
     mesh.scale.set(
-      origScale.x * scaleParams.Width,
+      origScale.x * scaleParams.Width * widthCorrectionFactor,
       origScale.y * scaleParams.Height,
       origScale.z * scaleParams.Thickness
     );
-    mesh.position.copy(origPos);
+
+    mesh.position.set(
+      origPos.x + correctionOffsetX,
+      origPos.y + correctionOffsetY,
+      origPos.z
+    );
   });
 }
+
+
 
 function loadWindowModel(scene, modelPath, scaleParams) {
   const loader = new GLTFLoader();
@@ -172,39 +213,165 @@ function setupDynamicGUI(zones, scaleParams, pivotGroup) {
   Object.entries(zones).forEach(([zoneName, meshes]) => {
     const config = zoneBehaviors[zoneName] || {};
     const folder = gui.addFolder(`${zoneName.toUpperCase()} Settings`);
-    if (config.allowColorChange) {
-      const params = { material: materialNames[0] };
-      folder.add(params, 'material', materialNames).onChange((selected) => {
-        meshes.forEach(mesh => mesh.material = materialLibrary[selected]);
-      });
-    }
-    if (config.allowResize) {
-        ['Height', 'Width', 'Thickness'].forEach(param => {
-        let min = 1;
-        let max = 3;
-
-    if (param === 'Thickness') {
-        min = 0.35;
-        max = 0.90;
-  } else if (param === 'Width') {
-        max = 4;
-  }
-
-  folder.add(scaleParams, param, min, max)
-    .step(0.01)
-    .onChange(() => {
-      Object.entries(zones).forEach(([zn, zMeshes]) => {
-        const strategy = zoneBehaviors[zn]?.resizeStrategy;
-        if (strategy) resizeZoneParts(zMeshes, scaleParams, strategy);
-      });
-      updateCameraDistance(pivotGroup);
+    
+   if (config.allowColorChange) {
+  const params = { material: materialNames[0] };
+  folder.add(params, 'material', materialNames).onChange((selected) => {
+    meshes.forEach(mesh => {
+      mesh.material = materialLibrary[selected];
     });
-});
 
+    // ✅ Update modular clones if the OUTSIDE material is changed
+    if (zoneName === 'outside') {
+      pivotGroup.traverse(child => {
+        if (child.userData.isModularClone) {
+          child.material = materialLibrary[selected].clone();
+        }
+      });
     }
-    folder.open();
   });
 }
+
+
+    if (config.allowResize) {
+      ['Height', 'Width', 'Thickness'].forEach(param => {
+        let min = 1, max = 3;
+
+        if (param === 'Thickness') {
+          min = 0.35;
+          max = 0.90;
+        } else if (param === 'Width') {
+          max = 4;
+        }
+
+        folder.add(scaleParams, param, min, max)
+          .step(0.01)
+          .onChange(() => {
+  Object.entries(zones).forEach(([zn, zMeshes]) => {
+    const strategy = zoneBehaviors[zn]?.resizeStrategy;
+    if (strategy) resizeZoneParts(zMeshes, scaleParams, strategy);
+  });
+
+  // REAPPLY CLONES AFTER RESIZE
+  applyModularStacking();
+
+  updateCameraDistance(pivotGroup);
+});
+
+      });
+    }
+
+    folder.open();
+  });
+
+  // -----------------------------
+  // ✅ MODULAR STACKING CONTROLS
+  // -----------------------------
+  const modularParams = {
+    enabled: false,
+    ModuleHeight: 0.33
+  };
+
+  const modularFolder = gui.addFolder('MODULARISE');
+  modularFolder
+    .add(modularParams, 'enabled')
+    .name('Enable Modular Stacking')
+    .onChange(applyModularStacking);
+
+  modularFolder
+    .add(modularParams, 'ModuleHeight', 0.25, 1.5)
+    .step(0.01)
+    .name('Module Height')
+    .onChange(applyModularStacking);
+
+  modularFolder.open();
+
+  function applyModularStacking() {
+  if (!pivotGroup) {
+    console.warn('[ModularStacking] No pivotGroup found.');
+    return;
+  }
+
+  console.log('[ModularStacking] ------------------');
+  console.log('[ModularStacking] Enabled:', modularParams.enabled);
+  console.log('[ModularStacking] ModuleHeight:', modularParams.ModuleHeight);
+
+  // Remove previous clones
+  const toRemove = [];
+  pivotGroup.traverse(child => {
+    if (child.userData.isModularClone) {
+      toRemove.push(child);
+    }
+  });
+  console.log(`[ModularStacking] Removing ${toRemove.length} existing clones.`);
+  toRemove.forEach(child => pivotGroup.remove(child));
+
+  // Find the original mesh
+  let original = null;
+  pivotGroup.traverse(child => {
+    if (child.isMesh && child.name.toLowerCase().includes('outside_frame_middle_x')) {
+      original = child;
+    }
+  });
+
+  if (!original) {
+    console.warn('[ModularStacking] Could not find "outside_frame_middle_x" mesh.');
+    return;
+  }
+
+  // ✅ Toggle visibility of the original
+  original.visible = !modularParams.enabled;
+  
+  if (!modularParams.enabled) {
+    console.log('[ModularStacking] Cloning disabled. Exit.');
+    return;
+  }
+
+  console.log('[ModularStacking] Found:', original.name);
+  console.log('[ModularStacking] Original Y Position:', original.position.y.toFixed(3));
+
+  // Calculate height of the bounding box
+  const boundingBox = new THREE.Box3().setFromObject(pivotGroup);
+  const height = boundingBox.max.y - boundingBox.min.y;
+  console.log('[ModularStacking] Model Height:', height.toFixed(3));
+
+  const count = Math.floor(height / modularParams.ModuleHeight);
+  console.log('[ModularStacking] Clone Count:', count);
+
+  let lastY = original.position.y;
+
+  for (let i = 1; i <= count; i++) {
+    const clone = original.clone();
+    clone.name = `outside_frame_middle_x_Clone_${i}`;
+    clone.userData.isModularClone = true;
+
+    clone.geometry = clone.geometry.clone();
+    clone.material = Array.isArray(clone.material)
+      ? clone.material.map(m => m.clone())
+      : clone.material.clone();
+
+    // Use world position of original
+const worldPos = new THREE.Vector3();
+original.getWorldPosition(worldPos);
+
+// Convert world position to local position relative to pivotGroup
+pivotGroup.worldToLocal(worldPos);
+worldPos.y = lastY - modularParams.ModuleHeight;
+clone.position.copy(worldPos);
+
+    clone.visible = modularParams.enabled;
+    pivotGroup.add(clone);
+    console.log(`[ModularStacking] Clone ${i} → Y: ${clone.position.y.toFixed(3)}`);
+    lastY = clone.position.y;
+  }
+
+  updateCameraDistance(pivotGroup);
+  console.log('[ModularStacking] Done.\n');
+}
+
+
+}
+
 
 function updateCameraDistance(objectGroup) {
   const size = new THREE.Vector3();
