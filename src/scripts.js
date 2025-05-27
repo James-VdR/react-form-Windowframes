@@ -223,7 +223,7 @@ function setupDynamicGUI(zones, scaleParams, pivotGroup) {
       mesh.material = materialLibrary[selected];
     });
 
-    // ✅ Update modular clones if the OUTSIDE material is changed
+    // Update modular clones if the OUTSIDE material is changed
     if (zoneName === 'outside') {
       pivotGroup.traverse(child => {
         if (child.userData.isModularClone) {
@@ -271,7 +271,7 @@ function setupDynamicGUI(zones, scaleParams, pivotGroup) {
   });
 
   // -----------------------------
-  // ✅ MODULAR STACKING CONTROLS
+  // MODULAR STACKING CONTROLS
   // -----------------------------
   const modularParams = {
   enabledHeight: false,
@@ -413,7 +413,7 @@ if (axis === 'x') {
     original.getWorldPosition(worldPos);
     pivotGroup.worldToLocal(worldPos);
 
-    // ✅ Flip stacking direction for Width (X-axis)
+    // Flip stacking direction for Width (X-axis)
     const direction = (axis === 'x') ? -1 : -1;
     worldPos[axis] = lastPosition + moduleSize * direction;
 
@@ -457,7 +457,7 @@ function stackClonesWidth(original, moduleSize, originReference = null) {
     original.getWorldPosition(worldPos);
     pivotGroup.worldToLocal(worldPos);
 
-    // 🔧 Align clone rightward with precise step
+    // Align clone rightward with precise step
     worldPos.x = startX + i * moduleSize;
 
     clone.position.copy(worldPos);
