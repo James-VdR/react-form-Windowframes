@@ -3,6 +3,7 @@ import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { GUI } from 'lil-gui';
 
+let pivotGroup
 let scene;
 let gui;
 let camera, controls;
@@ -170,7 +171,7 @@ function loadWindowModel(scene, modelPath, scaleParams) {
     const oldPivots = scene.children.filter(c => c.type === 'Group');
     oldPivots.forEach(obj => scene.remove(obj));
 
-    const pivotGroup = new THREE.Group();
+    pivotGroup = new THREE.Group();
     pivotGroup.add(model);
     scene.add(pivotGroup);
 
@@ -213,6 +214,7 @@ function setupDynamicGUI(zones, scaleParams, pivotGroup) {
   Object.entries(zones).forEach(([zoneName, meshes]) => {
     const config = zoneBehaviors[zoneName] || {};
     const folder = gui.addFolder(`${zoneName.toUpperCase()} Settings`);
+
     
    if (config.allowColorChange) {
   const params = { material: materialNames[0] };
@@ -255,6 +257,10 @@ function setupDynamicGUI(zones, scaleParams, pivotGroup) {
   // REAPPLY CLONES AFTER RESIZE
   applyModularStacking();
 
+
+
+  
+
   updateCameraDistance(pivotGroup);
 });
 
@@ -268,33 +274,48 @@ function setupDynamicGUI(zones, scaleParams, pivotGroup) {
   // ✅ MODULAR STACKING CONTROLS
   // -----------------------------
   const modularParams = {
-    enabled: false,
-    ModuleHeight: 0.33
-  };
+  enabledHeight: false,
+  enabledWidth: false,
+  ModuleHeight: 1.15,
+  ModuleWidth: 0.88
+};
 
-  const modularFolder = gui.addFolder('MODULARISE');
+const modularFolder = gui.addFolder('MODULARISE');
+
+// Height stacking controls
   modularFolder
-    .add(modularParams, 'enabled')
-    .name('Enable Modular Stacking')
-    .onChange(applyModularStacking);
+  .add(modularParams, 'enabledHeight')
+  .name('Enable Height Stacking')
+  .onChange(applyModularStacking);
 
   modularFolder
-    .add(modularParams, 'ModuleHeight', 0.25, 1.5)
-    .step(0.01)
-    .name('Module Height')
-    .onChange(applyModularStacking);
+  .add(modularParams, 'ModuleHeight', 0.25, 1.2)
+  .step(0.01)
+  .name('Module Height')
+  .onChange(applyModularStacking);
+
+// Width stacking controls
+  modularFolder
+  .add(modularParams, 'enabledWidth')
+  .name('Enable Width Stacking')
+  .onChange(applyModularStacking);
+
+  modularFolder
+  .add(modularParams, 'ModuleWidth', 0.25, 3.8)
+  .step(0.01)
+  .name('Module Width')
+  .onChange(applyModularStacking);
 
   modularFolder.open();
 
-  function applyModularStacking() {
+
+  modularFolder.open();
+
+function applyModularStacking() {
   if (!pivotGroup) {
     console.warn('[ModularStacking] No pivotGroup found.');
     return;
   }
-
-  console.log('[ModularStacking] ------------------');
-  console.log('[ModularStacking] Enabled:', modularParams.enabled);
-  console.log('[ModularStacking] ModuleHeight:', modularParams.ModuleHeight);
 
   // Remove previous clones
   const toRemove = [];
@@ -303,46 +324,84 @@ function setupDynamicGUI(zones, scaleParams, pivotGroup) {
       toRemove.push(child);
     }
   });
-  console.log(`[ModularStacking] Removing ${toRemove.length} existing clones.`);
   toRemove.forEach(child => pivotGroup.remove(child));
 
-  // Find the original mesh
-  let original = null;
+  // --- HEIGHT STACKING ---
+  const baseMeshY = findMeshByName('outside_frame_middle_x');
+  if (modularParams.enabledHeight) {
+    if (baseMeshY) {
+      stackClones(baseMeshY, 'y', modularParams.ModuleHeight);
+      baseMeshY.visible = false;
+    } else {
+      console.warn('Base mesh for height stacking not found.');
+    }
+  } else {
+    if (baseMeshY) baseMeshY.visible = true; //  Make mesh visible again
+  }
+
+  // --- WIDTH STACKING ---
+  const baseMeshX = findMeshByName('outside_frame_middle_y');
+  const leftRef = findMeshByName('left_frame');
+  if (modularParams.enabledWidth) {
+    if (baseMeshX && leftRef) {
+      stackClonesWidth(baseMeshX, modularParams.ModuleWidth, leftRef);
+      baseMeshX.visible = false;
+    } else {
+      console.warn('Base mesh for width stacking not found.');
+    }
+  } else {
+    if (baseMeshX) baseMeshX.visible = true; // Make mesh visible again
+  }
+
+  updateCameraDistance(pivotGroup);
+}
+
+
+
+}
+
+  function findMeshByName(partialName) {
+  let found = null;
   pivotGroup.traverse(child => {
-    if (child.isMesh && child.name.toLowerCase().includes('outside_frame_middle_x')) {
-      original = child;
+    if (child.isMesh && child.name.toLowerCase().includes(partialName.toLowerCase())) {
+      found = child;
     }
   });
+  return found;
+}
 
-  if (!original) {
-    console.warn('[ModularStacking] Could not find "outside_frame_middle_x" mesh.');
-    return;
-  }
-
-  // ✅ Toggle visibility of the original
-  original.visible = !modularParams.enabled;
-  
-  if (!modularParams.enabled) {
-    console.log('[ModularStacking] Cloning disabled. Exit.');
-    return;
-  }
-
-  console.log('[ModularStacking] Found:', original.name);
-  console.log('[ModularStacking] Original Y Position:', original.position.y.toFixed(3));
-
-  // Calculate height of the bounding box
+function stackClones(original, axis, moduleSize, originReference = null) {
   const boundingBox = new THREE.Box3().setFromObject(pivotGroup);
-  const height = boundingBox.max.y - boundingBox.min.y;
-  console.log('[ModularStacking] Model Height:', height.toFixed(3));
+  const size = boundingBox.getSize(new THREE.Vector3());
+  const totalLength = axis === 'x' ? size.x : size.y;
+  const count = Math.floor(totalLength / moduleSize);
 
-  const count = Math.floor(height / modularParams.ModuleHeight);
-  console.log('[ModularStacking] Clone Count:', count);
+ let lastPosition;
 
-  let lastY = original.position.y;
+// Use Left_Frame as geometric origin if provided
+if (axis === 'x' && originReference) {
+  const originPos = new THREE.Vector3();
+  originReference.getWorldPosition(originPos);
+  pivotGroup.worldToLocal(originPos);
+
+  // Shift slightly forward to center like height stacking (optional tweak)
+  lastPosition = originPos.x + moduleSize * 0.5;
+} else {
+  lastPosition = original.position[axis];
+}
+
+
+// Add offset to start clones slightly inward (for width stacking)
+// Offset entire clone row so it centers relative to original
+if (axis === 'x') {
+  lastPosition -= (count * moduleSize) / 2;
+}
+
+
 
   for (let i = 1; i <= count; i++) {
     const clone = original.clone();
-    clone.name = `outside_frame_middle_x_Clone_${i}`;
+    clone.name = `${original.name}_Clone_${axis.toUpperCase()}_${i}`;
     clone.userData.isModularClone = true;
 
     clone.geometry = clone.geometry.clone();
@@ -350,27 +409,64 @@ function setupDynamicGUI(zones, scaleParams, pivotGroup) {
       ? clone.material.map(m => m.clone())
       : clone.material.clone();
 
-    // Use world position of original
-const worldPos = new THREE.Vector3();
-original.getWorldPosition(worldPos);
+    const worldPos = new THREE.Vector3();
+    original.getWorldPosition(worldPos);
+    pivotGroup.worldToLocal(worldPos);
 
-// Convert world position to local position relative to pivotGroup
-pivotGroup.worldToLocal(worldPos);
-worldPos.y = lastY - modularParams.ModuleHeight;
-clone.position.copy(worldPos);
+    // ✅ Flip stacking direction for Width (X-axis)
+    const direction = (axis === 'x') ? -1 : -1;
+    worldPos[axis] = lastPosition + moduleSize * direction;
 
-    clone.visible = modularParams.enabled;
+    clone.position.copy(worldPos);
+
+    clone.visible = true;
     pivotGroup.add(clone);
-    console.log(`[ModularStacking] Clone ${i} → Y: ${clone.position.y.toFixed(3)}`);
-    lastY = clone.position.y;
+
+    lastPosition = worldPos[axis];
+  }
+}
+
+function stackClonesWidth(original, moduleSize, originReference = null) {
+  const boundingBox = new THREE.Box3().setFromObject(pivotGroup);
+  const size = boundingBox.getSize(new THREE.Vector3());
+  const count = Math.floor(size.x / moduleSize);
+
+  if (!originReference) {
+    console.warn('[stackClonesWidth] No origin reference (left_frame) provided.');
+    return;
   }
 
-  updateCameraDistance(pivotGroup);
-  console.log('[ModularStacking] Done.\n');
+  // Get geometric origin from left_frame
+  const originPos = new THREE.Vector3();
+  originReference.getWorldPosition(originPos);
+  pivotGroup.worldToLocal(originPos);
+
+  let startX = originPos.x - 0.88;; // Start exactly at left_frame
+
+  for (let i = 0; i < count; i++) {
+    const clone = original.clone();
+    clone.name = `${original.name}_Clone_X_${i}`;
+    clone.userData.isModularClone = true;
+
+    clone.geometry = clone.geometry.clone();
+    clone.material = Array.isArray(clone.material)
+      ? clone.material.map(m => m.clone())
+      : clone.material.clone();
+
+    const worldPos = new THREE.Vector3();
+    original.getWorldPosition(worldPos);
+    pivotGroup.worldToLocal(worldPos);
+
+    // 🔧 Align clone rightward with precise step
+    worldPos.x = startX + i * moduleSize;
+
+    clone.position.copy(worldPos);
+    clone.visible = true;
+    pivotGroup.add(clone);
+  }
 }
 
 
-}
 
 
 function updateCameraDistance(objectGroup) {

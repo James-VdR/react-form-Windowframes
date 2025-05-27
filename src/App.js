@@ -9,7 +9,7 @@ function App() {
   const mountRef = useRef(null);
   
   // Optional: State to hold which model you want to load
-  const [modelPath, setModelPath] = useState('/models/Window_Frame.glb');
+  const [modelPath, ] = useState('/models/Window_Frame.glb');
 
   useEffect(() => {
     if (mountRef.current) {
@@ -31,22 +31,6 @@ function App() {
           <li>Section E</li>
           <li>Footer</li>
         </ul>
-        <div style={{ marginTop: '20px' }}>
-  <label htmlFor="upload">Upload GLB Model:</label>
-  <input
-    type="file"
-    id="upload"
-    accept=".glb"
-    onChange={(e) => {
-      const file = e.target.files[0];
-      if (file) {
-        const url = URL.createObjectURL(file);
-        setModelPath(url);
-      }
-    }}
-  />
-</div>
-
       </nav>
 
       <main className="main-content" ref={mountRef} style={{ width: '100%', height: '100vh' }}>
