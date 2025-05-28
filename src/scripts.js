@@ -9,7 +9,8 @@ let gui;
 let camera, controls;
 let modelSwitcher = { model: 'Window_Frame.glb' };
 let currentModelPath = '/models/Window_Frame.glb';
-let scaleParams = { Height: 1, Width: 1, Thickness: 0.35 };
+let scaleParams = { Height: 1, Width: 1, Thickness: 1 };
+let dimensionHelpers = [];
 const materialLibrary = {};
 const modelOptions = ['Window_Frame.glb', 'Window_Frame_Cross.glb'];
 
@@ -28,7 +29,7 @@ function getZoneNameFromMesh(name) {
 const zoneBehaviors = {
   frame: { resizeStrategy: 'frame', allowResize: true, allowColorChange: true },
   frameInside: { resizeStrategy: 'frame', allowColorChange: true },
-  glass: { resizeStrategy: 'uniform' },
+  glass: { resizeStrategy: 'uniform', allowColorChange: true },
   inside: { allowColorChange: true },
   outside: { resizeStrategy: 'frame', allowColorChange: true },
   misc: { allowColorChange: true },
@@ -64,7 +65,7 @@ function applyGlassMaterial(mesh) {
     metalness: 0,
     roughness: 0.5,
     transmission: 0.1,
-    thickness: 0.35,
+    thickness: 1,
     transparent: true,
     opacity: 0.5,
     side: THREE.DoubleSide,
@@ -186,6 +187,7 @@ function loadWindowModel(scene, modelPath, scaleParams) {
         child.userData.originalPosition = child.position.clone();
 
         const zoneName = getZoneNameFromMesh(child.name);
+        console.log('[Mesh Found]', child.name);
 
         // Debug log for unknown zone mappings
         if (!zoneBehaviors[zoneName]) {
@@ -199,6 +201,9 @@ function loadWindowModel(scene, modelPath, scaleParams) {
 
     setupDynamicGUI(zones, scaleParams, pivotGroup);
     updateCameraDistance(pivotGroup);
+    showDimensionLines(); // ← Show lines immediately
+
+    
   });
 }
 
@@ -237,17 +242,17 @@ function setupDynamicGUI(zones, scaleParams, pivotGroup) {
 
     if (config.allowResize) {
       ['Height', 'Width', 'Thickness'].forEach(param => {
-        let min = 1, max = 3;
+        let min = 1, max = 2.999;
 
         if (param === 'Thickness') {
-          min = 0.35;
-          max = 0.90;
+          min = 1;
+          max = 1;
         } else if (param === 'Width') {
           max = 4;
         }
 
         folder.add(scaleParams, param, min, max)
-          .step(0.01)
+          .step(0.001)
           .onChange(() => {
   Object.entries(zones).forEach(([zn, zMeshes]) => {
     const strategy = zoneBehaviors[zn]?.resizeStrategy;
@@ -290,7 +295,7 @@ const modularFolder = gui.addFolder('MODULARISE');
 
   modularFolder
   .add(modularParams, 'ModuleHeight', 0.25, 1.2)
-  .step(0.01)
+  .step(0.001)
   .name('Module Height')
   .onChange(applyModularStacking);
 
@@ -302,14 +307,12 @@ const modularFolder = gui.addFolder('MODULARISE');
 
   modularFolder
   .add(modularParams, 'ModuleWidth', 0.25, 3.8)
-  .step(0.01)
+  .step(0.001)
   .name('Module Width')
   .onChange(applyModularStacking);
 
   modularFolder.open();
 
-
-  modularFolder.open();
 
 function applyModularStacking() {
   if (!pivotGroup) {
@@ -325,6 +328,11 @@ function applyModularStacking() {
     }
   });
   toRemove.forEach(child => pivotGroup.remove(child));
+
+    // Remove previous dimension helpers
+  dimensionHelpers.forEach(obj => pivotGroup.remove(obj));
+  dimensionHelpers = [];
+
 
   // --- HEIGHT STACKING ---
   const baseMeshY = findMeshByName('outside_frame_middle_x');
@@ -353,6 +361,68 @@ function applyModularStacking() {
     if (baseMeshX) baseMeshX.visible = true; // Make mesh visible again
   }
 
+  // === Dimension Lines ===
+const rightFrame = findMeshByName('right_frame');
+const bottomFrame = findMeshByName('bottom_frame');
+
+if (rightFrame && bottomFrame) {
+  const boxRight = new THREE.Box3().setFromObject(rightFrame);
+  const boxBottom = new THREE.Box3().setFromObject(bottomFrame);
+
+  const zOffset = 0.1;
+  const yOffset = 0.18; //make the line larger
+
+  const rightTop = new THREE.Vector3(boxRight.max.x + zOffset, yOffset + boxRight.max.y,  0);
+  const rightBottom = new THREE.Vector3(boxRight.max.x + zOffset,  boxRight.min.y - yOffset,  0);
+
+  const bottomLeft = new THREE.Vector3(boxBottom.min.x, boxBottom.min.y - zOffset, 0);
+  const bottomRight = new THREE.Vector3(boxBottom.max.x, boxBottom.min.y - zOffset, 0);
+
+  const heightLine = createDimensionLine(rightBottom, rightTop);
+  const widthLine = createDimensionLine(bottomLeft, bottomRight);
+
+  
+  const rawHeight = (boxRight.max.y - boxRight.min.y);
+  const rawWidth = (boxBottom.max.x - boxBottom.min.x);
+
+  // Assume raw scale of 1.0 means 2000mm width and ~1912mm height
+  // Use actual raw height at scale 1.0 and scale 3.0 to calibrate
+    const baseHeight = 1.911; // actual height in world units at scale 1.0 = ~1000mm
+    const unitToMM = 1000 / baseHeight; // how many mm per 1 unit of height
+
+    const heightMM = (rawHeight * unitToMM).toFixed(0) + ' mm';
+
+
+    const widthMM = (500 + ((rawWidth - 1.0) * 1000) / 2).toFixed(0) + ' mm';
+  // Normalize scale: assume 1.0 = 1000mm, actual model is ~2000mm → divide by 2
+
+
+
+  // Midpoints of each dimension line
+  const heightMid = new THREE.Vector3().addVectors(rightTop, rightBottom).multiplyScalar(0.5);
+  const widthMid = new THREE.Vector3().addVectors(bottomLeft, bottomRight).multiplyScalar(0.5);
+
+  // Adjusted label positions
+  const heightLabelPos = heightMid.clone().add(new THREE.Vector3(1, 0, 0.1));   // right of center
+  const widthLabelPos = widthMid.clone().add(new THREE.Vector3(0.5, -0.2, 0.1));   // under the line
+
+  // Create labels
+  const heightLabel = createTextLabel(heightMM, heightLabelPos);
+  const widthLabel = createTextLabel(widthMM, widthLabelPos);
+
+
+  
+
+  dimensionHelpers.push(heightLine, widthLine, heightLabel, widthLabel);
+  pivotGroup.add(...dimensionHelpers);
+
+  if (rightFrame && bottomFrame) {
+  console.log('[Dimension Labels] Creating dimension labels'); //  Confirm block runs
+  }
+  
+}
+
+
   updateCameraDistance(pivotGroup);
 }
 
@@ -367,8 +437,45 @@ function applyModularStacking() {
       found = child;
     }
   });
+  
   return found;
+  
 }
+
+function createDimensionLine(start, end) {
+  const material = new THREE.LineBasicMaterial({ color: 0x000000 });
+  const points = [start, end];
+  const geometry = new THREE.BufferGeometry().setFromPoints(points);
+  return new THREE.Line(geometry, material);
+}
+
+function createTextLabel(text, position) {
+  console.log('[createTextLabel] Called with position:', position); //  Log every call
+
+  const canvas = document.createElement('canvas');
+  canvas.width = 512;
+  canvas.height = 128;
+
+  const context = canvas.getContext('2d');
+  context.font = 'bold 48px Arial';
+  context.fillStyle = 'black';
+  context.fillText(text, 10, 80);
+
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.needsUpdate = true;
+
+  const spriteMaterial = new THREE.SpriteMaterial({ map: texture, depthTest: false });
+  const sprite = new THREE.Sprite(spriteMaterial);
+  sprite.scale.set(1.2, 0.5, 0.5);
+  sprite.position.copy(position);
+
+  console.log('[createTextLabel] Sprite position:', sprite.position); //  Always logs
+
+  return sprite;
+}
+
+
+
 
 function stackClones(original, axis, moduleSize, originReference = null) {
   const boundingBox = new THREE.Box3().setFromObject(pivotGroup);
@@ -467,6 +574,54 @@ function stackClonesWidth(original, moduleSize, originReference = null) {
 }
 
 
+function showDimensionLines() {
+  if (!pivotGroup) return;
+
+  // Remove old lines if they exist
+  dimensionHelpers.forEach(obj => pivotGroup.remove(obj));
+  dimensionHelpers = [];
+
+  const rightFrame = findMeshByName('right_frame');
+  const bottomFrame = findMeshByName('bottom_frame');
+
+  if (!rightFrame || !bottomFrame) return;
+
+  const boxRight = new THREE.Box3().setFromObject(rightFrame);
+  const boxBottom = new THREE.Box3().setFromObject(bottomFrame);
+
+  const zOffset = 0.1;
+  const yOffset = 0.18;
+
+  const rightTop = new THREE.Vector3(boxRight.max.x + zOffset, boxRight.max.y + yOffset, 0);
+  const rightBottom = new THREE.Vector3(boxRight.max.x + zOffset, boxRight.min.y - yOffset, 0);
+
+  const bottomLeft = new THREE.Vector3(boxBottom.min.x, boxBottom.min.y - zOffset, 0);
+  const bottomRight = new THREE.Vector3(boxBottom.max.x, boxBottom.min.y - zOffset, 0);
+
+  const heightLine = createDimensionLine(rightBottom, rightTop);
+  const widthLine = createDimensionLine(bottomLeft, bottomRight);
+
+  const rawHeight = boxRight.max.y - boxRight.min.y;
+  const rawWidth = boxBottom.max.x - boxBottom.min.x;
+
+  const baseHeight = 1.911;
+  const unitToMM = 1000 / baseHeight;
+
+  const heightMM = (rawHeight * unitToMM).toFixed(0) + ' mm';
+  const widthMM = (500 + ((rawWidth - 1.0) * 1000) / 2).toFixed(0) + ' mm';
+
+  const heightMid = new THREE.Vector3().addVectors(rightTop, rightBottom).multiplyScalar(0.5);
+  const widthMid = new THREE.Vector3().addVectors(bottomLeft, bottomRight).multiplyScalar(0.5);
+
+  const heightLabelPos = heightMid.clone().add(new THREE.Vector3(0.60, 0, 0.1));
+  const widthLabelPos = widthMid.clone().add(new THREE.Vector3(0.5, -0.2, 0.1));
+
+  const heightLabel = createTextLabel(heightMM, heightLabelPos);
+  const widthLabel = createTextLabel(widthMM, widthLabelPos);
+
+  dimensionHelpers.push(heightLine, widthLine, heightLabel, widthLabel);
+  pivotGroup.add(...dimensionHelpers);
+}
 
 
 function updateCameraDistance(objectGroup) {
@@ -562,7 +717,7 @@ export function initThree(container, modelPath = '/models/Window_Frame.glb') {
   modelFolder.open();
 
   loadMaterialLibrary('/models/Materials.glb', () => reloadModel(currentModelPath));
-
+  
   function animate() {
     renderer.render(scene, camera);
     controls.update();
