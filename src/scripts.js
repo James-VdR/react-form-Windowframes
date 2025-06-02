@@ -658,7 +658,7 @@ export function initThree(container, modelPath = '/models/Window_Frame.glb') {
   renderer.shadowMap.enabled = true;
   renderer.setSize(width, height);
   container.appendChild(renderer.domElement);
-  renderer.setClearColor(0xa3d69c);
+  renderer.setClearColor(0xfffffff);
 
   scene = new THREE.Scene();
 
@@ -682,7 +682,7 @@ export function initThree(container, modelPath = '/models/Window_Frame.glb') {
   spotLight.position.set(90, 200, 390);
   spotLight.castShadow = true;
   scene.add(spotLight);
-  scene.add(new THREE.SpotLightHelper(spotLight));
+  
 
   const ground = new THREE.Mesh(
     new THREE.PlaneGeometry(1200, 1200),
