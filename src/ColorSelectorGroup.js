@@ -1,4 +1,3 @@
-
 import './ColorSelector.css';
 
 function ColorSelectorGroup({ title, colors, onSelect, selected }) {

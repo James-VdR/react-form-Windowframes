@@ -9,6 +9,9 @@ function ModularFrame() {
   const mountRef = useRef(null);
   const [modelPath] = useState('/models/Window_Frame.glb');
 
+  const [horizontalEnabled, setHorizontalEnabled] = useState(false);
+  const [verticalEnabled, setVerticalEnabled] = useState(false);
+
   const navigate = useNavigate();
 
   const handleBack = () => {
@@ -37,6 +40,12 @@ const [frameColor, setFrameColor] = useState(COLORS[0]);
 const [insideColor, setInsideColor] = useState(COLORS[1]);
 
 
+const [height, setHeight] = useState(1000); //sets start value
+const [width, setWidth] = useState(1000);  //sets start value
+
+const [ModuleHorizontal, setHorizontal] = useState(250); //sets start value
+const [ModuleVertical, setVertical] = useState(250);   //sets start value
+
 
 
   useEffect(() => {
@@ -48,12 +57,66 @@ const [insideColor, setInsideColor] = useState(COLORS[1]);
   return (
     <div className="container">
       <nav className="sidebar">
-        
+        <button className="back-button" onClick={handleBack}>←</button>
         <h1>Modular Window</h1>
         <ul>
           
-          <li><SliderControl label="Height" min={1000} max={3000} /></li>
-          <li><SliderControl label="Width" min={1000} max={4000} /></li>
+          <li>
+  <SliderControl
+    label="Height"
+    min={1000}
+    max={3000}
+    value={height}
+    onChange={setHeight}
+  />
+</li>
+<li>
+  <SliderControl
+    label="Width"
+    min={1000}
+    max={4000}
+    value={width}
+    onChange={setWidth}
+  />
+</li>
+
+       <li className="modular-block">
+  <div className="toggle-wrapper">
+    <SliderControl
+      label="Horizontal Modulization"
+      min={250}
+      max={1200}
+      value={ModuleHorizontal}
+      onChange={setHorizontal}
+    />
+    <button
+      className={`mode-toggle ${horizontalEnabled ? 'enabled' : ''}`}
+      onClick={() => setHorizontalEnabled(!horizontalEnabled)}
+    >
+      {horizontalEnabled ? '✓' : ''}
+    </button>
+  </div>
+</li>
+
+<li className="modular-block">
+  <div className="toggle-wrapper">
+    <SliderControl
+      label="Vertical Modulization"
+      min={250}
+      max={3800}
+      value={ModuleVertical}
+      onChange={setVertical}
+    />
+    <button
+      className={`mode-toggle ${verticalEnabled ? 'enabled' : ''}`}
+      onClick={() => setVerticalEnabled(!verticalEnabled)}
+    >
+      {verticalEnabled ? '✓' : ''}
+    </button>
+  </div>
+</li>
+
+
           <li>
                 <ColorSelectorGroup
                 title="Frame Color"
@@ -77,9 +140,7 @@ const [insideColor, setInsideColor] = useState(COLORS[1]);
       <main className="main-content" ref={mountRef} style={{ width: '100%', height: '100vh' }}>
         {/* 3D scene renders here */}
       </main>
-      <button className="back-button" onClick={handleBack}>
-  ←
-</button>
+      
 
     </div>
   );

@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
 import './SliderControl.css';
 
-function SliderControl({ label, min, max }) {
-  const [value, setValue] = useState((min + max) / 2);
+function SliderControl({ label, min, max, value, onChange }) {
   const [hovered, setHovered] = useState(false);
 
   return (
@@ -16,7 +15,7 @@ function SliderControl({ label, min, max }) {
         <input
           className="slider-input"
           value={value}
-          onChange={(e) => setValue(Number(e.target.value))}
+          onChange={(e) => onChange(Number(e.target.value))}
           onFocus={(e) => e.target.select()}
         />
 
@@ -29,7 +28,7 @@ function SliderControl({ label, min, max }) {
               min={min}
               max={max}
               value={value}
-              onChange={(e) => setValue(Number(e.target.value))}
+              onChange={(e) => onChange(Number(e.target.value))}
               className="slider-range"
               onMouseEnter={() => setHovered(true)}
               onMouseLeave={() => setHovered(false)}
@@ -39,7 +38,7 @@ function SliderControl({ label, min, max }) {
               <div className="slider-bubble">
                 <input
                   value={value}
-                  onChange={(e) => setValue(Number(e.target.value))}
+                  onChange={(e) => onChange(Number(e.target.value))}
                   onClick={(e) => e.target.select()}
                 />
               </div>

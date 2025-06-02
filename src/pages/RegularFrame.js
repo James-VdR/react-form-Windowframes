@@ -35,7 +35,8 @@ function RegularFrame() {
 
 const [frameColor, setFrameColor] = useState(COLORS[0]);
 const [insideColor, setInsideColor] = useState(COLORS[1]);
-
+const [height, setHeight] = useState(1000); //sets start value
+const [width, setWidth] = useState(1000);  //sets start value
 
 
 
@@ -48,12 +49,28 @@ const [insideColor, setInsideColor] = useState(COLORS[1]);
   return (
     <div className="container">
       <nav className="sidebar">
-        
+         <button className="back-button" onClick={handleBack}>←</button>
         <h1>Standard Window</h1>
         <ul>
           
-          <li><SliderControl label="Height" min={1000} max={3000} /></li>
-          <li><SliderControl label="Width" min={1000} max={4000} /></li>
+                <li>
+  <SliderControl
+    label="Height"
+    min={1000}
+    max={3000}
+    value={height}
+    onChange={setHeight}
+  />
+</li>
+<li>
+  <SliderControl
+    label="Width"
+    min={1000}
+    max={4000}
+    value={width}
+    onChange={setWidth}
+  />
+</li>
           <li>
                 <ColorSelectorGroup
                 title="Frame Color"
@@ -77,9 +94,7 @@ const [insideColor, setInsideColor] = useState(COLORS[1]);
       <main className="main-content" ref={mountRef} style={{ width: '100%', height: '100vh' }}>
         {/* 3D scene renders here */}
       </main>
-      <button className="back-button" onClick={handleBack}>
-  ←
-</button>
+     
 
     </div>
   );
