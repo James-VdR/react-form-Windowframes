@@ -6,13 +6,33 @@ import SliderControl from '../SliderControl';
 import ColorSelectorGroup from '../ColorSelectorGroup';
 import { useLocation } from 'react-router-dom';
 
+// color fixing
+const MATERIAL_NAME_MAP = {
+  'White': 'White',
+  'Cream': 'Creme',
+  'Ivory': 'Licht Ivoor',
+  'WineRed': 'Wijnrood',
+  'PineGreen': 'Dennengroen',
+  'MonumentGreen': 'Monumentengroen',
+  'BlueSteel': 'Staalblauw',
+  'Golden Oak': 'Golden Oak',
+  'Mahogany': 'Mahonie',
+  'SilverGrey': 'Zilvergrijs',
+  'BasaltGrey': 'Basaltgrijs',
+  'QuartzGrey': 'Kwartsgrijs',
+  'Anthracite': 'Antracietgrijs',
+  'BlackGrey': 'Zwartgrijs',
+  'Black': 'Zwart'
+};
+
+
 function RegularFrame() {
   const mountRef = useRef(null);
   
   const [controller, setController] = useState(null);
   const location = useLocation();
  const [modelPath] = useState(`/models/${location.state?.model || 'Window_Frame.glb'}`);
-
+const [modelReady, setModelReady] = useState(false);
 
   const navigate = useNavigate();
 
@@ -38,23 +58,7 @@ function RegularFrame() {
   { name: 'Black', ral: '9005', hex: '#0a0a0a' }
 ];
 
-const MATERIAL_NAME_MAP = {
-  'White': 'White',
-  'Cream': 'Creme',
-  'Ivory': 'Licht Ivoor',
-  'WineRed': 'Wijnrood',
-  'PineGreen': 'Dennengroen',
-  'MonumentGreen': 'Monumentengroen',
-  'BlueSteel': 'Staalblauw',
-  'Golden Oak': 'Golden Oak',
-  'Mahogany': 'Mahonie',
-  'SilverGrey': 'Zilvergrijs',
-  'BasaltGrey': 'Basaltgrijs',
-  'QuartzGrey': 'Kwartsgrijs',
-  'Anthracite': 'Antracietgrijs',
-  'BlackGrey': 'Zwartgrijs',
-  'Black': 'Zwart'
-};
+
 const [frameColor, setFrameColor] = useState(COLORS[0]);
 const [insideColor, setInsideColor] = useState(COLORS[1]);
 const [height, setHeight] = useState(1000); //sets start value
@@ -65,8 +69,11 @@ const [width, setWidth] = useState(1000);  //sets start value
  useEffect(() => {
   let isMounted = true;
 
-  initThree(mountRef.current, modelPath).then(api => {
-    if (isMounted) setController(api);
+  initThree(mountRef.current, modelPath).then((api) => {
+    if (isMounted) {
+      setController(api);
+      setModelReady(true); //  Mark model as ready
+    }
   });
 
   return () => {
@@ -75,31 +82,37 @@ const [width, setWidth] = useState(1000);  //sets start value
 }, [modelPath]);
 
 
-  useEffect(() => {
-  if (controller) controller.setHeight(height / 1000); // mm to scale
-}, [,height]);
+useEffect(() => {
+  if (controller && modelReady) {
+    controller.setHeight(height / 1000);
+  }
+}, [controller, modelReady, height]);
 
 useEffect(() => {
-  if (controller) controller.setWidth(width / 1000);
-}, [,width]);
+  if (controller && modelReady) {
+    controller.setWidth(width / 1000);
+  }
+}, [controller, modelReady, width]);
 
 useEffect(() => {
-  if (controller && MATERIAL_NAME_MAP[frameColor.name]) {
+  if (controller && modelReady && MATERIAL_NAME_MAP[frameColor.name]) {
     const mappedName = MATERIAL_NAME_MAP[frameColor.name];
-    controller.setMaterialForZone('frame', mappedName); // ← "frame" is the correct zone
+    controller.setMaterialForZone('frame', mappedName);
   }
-}, [controller, frameColor]);
+}, [controller, modelReady, frameColor]);
 
 useEffect(() => {
-  if (controller && MATERIAL_NAME_MAP[insideColor.name]) {
+  if (controller && modelReady && MATERIAL_NAME_MAP[insideColor.name]) {
     const mappedName = MATERIAL_NAME_MAP[insideColor.name];
-    controller.setMaterialForZone('frameInside', mappedName); // ← use correct zone
+    controller.setMaterialForZone('frameInside', mappedName);
   }
-}, [controller, insideColor]);
+}, [controller, modelReady, insideColor]);
+
 
 useEffect(() => {
-  if (controller) controller.hideGUI();
-}, [controller]);
+  if (controller && modelReady) controller.hideGUI();
+}, [controller, modelReady]);
+
 
 
   return (

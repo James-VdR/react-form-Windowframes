@@ -642,6 +642,13 @@ function updateCameraDistance(objectGroup) {
   controls.target.copy(center);
   controls.update();
 }
+function safeUpdateCameraDistance(group) {
+  if (!group || !group.children || group.children.length === 0) {
+    console.warn('[safeUpdateCameraDistance] Skipped – group not ready');
+    return;
+  }
+  updateCameraDistance(group);
+}
 
 function reloadModel(path) {
   if (gui) {
@@ -743,7 +750,7 @@ if (!guiWrapper) {
             }
           });
           applyModularStacking();
-          updateCameraDistance(pivotGroup);
+          safeUpdateCameraDistance(pivotGroup);
         },
         setWidth: (val) => {
           scaleParams.Width = val;
@@ -754,7 +761,7 @@ if (!guiWrapper) {
             }
           });
           applyModularStacking();
-          updateCameraDistance(pivotGroup);
+          safeUpdateCameraDistance(pivotGroup);
         },
         setModularSizes: (w, h) => {
           modularParams.ModuleWidth = w;

@@ -6,6 +6,26 @@ import SliderControl from '../SliderControl';
 import ColorSelectorGroup from '../ColorSelectorGroup';
 import { useLocation } from 'react-router-dom';
 
+// color fixing
+const MATERIAL_NAME_MAP = {
+  'White': 'White',
+  'Cream': 'Creme',
+  'Ivory': 'Licht Ivoor',
+  'WineRed': 'Wijnrood',
+  'PineGreen': 'Dennengroen',
+  'MonumentGreen': 'Monumentengroen',
+  'BlueSteel': 'Staalblauw',
+  'Golden Oak': 'Golden Oak',
+  'Mahogany': 'Mahonie',
+  'SilverGrey': 'Zilvergrijs',
+  'BasaltGrey': 'Basaltgrijs',
+  'QuartzGrey': 'Kwartsgrijs',
+  'Anthracite': 'Antracietgrijs',
+  'BlackGrey': 'Zwartgrijs',
+  'Black': 'Zwart'
+};
+
+
 function ModularFrame() {
   const mountRef = useRef(null);
  
@@ -43,24 +63,6 @@ function ModularFrame() {
   { name: 'Black', ral: '9005', hex: '#0a0a0a' }
 ];
 
-// color fixing
-const MATERIAL_NAME_MAP = {
-  'White': 'White',
-  'Cream': 'Creme',
-  'Ivory': 'Licht Ivoor',
-  'WineRed': 'Wijnrood',
-  'PineGreen': 'Dennengroen',
-  'MonumentGreen': 'Monumentengroen',
-  'BlueSteel': 'Staalblauw',
-  'Golden Oak': 'Golden Oak',
-  'Mahogany': 'Mahonie',
-  'SilverGrey': 'Zilvergrijs',
-  'BasaltGrey': 'Basaltgrijs',
-  'QuartzGrey': 'Kwartsgrijs',
-  'Anthracite': 'Antracietgrijs',
-  'BlackGrey': 'Zwartgrijs',
-  'Black': 'Zwart'
-};
 
 const [modularColor, setModularColor] = useState(COLORS[0]);
 const [frameColor, setFrameColor] = useState(COLORS[0]);
@@ -91,11 +93,11 @@ useEffect(() => {
 
   useEffect(() => {
   if (controller) controller.setHeight(height / 1000); // mm to scale
-}, [height, ]);
+}, [controller,height ]);
 
 useEffect(() => {
   if (controller) controller.setWidth(width / 1000);
-}, [width, ]);
+}, [controller,width ]);
 
 useEffect(() => {
   if (controller && MATERIAL_NAME_MAP[frameColor.name]) {
@@ -122,11 +124,11 @@ useEffect(() => {
 
 useEffect(() => {
   if (controller) controller.setModularSizes(ModuleHorizontal / 1000, ModuleVertical / 1000);
-}, [ModuleHorizontal, ModuleVertical ]);
+}, [controller,ModuleHorizontal, ModuleVertical ]);
 
 useEffect(() => {
   if (controller) controller.setModularEnabled(horizontalEnabled, verticalEnabled);
-}, [horizontalEnabled, verticalEnabled,]);
+}, [controller,horizontalEnabled, verticalEnabled]);
 useEffect(() => {
   if (controller) controller.hideGUI();
 }, [controller]);
