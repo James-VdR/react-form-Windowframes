@@ -64,7 +64,7 @@ function WindowSelector() {
             onClick={handleNext}
             disabled={!selected}
           >
-            Volgende &rarr;
+            Confirm Selection &rarr;
           </button>
         </div>
       </div>

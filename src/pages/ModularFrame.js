@@ -25,7 +25,7 @@ function ModularFrame() {
   navigate('/');
   };
 
-  const COLORS = [
+ const COLORS = [
   { name: 'White', ral: '9010', hex: '#f4f4f4' },
   { name: 'Cream', ral: '9001', hex: '#fdf4d3' },
   { name: 'Ivory', ral: '1015', hex: '#eae3c6' },
@@ -43,6 +43,26 @@ function ModularFrame() {
   { name: 'Black', ral: '9005', hex: '#0a0a0a' }
 ];
 
+// color fixing
+const MATERIAL_NAME_MAP = {
+  'White': 'White',
+  'Cream': 'Creme',
+  'Ivory': 'Licht Ivoor',
+  'WineRed': 'Wijnrood',
+  'PineGreen': 'Dennengroen',
+  'MonumentGreen': 'Monumentengroen',
+  'BlueSteel': 'Staalblauw',
+  'Golden Oak': 'Golden Oak',
+  'Mahogany': 'Mahonie',
+  'SilverGrey': 'Zilvergrijs',
+  'BasaltGrey': 'Basaltgrijs',
+  'QuartzGrey': 'Kwartsgrijs',
+  'Anthracite': 'Antracietgrijs',
+  'BlackGrey': 'Zwartgrijs',
+  'Black': 'Zwart'
+};
+
+const [modularColor, setModularColor] = useState(COLORS[0]);
 const [frameColor, setFrameColor] = useState(COLORS[0]);
 const [insideColor, setInsideColor] = useState(COLORS[1]);
 
@@ -55,12 +75,20 @@ const [ModuleVertical, setVertical] = useState(250);   //sets start value
 
 
 
-  useEffect(() => {
-    if (mountRef.current) {
-      const api = initThree(mountRef.current, modelPath);
+useEffect(() => {
+  let isMounted = true;
+
+  initThree(mountRef.current, modelPath).then((api) => {
+    if (isMounted) {
       setController(api);
     }
-  }, [modelPath]);
+  });
+
+  return () => {
+    isMounted = false;
+  };
+}, [modelPath]);
+
   useEffect(() => {
   if (controller) controller.setHeight(height / 1000); // mm to scale
 }, [height, ]);
@@ -70,12 +98,28 @@ useEffect(() => {
 }, [width, ]);
 
 useEffect(() => {
-  if (controller) controller.setMaterialForZone('outside', frameColor.name);
-}, [frameColor, ]);
+  if (controller && MATERIAL_NAME_MAP[frameColor.name]) {
+    const mappedName = MATERIAL_NAME_MAP[frameColor.name];
+    controller.setMaterialForZone('frame', mappedName); // ← "frame" is the correct zone
+  }
+}, [controller, frameColor]);
 
 useEffect(() => {
-  if (controller) controller.setMaterialForZone('inside', insideColor.name);
-}, [insideColor, ]);
+  if (controller && MATERIAL_NAME_MAP[insideColor.name]) {
+    const mappedName = MATERIAL_NAME_MAP[insideColor.name];
+    controller.setMaterialForZone('frameInside', mappedName); // ← use correct zone
+  }
+}, [controller, insideColor]);
+
+
+useEffect(() => {
+  if (controller) {
+    const glbName = MATERIAL_NAME_MAP[modularColor.name]; // or make a new `modularColor` state if needed
+    controller.setMaterialForZone('outside', glbName);
+  }
+}, [controller, modularColor]);
+
+
 useEffect(() => {
   if (controller) controller.setModularSizes(ModuleHorizontal / 1000, ModuleVertical / 1000);
 }, [ModuleHorizontal, ModuleVertical ]);
@@ -169,11 +213,11 @@ useEffect(() => {
             </li>
             <li>
             <ColorSelectorGroup
-                title="ModularParts Color"
-                colors={COLORS}
-                selected={insideColor}
-                onSelect={setInsideColor}
-            />
+          title="Modular Frame Color"
+          colors={COLORS}
+          selected={modularColor}
+          onSelect={setModularColor}
+        />
             </li>
         </ul>
       </nav>

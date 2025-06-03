@@ -780,9 +780,10 @@ export function initThree(container, modelPath = '/models/Window_Frame.glb') {
 
 },
         hideGUI: () => {
-          const el = document.getElementById('gui-wrapper');
-          if (el) el.style.display = 'none';
-        }
+          const wrapper = document.getElementById('gui-wrapper');
+          if (wrapper) wrapper.style.display = 'none'; 
+    }
+
       };
 
       function animate() {
@@ -799,7 +800,7 @@ export function initThree(container, modelPath = '/models/Window_Frame.glb') {
         renderer.setSize(w, h);
       });
 
-      resolve(controlAPI); // 🔥 RESOLVE AFTER EVERYTHING IS READY
+      resolve(controlAPI); 
     });
   });
 }
