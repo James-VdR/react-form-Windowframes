@@ -698,14 +698,21 @@ export function initThree(container, modelPath = '/models/Window_Frame.glb') {
     ground.receiveShadow = true;
     scene.add(ground);
 
-    const guiWrapper = document.createElement('div');
-    guiWrapper.id = 'gui-wrapper';
-    guiWrapper.style.position = 'absolute';
-    guiWrapper.style.top = '0';
-    guiWrapper.style.right = '0';
-    guiWrapper.style.display = 'flex';
-    guiWrapper.style.flexDirection = 'row';
-    document.body.appendChild(guiWrapper);
+   let guiWrapper = document.getElementById('gui-wrapper');
+if (!guiWrapper) {
+  guiWrapper = document.createElement('div');
+  guiWrapper.id = 'gui-wrapper';
+  guiWrapper.style.position = 'absolute';
+  guiWrapper.style.top = '0';
+  guiWrapper.style.right = '0';
+  guiWrapper.style.display = 'flex';
+  guiWrapper.style.flexDirection = 'row';
+  document.body.appendChild(guiWrapper);
+} else {
+  guiWrapper.innerHTML = ''; // clear previous GUI contents
+  guiWrapper.style.display = 'flex'; // ensure visible only if re-enabled
+}
+
 
     const switcherGUI = new GUI({ width: 200, autoPlace: false });
     guiWrapper.appendChild(switcherGUI.domElement);

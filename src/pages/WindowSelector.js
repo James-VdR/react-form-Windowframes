@@ -39,7 +39,7 @@ function WindowSelector() {
                 onChange={() => setSelected('regular')}
               />
               <span className="custom-radio" />
-              Regular Window Frame
+              Regular Frame
             </label>
             <img src={frame1} alt="Regular Frame" className="selector-img" />
           </div>

@@ -70,7 +70,7 @@ const [insideColor, setInsideColor] = useState(COLORS[1]);
 const [height, setHeight] = useState(1000); //sets start value
 const [width, setWidth] = useState(1000);  //sets start value
 
-const [ModuleHorizontal, setHorizontal] = useState(250); //sets start value
+const [ModuleHorizontal, setHorizontal] = useState(600); //sets start value
 const [ModuleVertical, setVertical] = useState(250);   //sets start value
 
 
@@ -162,8 +162,8 @@ useEffect(() => {
   <div className="toggle-wrapper">
     <SliderControl
       label="Horizontal Modulization"
-      min={250}
-      max={1200}
+      min={600}
+      max={3800}
       value={ModuleHorizontal}
       onChange={setHorizontal}
     />
@@ -181,7 +181,7 @@ useEffect(() => {
     <SliderControl
       label="Vertical Modulization"
       min={250}
-      max={3800}
+      max={1200}
       value={ModuleVertical}
       onChange={setVertical}
     />
