@@ -4,13 +4,20 @@ import '../App.css';
 import { useNavigate } from 'react-router-dom';
 import SliderControl from '../SliderControl';
 import ColorSelectorGroup from '../ColorSelectorGroup';
+import { useLocation } from 'react-router-dom';
 
 function ModularFrame() {
   const mountRef = useRef(null);
-  const [modelPath] = useState('/models/Window_Frame.glb');
+ 
+  const [controller, setController] = useState(null);
 
   const [horizontalEnabled, setHorizontalEnabled] = useState(false);
   const [verticalEnabled, setVerticalEnabled] = useState(false);
+  const location = useLocation();
+  const [modelPath] = useState(`/models/${location.state?.model || 'Window_Frame.glb'}`);
+
+
+  
 
   const navigate = useNavigate();
 
@@ -50,9 +57,36 @@ const [ModuleVertical, setVertical] = useState(250);   //sets start value
 
   useEffect(() => {
     if (mountRef.current) {
-      initThree(mountRef.current, modelPath);
+      const api = initThree(mountRef.current, modelPath);
+      setController(api);
     }
   }, [modelPath]);
+  useEffect(() => {
+  if (controller) controller.setHeight(height / 1000); // mm to scale
+}, [height, ]);
+
+useEffect(() => {
+  if (controller) controller.setWidth(width / 1000);
+}, [width, ]);
+
+useEffect(() => {
+  if (controller) controller.setMaterialForZone('outside', frameColor.name);
+}, [frameColor, ]);
+
+useEffect(() => {
+  if (controller) controller.setMaterialForZone('inside', insideColor.name);
+}, [insideColor, ]);
+useEffect(() => {
+  if (controller) controller.setModularSizes(ModuleHorizontal / 1000, ModuleVertical / 1000);
+}, [ModuleHorizontal, ModuleVertical ]);
+
+useEffect(() => {
+  if (controller) controller.setModularEnabled(horizontalEnabled, verticalEnabled);
+}, [horizontalEnabled, verticalEnabled,]);
+useEffect(() => {
+  if (controller) controller.hideGUI();
+}, [controller]);
+
 
   return (
     <div className="container">
@@ -133,7 +167,14 @@ const [ModuleVertical, setVertical] = useState(250);   //sets start value
                 onSelect={setInsideColor}
             />
             </li>
-
+            <li>
+            <ColorSelectorGroup
+                title="ModularParts Color"
+                colors={COLORS}
+                selected={insideColor}
+                onSelect={setInsideColor}
+            />
+            </li>
         </ul>
       </nav>
 

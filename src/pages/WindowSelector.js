@@ -9,13 +9,17 @@ function WindowSelector() {
   const [selected, setSelected] = useState('');
   const navigate = useNavigate();
 
-  const handleNext = () => {
-    if (selected === 'regular') {
-      navigate('/regular-frame');
-    } else if (selected === 'modular') {
-      navigate('/modular-frame');
-    }
-  };
+ const handleNext = () => {
+  if (selected === 'regular') {
+    navigate('/regular-frame', {
+      state: { model: 'Window_Frame.glb' }
+    });
+  } else if (selected === 'modular') {
+    navigate('/modular-frame', {
+      state: { model: 'Window_Frame_Cross.glb' }
+    });
+  }
+};
 
   return (
     <div className="selector-page">

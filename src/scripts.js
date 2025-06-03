@@ -11,307 +11,18 @@ let modelSwitcher = { model: 'Window_Frame.glb' };
 let currentModelPath = '/models/Window_Frame.glb';
 let scaleParams = { Height: 1, Width: 1, Thickness: 1 };
 let dimensionHelpers = [];
-const materialLibrary = {};
-const modelOptions = ['Window_Frame.glb', 'Window_Frame_Cross.glb'];
-
-
-function getZoneNameFromMesh(name) {
-  const lname = name.toLowerCase();
-  if (lname.includes('outside') && lname.includes('frame')) return 'outside';
-  if (lname.includes('frame') && lname.includes('inside')) return 'frameInside';
-  if (lname.includes('frame')) return 'frame';
-  if (lname.includes('glass')) return 'glass';
-  if (lname.includes('inside')) return 'inside';
-  if (lname.includes('outside')) return 'outside';
-  return 'misc';
-}
-
-const zoneBehaviors = {
-  frame: { resizeStrategy: 'frame', allowResize: true, allowColorChange: true },
-  frameInside: { resizeStrategy: 'frame', allowColorChange: true },
-  glass: { resizeStrategy: 'uniform', allowColorChange: true },
-  inside: { allowColorChange: true },
-  outside: { resizeStrategy: 'frame', allowColorChange: true },
-  misc: { allowColorChange: true },
-};
-
-function resizeZoneParts(meshes, scaleParams, strategy) {
-  if (strategy === 'frame') resizeFrameParts(meshes, scaleParams);
-  else if (strategy === 'uniform') resizeUniformParts(meshes, scaleParams);
-}
-
-function loadMaterialLibrary(glbPath = '/models/Materials.glb', onComplete) {
-  const loader = new GLTFLoader();
-  loader.load(glbPath, (gltf) => {
-    gltf.scene.traverse((child) => {
-      if (child.isMesh && child.material) {
-        const materials = Array.isArray(child.material) ? child.material : [child.material];
-        materials.forEach((mat) => {
-          const name = mat.name?.trim();
-          if (name && !materialLibrary[name]) materialLibrary[name] = mat.clone();
-        });
-      }
-    });
-    if (onComplete) onComplete();
-  }, undefined, (err) => {
-    console.error('Material load error:', err);
-    if (onComplete) onComplete();
-  });
-}
-
-function applyGlassMaterial(mesh) {
-  mesh.material = new THREE.MeshPhysicalMaterial({
-    color: 0xffffff,
-    metalness: 0,
-    roughness: 0.5,
-    transmission: 0.1,
-    thickness: 1,
-    transparent: true,
-    opacity: 0.5,
-    side: THREE.DoubleSide,
-  });
-}
-
-function resizeFrameParts(meshes, scaleParams) {
-  meshes.forEach(mesh => {
-    const name = mesh.name.toLowerCase();
-
-    if (!mesh.userData.originalScale || !mesh.userData.originalPosition) {
-      mesh.userData.originalScale = mesh.scale.clone();
-      mesh.userData.originalPosition = mesh.position.clone();
-    }
-
-    const origScale = mesh.userData.originalScale;
-    const origPos = mesh.userData.originalPosition;
-
-    mesh.scale.copy(origScale);
-    mesh.position.copy(origPos);
-
-    const deltaHeight = scaleParams.Height - 1.0;
-
-    // Compensation to pull Left/Right down a bit on scale up
-    const correctionOffset = -deltaHeight * 0.20; // 
-
-    if (name.includes('left') || name.includes('right') || name.includes('middle_y')) {
-      mesh.scale.y = origScale.y * scaleParams.Height;
-
-      // Shift DOWN slightly to compensate scaling gap
-      mesh.position.y = origPos.y + correctionOffset;
-
-      if (name.includes('right')) {
-        const deltaWidth = scaleParams.Width - 1.0;
-        const correctionOffsetX = deltaWidth * 1; // same logic as height
-        mesh.position.x = origPos.x + deltaWidth * origScale.z + correctionOffsetX;
-      }
-
-    }
-
-    if (name.includes('top') || name.includes('middle_x')) {
-  mesh.scale.x = origScale.x * scaleParams.Width;
-
-  const correctionOffset = deltaHeight * 0.90;
-  mesh.position.y = origPos.y + deltaHeight * origScale.y + correctionOffset;
-}
-
-
-    if (name.includes('bottom')) {
-      mesh.scale.x = origScale.x * scaleParams.Width;
-      mesh.position.y = origPos.y;
-    }
-
-    mesh.scale.z = origScale.z * scaleParams.Thickness;
-  });
-}
-
-
-
-function resizeUniformParts(meshes, scaleParams) {
-  meshes.forEach(mesh => {
-    if (!mesh.userData.originalScale || !mesh.userData.originalPosition) {
-      mesh.userData.originalScale = mesh.scale.clone();
-      mesh.userData.originalPosition = mesh.position.clone();
-    }
-
-    const origScale = mesh.userData.originalScale;
-    const origPos = mesh.userData.originalPosition;
-
-    const deltaHeight = scaleParams.Height - 1.0;
-    const deltaWidth = scaleParams.Width - 1.0;
-
-    const correctionOffsetY = -deltaHeight * 0.20;
-    const correctionOffsetX = -deltaWidth * 0.11;
-
-    // Slightly over-scale width to close the gap on the right
-    const widthCorrectionFactor = 1 + (deltaWidth * 0.03); // tune this
-
-    mesh.scale.set(
-      origScale.x * scaleParams.Width * widthCorrectionFactor,
-      origScale.y * scaleParams.Height,
-      origScale.z * scaleParams.Thickness
-    );
-
-    mesh.position.set(
-      origPos.x + correctionOffsetX,
-      origPos.y + correctionOffsetY,
-      origPos.z
-    );
-  });
-}
-
-
-
-function loadWindowModel(scene, modelPath, scaleParams) {
-  const loader = new GLTFLoader();
-  loader.load(modelPath, (gltf) => {
-    const model = gltf.scene;
-    const box = new THREE.Box3().setFromObject(model);
-    const center = new THREE.Vector3();
-    box.getCenter(center);
-    model.position.sub(center);
-
-    const oldPivots = scene.children.filter(c => c.type === 'Group');
-    oldPivots.forEach(obj => scene.remove(obj));
-
-    pivotGroup = new THREE.Group();
-    pivotGroup.add(model);
-    scene.add(pivotGroup);
-
-    controls.target.copy(center);
-    controls.update();
-
-    const zones = {};
-    model.traverse((child) => {
-      if (child.isMesh && child.material) {
-        if (child.name.toLowerCase().includes('glass')) applyGlassMaterial(child);
-        child.userData.originalScale = child.scale.clone();
-        child.userData.originalPosition = child.position.clone();
-
-        const zoneName = getZoneNameFromMesh(child.name);
-        console.log('[Mesh Found]', child.name);
-
-        // Debug log for unknown zone mappings
-        if (!zoneBehaviors[zoneName]) {
-          console.warn(`Unknown zone name: ${child.name} → mapped to "${zoneName}"`);
-        }
-
-        if (!zones[zoneName]) zones[zoneName] = [];
-        zones[zoneName].push(child);
-      }
-    });
-
-    setupDynamicGUI(zones, scaleParams, pivotGroup);
-    updateCameraDistance(pivotGroup);
-    showDimensionLines(); // ← Show lines immediately
-
-    
-  });
-}
-
-function setupDynamicGUI(zones, scaleParams, pivotGroup) {
-  const guiWrapper = document.getElementById('gui-wrapper');
-  if (gui) gui.destroy();
-  gui = new GUI({ width: 250, autoPlace: false });
-  guiWrapper.appendChild(gui.domElement);
-
-  const materialNames = Object.keys(materialLibrary);
-  if (materialNames.length === 0) return;
-
-  Object.entries(zones).forEach(([zoneName, meshes]) => {
-    const config = zoneBehaviors[zoneName] || {};
-    const folder = gui.addFolder(`${zoneName.toUpperCase()} Settings`);
-
-    
-   if (config.allowColorChange) {
-  const params = { material: materialNames[0] };
-  folder.add(params, 'material', materialNames).onChange((selected) => {
-    meshes.forEach(mesh => {
-      mesh.material = materialLibrary[selected];
-    });
-
-    // Update modular clones if the OUTSIDE material is changed
-    if (zoneName === 'outside') {
-      pivotGroup.traverse(child => {
-        if (child.userData.isModularClone) {
-          child.material = materialLibrary[selected].clone();
-        }
-      });
-    }
-  });
-}
-
-
-    if (config.allowResize) {
-      ['Height', 'Width', 'Thickness'].forEach(param => {
-        let min = 1, max = 2.999;
-
-        if (param === 'Thickness') {
-          min = 1;
-          max = 1;
-        } else if (param === 'Width') {
-          max = 4;
-        }
-
-        folder.add(scaleParams, param, min, max)
-          .step(0.001)
-          .onChange(() => {
-  Object.entries(zones).forEach(([zn, zMeshes]) => {
-    const strategy = zoneBehaviors[zn]?.resizeStrategy;
-    if (strategy) resizeZoneParts(zMeshes, scaleParams, strategy);
-  });
-
-  // REAPPLY CLONES AFTER RESIZE
-  applyModularStacking();
-
-
-
-  
-
-  updateCameraDistance(pivotGroup);
-});
-
-      });
-    }
-
-    folder.open();
-  });
-
-  // -----------------------------
-  // MODULAR STACKING CONTROLS
-  // -----------------------------
-  const modularParams = {
+let zones = {}; // holds the grouped mesh zones for resizing and material assignment
+let modularParams = {
   enabledHeight: false,
   enabledWidth: false,
   ModuleHeight: 1.15,
   ModuleWidth: 0.88
 };
 
-const modularFolder = gui.addFolder('MODULARISE');
 
-// Height stacking controls
-  modularFolder
-  .add(modularParams, 'enabledHeight')
-  .name('Enable Height Stacking')
-  .onChange(applyModularStacking);
+const materialLibrary = {};
+const modelOptions = ['Window_Frame.glb', 'Window_Frame_Cross.glb'];
 
-  modularFolder
-  .add(modularParams, 'ModuleHeight', 0.25, 1.2)
-  .step(0.001)
-  .name('Module Height')
-  .onChange(applyModularStacking);
-
-// Width stacking controls
-  modularFolder
-  .add(modularParams, 'enabledWidth')
-  .name('Enable Width Stacking')
-  .onChange(applyModularStacking);
-
-  modularFolder
-  .add(modularParams, 'ModuleWidth', 0.25, 3.8)
-  .step(0.001)
-  .name('Module Width')
-  .onChange(applyModularStacking);
-
-  modularFolder.open();
 
 
 function applyModularStacking() {
@@ -425,8 +136,302 @@ if (rightFrame && bottomFrame) {
 
   updateCameraDistance(pivotGroup);
 }
+function getZoneNameFromMesh(name) {
+  const lname = name.toLowerCase();
+  if (lname.includes('outside') && lname.includes('frame')) return 'outside';
+  if (lname.includes('frame') && lname.includes('inside')) return 'frameInside';
+  if (lname.includes('frame')) return 'frame';
+  if (lname.includes('glass')) return 'glass';
+  if (lname.includes('inside')) return 'inside';
+  if (lname.includes('outside')) return 'outside';
+  return 'misc';
+}
+
+const zoneBehaviors = {
+  frame: { resizeStrategy: 'frame', allowResize: true, allowColorChange: true },
+  frameInside: { resizeStrategy: 'frame', allowColorChange: true },
+  glass: { resizeStrategy: 'uniform', allowColorChange: true },
+  inside: { allowColorChange: true },
+  outside: { resizeStrategy: 'frame', allowColorChange: true },
+  misc: { allowColorChange: true },
+};
+
+function resizeZoneParts(meshes, scaleParams, strategy) {
+  if (strategy === 'frame') resizeFrameParts(meshes, scaleParams);
+  else if (strategy === 'uniform') resizeUniformParts(meshes, scaleParams);
+}
+
+function loadMaterialLibrary(glbPath = '/models/Materials.glb', onComplete) {
+  const loader = new GLTFLoader();
+  loader.load(glbPath, (gltf) => {
+    gltf.scene.traverse((child) => {
+      if (child.isMesh && child.material) {
+        const materials = Array.isArray(child.material) ? child.material : [child.material];
+        materials.forEach((mat) => {
+          const name = mat.name?.trim();
+          if (name && !materialLibrary[name]) materialLibrary[name] = mat.clone();
+        });
+      }
+    });
+    if (onComplete) onComplete();
+  }, undefined, (err) => {
+    console.error('Material load error:', err);
+    if (onComplete) onComplete();
+    console.log('[Material Library Loaded]', Object.keys(materialLibrary));
+
+  });
+}
+
+function applyGlassMaterial(mesh) {
+  mesh.material = new THREE.MeshPhysicalMaterial({
+    color: 0xffffff,
+    metalness: 0,
+    roughness: 0.5,
+    transmission: 0.1,
+    thickness: 1,
+    transparent: true,
+    opacity: 0.5,
+    side: THREE.DoubleSide,
+  });
+}
+
+function resizeFrameParts(meshes, scaleParams) {
+  meshes.forEach(mesh => {
+    const name = mesh.name.toLowerCase();
+
+    if (!mesh.userData.originalScale || !mesh.userData.originalPosition) {
+      mesh.userData.originalScale = mesh.scale.clone();
+      mesh.userData.originalPosition = mesh.position.clone();
+    }
+
+    const origScale = mesh.userData.originalScale;
+    const origPos = mesh.userData.originalPosition;
+
+    mesh.scale.copy(origScale);
+    mesh.position.copy(origPos);
+
+    const deltaHeight = scaleParams.Height - 1.0;
+
+    // Compensation to pull Left/Right down a bit on scale up
+    const correctionOffset = -deltaHeight * 0.20; // 
+
+    if (name.includes('left') || name.includes('right') || name.includes('middle_y')) {
+      mesh.scale.y = origScale.y * scaleParams.Height;
+
+      // Shift DOWN slightly to compensate scaling gap
+      mesh.position.y = origPos.y + correctionOffset;
+
+      if (name.includes('right')) {
+        const deltaWidth = scaleParams.Width - 1.0;
+        const correctionOffsetX = deltaWidth * 1; // same logic as height
+        mesh.position.x = origPos.x + deltaWidth * origScale.z + correctionOffsetX;
+      }
+
+    }
+
+    if (name.includes('top') || name.includes('middle_x')) {
+  mesh.scale.x = origScale.x * scaleParams.Width;
+
+  const correctionOffset = deltaHeight * 0.90;
+  mesh.position.y = origPos.y + deltaHeight * origScale.y + correctionOffset;
+}
 
 
+    if (name.includes('bottom')) {
+      mesh.scale.x = origScale.x * scaleParams.Width;
+      mesh.position.y = origPos.y;
+    }
+
+    mesh.scale.z = origScale.z * scaleParams.Thickness;
+  });
+}
+
+
+
+function resizeUniformParts(meshes, scaleParams) {
+  meshes.forEach(mesh => {
+    if (!mesh.userData.originalScale || !mesh.userData.originalPosition) {
+      mesh.userData.originalScale = mesh.scale.clone();
+      mesh.userData.originalPosition = mesh.position.clone();
+    }
+
+    const origScale = mesh.userData.originalScale;
+    const origPos = mesh.userData.originalPosition;
+
+    const deltaHeight = scaleParams.Height - 1.0;
+    const deltaWidth = scaleParams.Width - 1.0;
+
+    const correctionOffsetY = -deltaHeight * 0.20;
+    const correctionOffsetX = -deltaWidth * 0.11;
+
+    // Slightly over-scale width to close the gap on the right
+    const widthCorrectionFactor = 1 + (deltaWidth * 0.03); // tune this
+
+    mesh.scale.set(
+      origScale.x * scaleParams.Width * widthCorrectionFactor,
+      origScale.y * scaleParams.Height,
+      origScale.z * scaleParams.Thickness
+    );
+
+    mesh.position.set(
+      origPos.x + correctionOffsetX,
+      origPos.y + correctionOffsetY,
+      origPos.z
+    );
+  });
+}
+
+
+
+function loadWindowModel(scene, modelPath, scaleParams) {
+  console.log('[loadWindowModel] Attempting to load model from:', modelPath);
+
+  const loader = new GLTFLoader();
+  loader.load(modelPath, (gltf) => {
+    const model = gltf.scene;
+    const box = new THREE.Box3().setFromObject(model);
+    const center = new THREE.Vector3();
+    box.getCenter(center);
+    model.position.sub(center);
+
+    const oldPivots = scene.children.filter(c => c.type === 'Group');
+    oldPivots.forEach(obj => scene.remove(obj));
+
+    pivotGroup = new THREE.Group();
+    pivotGroup.add(model);
+    scene.add(pivotGroup);
+
+    controls.target.copy(center);
+    controls.update();
+
+   
+    model.traverse((child) => {
+      if (child.isMesh && child.material) {
+        if (child.name.toLowerCase().includes('glass')) applyGlassMaterial(child);
+        child.userData.originalScale = child.scale.clone();
+        child.userData.originalPosition = child.position.clone();
+
+        const zoneName = getZoneNameFromMesh(child.name);
+        console.log('[Mesh Found]', child.name);
+
+        // Debug log for unknown zone mappings
+        if (!zoneBehaviors[zoneName]) {
+          console.warn(`Unknown zone name: ${child.name} → mapped to "${zoneName}"`);
+        }
+
+        if (!zones[zoneName]) zones[zoneName] = [];
+        zones[zoneName].push(child);
+      }
+    });
+
+    setupDynamicGUI(zones, scaleParams, pivotGroup);
+    updateCameraDistance(pivotGroup);
+    showDimensionLines(); // ← Show lines immediately
+
+    
+  });
+}
+
+function setupDynamicGUI(zones, scaleParams, pivotGroup) {
+  const guiWrapper = document.getElementById('gui-wrapper');
+  if (gui) gui.destroy();
+  gui = new GUI({ width: 250, autoPlace: false });
+  guiWrapper.appendChild(gui.domElement);
+
+  const materialNames = Object.keys(materialLibrary);
+  if (materialNames.length === 0) return;
+
+  Object.entries(zones).forEach(([zoneName, meshes]) => {
+    const config = zoneBehaviors[zoneName] || {};
+    const folder = gui.addFolder(`${zoneName.toUpperCase()} Settings`);
+
+    
+   if (config.allowColorChange) {
+  const params = { material: materialNames[0] };
+  folder.add(params, 'material', materialNames).onChange((selected) => {
+    meshes.forEach(mesh => {
+      mesh.material = materialLibrary[selected];
+    });
+
+    // Update modular clones if the OUTSIDE material is changed
+    if (zoneName === 'outside') {
+      pivotGroup.traverse(child => {
+        if (child.userData.isModularClone) {
+          child.material = materialLibrary[selected].clone();
+        }
+      });
+    }
+  });
+}
+
+
+    if (config.allowResize) {
+      ['Height', 'Width', 'Thickness'].forEach(param => {
+        let min = 1, max = 2.999;
+
+        if (param === 'Thickness') {
+          min = 1;
+          max = 1;
+        } else if (param === 'Width') {
+          max = 4;
+        }
+
+        folder.add(scaleParams, param, min, max)
+          .step(0.001)
+          .onChange(() => {
+  Object.entries(zones).forEach(([zn, zMeshes]) => {
+    const strategy = zoneBehaviors[zn]?.resizeStrategy;
+    if (strategy) resizeZoneParts(zMeshes, scaleParams, strategy);
+  });
+
+  // REAPPLY CLONES AFTER RESIZE
+  applyModularStacking();
+
+
+
+  
+
+  updateCameraDistance(pivotGroup);
+});
+
+      });
+    }
+
+    folder.open();
+  });
+
+  // -----------------------------
+  // MODULAR STACKING CONTROLS
+  // -----------------------------
+ 
+
+const modularFolder = gui.addFolder('MODULARISE');
+
+// Height stacking controls
+  modularFolder
+  .add(modularParams, 'enabledHeight')
+  .name('Enable Height Stacking')
+  .onChange(applyModularStacking);
+
+  modularFolder
+  .add(modularParams, 'ModuleHeight', 0.25, 1.2)
+  .step(0.001)
+  .name('Module Height')
+  .onChange(applyModularStacking);
+
+// Width stacking controls
+  modularFolder
+  .add(modularParams, 'enabledWidth')
+  .name('Enable Width Stacking')
+  .onChange(applyModularStacking);
+
+  modularFolder
+  .add(modularParams, 'ModuleWidth', 0.25, 3.8)
+  .step(0.001)
+  .name('Module Width')
+  .onChange(applyModularStacking);
+
+  modularFolder.open();
 
 }
 
@@ -649,86 +654,152 @@ function reloadModel(path) {
 }
 
 export function initThree(container, modelPath = '/models/Window_Frame.glb') {
-  while (container.firstChild) container.removeChild(container.firstChild);
+  return new Promise((resolve) => {
+    while (container.firstChild) container.removeChild(container.firstChild);
 
-  const width = container.clientWidth;
-  const height = container.clientHeight;
+    const width = container.clientWidth;
+    const height = container.clientHeight;
 
-  const renderer = new THREE.WebGLRenderer({ antialias: true });
-  renderer.shadowMap.enabled = true;
-  renderer.setSize(width, height);
-  container.appendChild(renderer.domElement);
-  renderer.setClearColor(0xfffffff);
+    const renderer = new THREE.WebGLRenderer({ antialias: true });
+    renderer.shadowMap.enabled = true;
+    renderer.setSize(width, height);
+    container.appendChild(renderer.domElement);
+    renderer.setClearColor(0xfffffff);
 
-  scene = new THREE.Scene();
+    scene = new THREE.Scene();
 
-  camera = new THREE.PerspectiveCamera(50, width / height, 0.1, 1000);
-  camera.position.set(0, 5, 10);
+    camera = new THREE.PerspectiveCamera(50, width / height, 0.1, 1000);
+    camera.position.set(0, 5, 10);
 
-  controls = new OrbitControls(camera, renderer.domElement);
-  controls.enableDamping = true;
-  controls.dampingFactor = 0.05;
-  controls.enableZoom = true;
-  controls.enablePan = true;
-  controls.screenSpacePanning = true;
-  controls.minPolarAngle = 0;
-  controls.maxPolarAngle = Math.PI;
-  controls.update();
-
-  const ambientLight = new THREE.AmbientLight(0xffffff, 1.5);
-  scene.add(ambientLight);
-
-  const spotLight = new THREE.SpotLight(0xffffff, 1);
-  spotLight.position.set(90, 200, 390);
-  spotLight.castShadow = true;
-  scene.add(spotLight);
-  
-
-  const ground = new THREE.Mesh(
-    new THREE.PlaneGeometry(1200, 1200),
-    new THREE.ShadowMaterial({ opacity: 0.3 })
-  );
-  ground.rotation.x = -Math.PI / 2;
-  ground.position.y = -5;
-  ground.receiveShadow = true;
-  scene.add(ground);
-
-  const guiWrapper = document.createElement('div');
-  guiWrapper.id = 'gui-wrapper';
-  guiWrapper.style.position = 'absolute';
-  guiWrapper.style.top = '0';
-  guiWrapper.style.right = '0';
-  guiWrapper.style.display = 'flex';
-  guiWrapper.style.flexDirection = 'row';
-  document.body.appendChild(guiWrapper);
-
-  const switcherGUI = new GUI({ width: 200, autoPlace: false });
-  guiWrapper.appendChild(switcherGUI.domElement);
-
-  const modelFolder = switcherGUI.addFolder('MODEL SWITCHER');
-  modelFolder
-    .add(modelSwitcher, 'model', modelOptions)
-    .name('Select Model')
-    .onChange((value) => {
-      modelSwitcher.model = value;
-      currentModelPath = `/models/${value}`;
-      reloadModel(currentModelPath);
-    });
-  modelFolder.open();
-
-  loadMaterialLibrary('/models/Materials.glb', () => reloadModel(currentModelPath));
-  
-  function animate() {
-    renderer.render(scene, camera);
+    controls = new OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true;
+    controls.dampingFactor = 0.05;
+    controls.enableZoom = true;
+    controls.enablePan = true;
+    controls.screenSpacePanning = true;
+    controls.minPolarAngle = 0;
+    controls.maxPolarAngle = Math.PI;
     controls.update();
-  }
-  renderer.setAnimationLoop(animate);
 
-  window.addEventListener('resize', () => {
-    const w = container.clientWidth;
-    const h = container.clientHeight;
-    camera.aspect = w / h;
-    camera.updateProjectionMatrix();
-    renderer.setSize(w, h);
+    const ambientLight = new THREE.AmbientLight(0xffffff, 1.5);
+    scene.add(ambientLight);
+
+    const spotLight = new THREE.SpotLight(0xffffff, 1);
+    spotLight.position.set(90, 200, 390);
+    spotLight.castShadow = true;
+    scene.add(spotLight);
+
+    const ground = new THREE.Mesh(
+      new THREE.PlaneGeometry(1200, 1200),
+      new THREE.ShadowMaterial({ opacity: 0.3 })
+    );
+    ground.rotation.x = -Math.PI / 2;
+    ground.position.y = -5;
+    ground.receiveShadow = true;
+    scene.add(ground);
+
+    const guiWrapper = document.createElement('div');
+    guiWrapper.id = 'gui-wrapper';
+    guiWrapper.style.position = 'absolute';
+    guiWrapper.style.top = '0';
+    guiWrapper.style.right = '0';
+    guiWrapper.style.display = 'flex';
+    guiWrapper.style.flexDirection = 'row';
+    document.body.appendChild(guiWrapper);
+
+    const switcherGUI = new GUI({ width: 200, autoPlace: false });
+    guiWrapper.appendChild(switcherGUI.domElement);
+
+    const modelFolder = switcherGUI.addFolder('MODEL SWITCHER');
+    modelFolder
+      .add(modelSwitcher, 'model', modelOptions)
+      .name('Select Model')
+      .onChange((value) => {
+        modelSwitcher.model = value;
+        currentModelPath = `/models/${value}`;
+        reloadModel(currentModelPath);
+      });
+    modelFolder.open();
+
+    currentModelPath = modelPath;
+
+    loadMaterialLibrary('/models/Materials.glb', () => {
+      reloadModel(currentModelPath);
+
+      let controlAPI = {
+        setHeight: (val) => {
+          scaleParams.Height = val;
+          Object.entries(zoneBehaviors).forEach(([zn, config]) => {
+            const strategy = config?.resizeStrategy;
+            if (strategy && zones[zn]) {
+              resizeZoneParts(zones[zn], scaleParams, strategy);
+            }
+          });
+          applyModularStacking();
+          updateCameraDistance(pivotGroup);
+        },
+        setWidth: (val) => {
+          scaleParams.Width = val;
+          Object.entries(zoneBehaviors).forEach(([zn, config]) => {
+            const strategy = config?.resizeStrategy;
+            if (strategy && zones[zn]) {
+              resizeZoneParts(zones[zn], scaleParams, strategy);
+            }
+          });
+          applyModularStacking();
+          updateCameraDistance(pivotGroup);
+        },
+        setModularSizes: (w, h) => {
+          modularParams.ModuleWidth = w;
+          modularParams.ModuleHeight = h;
+          applyModularStacking();
+        },
+        setModularEnabled: (widthEnabled, heightEnabled) => {
+          modularParams.enabledWidth = widthEnabled;
+          modularParams.enabledHeight = heightEnabled;
+          applyModularStacking();
+        },
+        setMaterialForZone: (zoneName, matName) => {
+  if (!materialLibrary[matName] || !zones[zoneName]) return;
+
+  zones[zoneName].forEach(mesh => {
+    const clonedMat = materialLibrary[matName].clone();
+    clonedMat.needsUpdate = true; // <-- ADD THIS LINE
+    mesh.material = clonedMat;
+  });
+
+  if (zoneName === 'outside') {
+    pivotGroup.traverse(child => {
+      if (child.userData.isModularClone) {
+        const clonedMat = materialLibrary[matName].clone();
+        clonedMat.needsUpdate = true; // <-- ADD THIS TOO
+        child.material = clonedMat;
+      }
+    });
+  }
+
+},
+        hideGUI: () => {
+          const el = document.getElementById('gui-wrapper');
+          if (el) el.style.display = 'none';
+        }
+      };
+
+      function animate() {
+        renderer.render(scene, camera);
+        controls.update();
+      }
+      renderer.setAnimationLoop(animate);
+
+      window.addEventListener('resize', () => {
+        const w = container.clientWidth;
+        const h = container.clientHeight;
+        camera.aspect = w / h;
+        camera.updateProjectionMatrix();
+        renderer.setSize(w, h);
+      });
+
+      resolve(controlAPI); // 🔥 RESOLVE AFTER EVERYTHING IS READY
+    });
   });
 }

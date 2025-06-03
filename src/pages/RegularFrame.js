@@ -4,10 +4,15 @@ import '../App.css';
 import { useNavigate } from 'react-router-dom';
 import SliderControl from '../SliderControl';
 import ColorSelectorGroup from '../ColorSelectorGroup';
+import { useLocation } from 'react-router-dom';
 
 function RegularFrame() {
   const mountRef = useRef(null);
-  const [modelPath] = useState('/models/Window_Frame.glb');
+  
+  const [controller, setController] = useState(null);
+  const location = useLocation();
+ const [modelPath] = useState(`/models/${location.state?.model || 'Window_Frame.glb'}`);
+
 
   const navigate = useNavigate();
 
@@ -40,11 +45,38 @@ const [width, setWidth] = useState(1000);  //sets start value
 
 
 
+ useEffect(() => {
+  let isMounted = true;
+
+  initThree(mountRef.current, modelPath).then(api => {
+    if (isMounted) setController(api);
+  });
+
+  return () => {
+    isMounted = false;
+  };
+}, [modelPath]);
+
+
   useEffect(() => {
-    if (mountRef.current) {
-      initThree(mountRef.current, modelPath);
-    }
-  }, [modelPath]);
+  if (controller) controller.setHeight(height / 1000); // mm to scale
+}, [,height]);
+
+useEffect(() => {
+  if (controller) controller.setWidth(width / 1000);
+}, [,width]);
+
+useEffect(() => {
+  if (controller) controller.setMaterialForZone('outside', frameColor.name);
+}, [controller,frameColor]);
+
+useEffect(() => {
+  if (controller) controller.setMaterialForZone('inside', insideColor.name);
+}, [controller,insideColor]);
+useEffect(() => {
+  if (controller) controller.hideGUI();
+}, [controller]);
+
 
   return (
     <div className="container">
