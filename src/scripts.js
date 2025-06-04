@@ -21,7 +21,7 @@ let modularParams = {
 
 
 const materialLibrary = {};
-const modelOptions = ['Window_Frame.glb', 'Window_Frame_Cross.glb'];
+const modelOptions = ['Window_Frame.glb', 'Window_Frame_Cross.glb', 'Window_Frame_Kofig.glb'];
 
 
 

@@ -18,7 +18,7 @@ body, html, #root {
 }
 
 .sidebar {
-  position: relative; /* ✅ Add this line */
+  position: relative; /*  Add this line */
   width: 25%;
   background-color: #ffffff;
   color: #171717;
