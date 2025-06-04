@@ -8,7 +8,7 @@ let scene;
 let gui;
 let camera, controls;
 let modelSwitcher = { model: 'Window_Frame.glb' };
-let currentModelPath = '/models/Window_Frame.glb';
+let currentModelPath = '/model/Window_Frame.glb';
 let scaleParams = { Height: 1, Width: 1, Thickness: 1 };
 let dimensionHelpers = [];
 let zones = {}; // holds the grouped mesh zones for resizing and material assignment
@@ -18,7 +18,7 @@ let modularParams = {
   ModuleHeight: 1.15,
   ModuleWidth: 0.88
 };
-
+// newpush
 
 const materialLibrary = {};
 const modelOptions = ['Window_Frame.glb', 'Window_Frame_Cross.glb'];
@@ -161,7 +161,7 @@ function resizeZoneParts(meshes, scaleParams, strategy) {
   else if (strategy === 'uniform') resizeUniformParts(meshes, scaleParams);
 }
 
-function loadMaterialLibrary(glbPath = '/models/Materials.glb', onComplete) {
+function loadMaterialLibrary(glbPath = '/model/Materials.glb', onComplete) {
   const loader = new GLTFLoader();
   loader.load(glbPath, (gltf) => {
     gltf.scene.traverse((child) => {
@@ -660,7 +660,7 @@ function reloadModel(path) {
   loadWindowModel(scene, path, scaleParams);
 }
 
-export function initThree(container, modelPath = '/models/Window_Frame.glb') {
+export function initThree(container, modelPath = '/model/Window_Frame.glb') {
   return new Promise((resolve) => {
     while (container.firstChild) container.removeChild(container.firstChild);
 
@@ -730,14 +730,14 @@ if (!guiWrapper) {
       .name('Select Model')
       .onChange((value) => {
         modelSwitcher.model = value;
-        currentModelPath = `/models/${value}`;
+        currentModelPath = `/model/${value}`;
         reloadModel(currentModelPath);
       });
     modelFolder.open();
 
     currentModelPath = modelPath;
 
-    loadMaterialLibrary('/models/Materials.glb', () => {
+    loadMaterialLibrary('/model/Materials.glb', () => {
       reloadModel(currentModelPath);
 
       let controlAPI = {
