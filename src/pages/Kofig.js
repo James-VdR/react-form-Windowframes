@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { initThree } from '../scripts';
-import '../App.css';
+import '../Kofig.css';
 import { useNavigate } from 'react-router-dom';
 import SliderControl from '../SliderControl';
 import ColorSelectorGroup from '../ColorSelectorGroup';
@@ -125,9 +125,13 @@ useEffect(() => {
 
   return (
     <div className="container">
-      <nav className="sidebar">
-        <button className="back-button" onClick={handleBack}>←</button>
-        <h1>Modular Window</h1>
+      <div className="sidebar">
+  <div className="kofig-header">
+    <h1>Kofig Demo</h1>
+    <button className="back-button" onClick={handleBack}>←</button>
+  </div>
+
+
         <ul>
           
           <li>
@@ -175,7 +179,7 @@ useEffect(() => {
         />
             </li>
         </ul>
-      </nav>
+      </div>
 
       <main className="main-content" ref={mountRef} style={{ width: '100%', height: '100vh' }}>
         {/* 3D scene renders here */}
