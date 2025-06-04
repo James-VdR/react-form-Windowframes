@@ -31,7 +31,7 @@ function RegularFrame() {
   
   const [controller, setController] = useState(null);
   const location = useLocation();
- const [modelPath] = useState(`/model/${location.state?.model || 'Window_Frame.glb'}`);
+ const [modelPath] = useState(`./${location.state?.model || 'Window_Frame.glb'}`);
 const [modelReady, setModelReady] = useState(false);
 
   const navigate = useNavigate();

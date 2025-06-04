@@ -34,7 +34,7 @@ function ModularFrame() {
   const [horizontalEnabled, setHorizontalEnabled] = useState(false);
   const [verticalEnabled, setVerticalEnabled] = useState(false);
   const location = useLocation();
-  const [modelPath] = useState(`/model/${location.state?.model || 'Window_Frame.glb'}`);
+  const [modelPath] = useState(`./${location.state?.model || 'Window_Frame.glb'}`);
 
 
   
