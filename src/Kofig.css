@@ -1,0 +1,111 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap');
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+.kofig-root body, html, #root {
+  height: 100%;
+  font-family: 'Poppins', sans-serif;
+  background-color: rgb(0, 0, 0); /* ⬛ full background */
+}
+
+.kofig-root .container {
+  display: flex;
+  height: 100vh;
+  width: 100vw;
+}
+
+/* 🟡 Sidebar yellow panel */
+.kofig-root .sidebar {
+  width: 25%;
+  background-color: #000000; /* bright yellow */
+  color: #000000;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  border-right: 1px solid #f1f1f1;
+  position: relative;
+  overflow-y: auto;
+}
+
+/* 🔳 Card-like item containers inside sidebar */
+.kofig-root .sidebar li {
+  background-color: #ffe600; /* same yellow */
+  border: 1px solid #e5e5e5;
+  border-radius: 4px;
+  padding: 10px;
+  margin-bottom: 10px;
+  list-style: none;
+}
+
+/* 🟡 Header zone */
+.kofig-root .kofig-header {
+  background-color: rgb(255, 238, 0);
+  color: #ffe600;
+  padding: 12px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+/* 🟡 Title style */
+.kofig-root .kofig-title h1 {
+  font-size: 22px;
+  font-weight: 600;
+  color: #ffe600;
+}
+
+/* 🟡 Arrow Button */
+.kofig-root .back-button {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 2px solid #000000;
+  background-color: #ffe600;
+  color: rgb(0, 0, 0);
+  font-size: 20px;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background-color 0.3s ease, color 0.3s ease;
+  z-index: 10;
+  right: 10px;
+  
+}
+
+.kofig-root .back-button:hover {
+  background-color: black;
+  color: #ffe600;
+  border-color: #ffe600;
+}
+
+/* 👇 Optional: toggle switch styling for modular buttons */
+.kofig-root .mode-toggle {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: 2px solid #a3d69c;
+  background-color: transparent;
+  color: #a3d69c;
+  font-size: 18px;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.kofig-root .mode-toggle.enabled {
+  background-color: #a3d69c;
+  color: white;
+}
