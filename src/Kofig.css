@@ -6,20 +6,20 @@
   box-sizing: border-box;
 }
 
-body, html, #root {
+.kofig-root body, html, #root {
   height: 100%;
   font-family: 'Poppins', sans-serif;
   background-color: rgb(0, 0, 0); /* ⬛ full background */
 }
 
-.container {
+.kofig-root .container {
   display: flex;
   height: 100vh;
   width: 100vw;
 }
 
 /* 🟡 Sidebar yellow panel */
-.sidebar {
+.kofig-root .sidebar {
   width: 25%;
   background-color: #000000; /* bright yellow */
   color: #000000;
@@ -33,7 +33,7 @@ body, html, #root {
 }
 
 /* 🔳 Card-like item containers inside sidebar */
-.sidebar li {
+.kofig-root .sidebar li {
   background-color: #ffe600; /* same yellow */
   border: 1px solid #e5e5e5;
   border-radius: 4px;
@@ -43,7 +43,7 @@ body, html, #root {
 }
 
 /* 🟡 Header zone */
-.kofig-header {
+.kofig-root .kofig-header {
   background-color: rgb(255, 238, 0);
   color: #ffe600;
   padding: 12px 20px;
@@ -53,14 +53,14 @@ body, html, #root {
 }
 
 /* 🟡 Title style */
-.kofig-title h1 {
+.kofig-root .kofig-title h1 {
   font-size: 22px;
   font-weight: 600;
   color: #ffe600;
 }
 
 /* 🟡 Arrow Button */
-.back-button {
+.kofig-root .back-button {
   width: 40px;
   height: 40px;
   border-radius: 50%;
@@ -79,14 +79,14 @@ body, html, #root {
   
 }
 
-.back-button:hover {
+.kofig-root .back-button:hover {
   background-color: black;
   color: #ffe600;
   border-color: #ffe600;
 }
 
 /* 👇 Optional: toggle switch styling for modular buttons */
-.mode-toggle {
+.kofig-root .mode-toggle {
   position: absolute;
   top: 10px;
   right: 10px;
@@ -105,7 +105,7 @@ body, html, #root {
   transition: background-color 0.3s ease, color 0.3s ease;
 }
 
-.mode-toggle.enabled {
+.kofig-root .mode-toggle.enabled {
   background-color: #a3d69c;
   color: white;
 }

@@ -101,4 +101,16 @@ body, html, #root {
   color: white;
 }
 
+.sidebar {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow: hidden; /* Prevent full body scroll */
+}
+
+.sidebar-scroll {
+  flex: 1; /* Take up remaining space after header/back-button */
+  overflow-y: auto;
+  padding-right: 8px; /* space for scrollbar */
+}
 

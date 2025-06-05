@@ -3,6 +3,7 @@ import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { GUI } from 'lil-gui';
 
+
 let pivotGroup
 let scene;
 let gui;
@@ -220,6 +221,19 @@ function resizeFrameParts(meshes, scaleParams) {
 
       // Shift DOWN slightly to compensate scaling gap
       mesh.position.y = origPos.y + correctionOffset;
+
+  const widthOffsetFactorR = 1.30; //  tweak this to match your frame layout
+  const widthOffsetFactorL = 0.67;
+if (name.includes('outside_frame_middle_yl')) {
+  mesh.position.x = origPos.x + (scaleParams.Width - 1.0) * widthOffsetFactorL;
+}
+
+//correct
+if (name.includes('outside_frame_middle_yr')) {
+  mesh.position.x = origPos.x + (scaleParams.Width - 1.0) * widthOffsetFactorR;
+}
+
+
 
       if (name.includes('right')) {
         const deltaWidth = scaleParams.Width - 1.0;
@@ -793,6 +807,118 @@ if (!guiWrapper) {
   }
 
 },
+setLeftHorizontalOffset: (value) => {
+  if (!pivotGroup) return;
+  const mesh = findMeshByName('Outside_Frame_Middle_XL');
+  if (mesh && mesh.userData.originalPosition) {
+    mesh.position.y = mesh.userData.originalPosition.y - value;
+  }
+},
+
+setRightHorizontalOffset: (value) => {
+  if (!pivotGroup) return;
+  const mesh = findMeshByName('Outside_Frame_Middle_XR');
+  if (mesh && mesh.userData.originalPosition) {
+    mesh.position.y = mesh.userData.originalPosition.y - value;
+  }
+}
+,
+
+setLeftVerticalOffset: (value) => {
+  if (!pivotGroup) return;
+
+  const verticalMesh = findMeshByName('Outside_Frame_Middle_YL');
+  const horizontalMesh = findMeshByName('Outside_Frame_Middle_XL');
+
+  if (
+    verticalMesh &&
+    horizontalMesh &&
+    verticalMesh.userData.originalPosition &&
+    horizontalMesh.userData.originalScale &&
+    horizontalMesh.userData.originalPosition
+  ) {
+    const clamped = Math.max(-0.15, Math.min(0.50, value));
+    verticalMesh.position.x = verticalMesh.userData.originalPosition.x + clamped;
+
+    const deltaX = clamped;
+    const origScale = horizontalMesh.userData.originalScale.clone();
+
+    // Only apply fudge when expanding past 0
+    const fudge = deltaX > 0.001 ? 0.1 : 0;
+
+    // Apply clean scaling in X with conditional fudge
+    horizontalMesh.scale.set(
+      origScale.x + deltaX + fudge,
+      origScale.y,
+      origScale.z
+    );
+  }
+},
+
+
+setRightVerticalOffset: (value) => {
+  if (!pivotGroup) return;
+
+  const verticalMesh = findMeshByName('Outside_Frame_Middle_YR');
+  const horizontalMesh = findMeshByName('Outside_Frame_Middle_XR');
+
+  if (
+    verticalMesh &&
+    horizontalMesh &&
+    verticalMesh.userData.originalPosition &&
+    horizontalMesh.userData.originalPosition &&
+    horizontalMesh.userData.originalScale
+  ) {
+    const clamped = Math.max(-0.50, Math.min(0.15, value));
+    const origPos = horizontalMesh.userData.originalPosition;
+    const origScale = horizontalMesh.userData.originalScale.clone();
+
+    // Move vertical frame
+    verticalMesh.position.x = verticalMesh.userData.originalPosition.x + clamped;
+
+    // === Behavior when sliding left (negative)
+   if (clamped < 0) {
+  const fudgePositionLeft = -0.035; // position nudge
+  horizontalMesh.position.x = origPos.x + clamped + fudgePositionLeft;
+
+  const stretch = -clamped * 0.25;
+  const fudgeStretch = 0.015; // width fudge
+  horizontalMesh.scale.set(
+    origScale.x + stretch + fudgeStretch,
+    origScale.y,
+    origScale.z
+  );
+}
+
+
+   else if (clamped > 0) {
+  const shrink = clamped * 1;
+  const shift = shrink * 1.15;
+
+  const fudgeShrink = 0.001; // ← this is your subtle fix
+
+  horizontalMesh.position.x = origPos.x + clamped + shift;
+
+  horizontalMesh.scale.set(
+    Math.max(origScale.x - shrink + fudgeShrink, 0.02),
+    origScale.y,
+    origScale.z
+  );
+
+
+}
+
+
+
+    // === Reset to original if centered
+    else {
+      horizontalMesh.position.x = origPos.x;
+      horizontalMesh.scale.copy(origScale);
+    }
+  }
+}
+,
+
         hideGUI: () => {
           const wrapper = document.getElementById('gui-wrapper');
           if (wrapper) wrapper.style.display = 'none'; 
@@ -813,6 +939,9 @@ if (!guiWrapper) {
         camera.updateProjectionMatrix();
         renderer.setSize(w, h);
       });
+
+
+
 
       resolve(controlAPI); 
     });

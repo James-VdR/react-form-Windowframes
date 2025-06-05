@@ -4,7 +4,7 @@ import '../Kofig.css';
 import { useNavigate } from 'react-router-dom';
 import SliderControl from '../SliderControl';
 import ColorSelectorGroup from '../ColorSelectorGroup';
-import { useLocation } from 'react-router-dom';
+
 
 // color fixing
 const MATERIAL_NAME_MAP = {
@@ -32,11 +32,13 @@ function Kofig() {
   const [controller, setController] = useState(null);
 
  
-  const location = useLocation();
-  const [modelPath] = useState(`/models/${location.state?.model || 'Window_Frame_Kofig.glb'}`);
-// help
-
   
+  const [modelPath] = useState('/models/Window_Frame_Kofig.glb');
+
+  const [modularLeftBar, setModularLeftBar] = useState(0);
+  const [modularLeftEdge, setModularLeftEdge] = useState(0);
+  const [modularRightBar, setModularRightBar] = useState(0);
+  const [modularRightEdge, setModularRightEdge] = useState(0);
 
   const navigate = useNavigate();
 
@@ -76,6 +78,8 @@ const [width, setWidth] = useState(1000);  //sets start value
 
 useEffect(() => {
   let isMounted = true;
+
+   console.log('[Kofig] mountRef.current:', mountRef.current);
 
   initThree(mountRef.current, modelPath).then((api) => {
     if (isMounted) {
@@ -118,12 +122,32 @@ useEffect(() => {
   }
 }, [controller, modularColor]);
 
+
+
 useEffect(() => {
   if (controller) controller.hideGUI();
 }, [controller]);
 
+useEffect(() => {
+  if (controller) controller.setLeftHorizontalOffset(modularLeftEdge / 1000); // mm to meters
+}, [controller, modularLeftEdge]);
+
+useEffect(() => {
+  if (controller) controller.setRightHorizontalOffset(modularRightEdge / 1000); // mm to meters
+}, [controller, modularRightEdge]);
+
+useEffect(() => {
+  if (controller) controller.setLeftVerticalOffset(modularLeftBar / 1000);
+}, [controller, modularLeftBar]);
+
+useEffect(() => {
+  if (controller) controller.setRightVerticalOffset(modularRightBar / 1000);
+}, [controller, modularRightBar]);
+
+
 
   return (
+    <div className="kofig-root container">
     <div className="container">
       <div className="sidebar">
   <div className="kofig-header">
@@ -178,6 +202,45 @@ useEffect(() => {
           onSelect={setModularColor}
         />
             </li>
+          <li className="modular-positions-section">
+  <h2>Modular Positions</h2>
+
+  <SliderControl
+    label="Left Vertical Bar"
+    min={-150}
+    max={235}
+    step={1}
+    value={modularLeftBar}
+    onChange={setModularLeftBar}
+  />
+
+  <SliderControl
+    label="Left Horizontal Bar"
+    min={0}
+    max={750}
+    value={modularLeftEdge}
+    onChange={setModularLeftEdge}
+  />
+
+  <SliderControl
+    label="Right Vertical Bar"
+    min={-235}
+    max={150}
+    step={1}
+    value={modularRightBar}
+    onChange={setModularRightBar}
+  />
+
+  <SliderControl
+    label="Right Horizontal Bars"
+    min={0}
+    max={750}
+    value={modularRightEdge}
+    onChange={setModularRightEdge}
+  />
+</li>
+
+
         </ul>
       </div>
 
@@ -187,6 +250,7 @@ useEffect(() => {
       
 
     </div>
+    </div> 
   );
 }
 
