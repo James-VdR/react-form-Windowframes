@@ -32,7 +32,14 @@ function ModularFrame() {
   const [horizontalEnabled, setHorizontalEnabled] = useState(false);
   const [verticalEnabled, setVerticalEnabled] = useState(false);
   const location = useLocation();
+
   const [modelPath] = useState(`/models/${location.state?.model || 'Window_Frame.glb'}`);
+
+ 
+
+
+  
+
 
   const navigate = useNavigate();
   const handleBack = () => navigate('/');
