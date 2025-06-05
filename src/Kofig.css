@@ -109,3 +109,42 @@
   background-color: #a3d69c;
   color: white;
 }
+
+/*  Checkmark-style toggle buttons */
+.kofig-root .check-toggle {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 2px solid #000000;
+  background-color: #ffe600;
+  color: black;
+  font-size: 22px;
+  font-weight: bold;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 10px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.kofig-root .check-toggle.active {
+  background-color: black;
+  color: #ffe600;
+  border-color: #ffe600;
+}
+
+.kofig-root .toggle-buttons {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.kofig-root .toggle-label {
+  font-size: 14px;
+  font-weight: 500;
+  margin-right: 16px;
+  color: #000;
+}

@@ -30,6 +30,8 @@ function Kofig() {
   const mountRef = useRef(null);
  
   const [controller, setController] = useState(null);
+  const [mirrorVertical, setMirrorVertical] = useState(false);
+  const [mirrorHorizontal, setMirrorHorizontal] = useState(false);
 
  
   
@@ -39,6 +41,7 @@ function Kofig() {
   const [modularLeftEdge, setModularLeftEdge] = useState(0);
   const [modularRightBar, setModularRightBar] = useState(0);
   const [modularRightEdge, setModularRightEdge] = useState(0);
+  
 
   const navigate = useNavigate();
 
@@ -202,44 +205,84 @@ useEffect(() => {
           onSelect={setModularColor}
         />
             </li>
-          <li className="modular-positions-section">
+       <li className="modular-positions-section">
   <h2>Modular Positions</h2>
 
-  <SliderControl
-    label="Left Vertical Bar"
-    min={-150}
-    max={235}
-    step={1}
-    value={modularLeftBar}
-    onChange={setModularLeftBar}
-  />
+  {/* Mirror Vertical Toggle */}
+  <div className="toggle-buttons">
+    <button
+      className={`check-toggle ${mirrorVertical ? 'active' : ''}`}
+      onClick={() => setMirrorVertical(!mirrorVertical)}
+    >
+      ✓
+    </button>
+    <span className="toggle-label">Toggle Mirror Vertical</span>
+  </div>
+  
+<SliderControl
+  label="Left Vertical Bar"
+  min={-150}
+  max={235}
+  step={1}
+  value={modularLeftBar}
+  onChange={(val) => {
+    setModularLeftBar(val);
+    if (mirrorVertical) {
+      setModularRightBar(-val);
+    }
+  }}
+/>
 
-  <SliderControl
-    label="Left Horizontal Bar"
-    min={0}
-    max={750}
-    value={modularLeftEdge}
-    onChange={setModularLeftEdge}
-  />
+<SliderControl
+  label="Right Vertical Bar"
+  min={-235}
+  max={150}
+  step={1}
+  value={modularRightBar}
+  onChange={(val) => {
+    setModularRightBar(val);
+    if (mirrorVertical) {
+      setModularLeftBar(-val);
+    }
+  }}
+/>
 
-  <SliderControl
-    label="Right Vertical Bar"
-    min={-235}
-    max={150}
-    step={1}
-    value={modularRightBar}
-    onChange={setModularRightBar}
-  />
 
-  <SliderControl
-    label="Right Horizontal Bars"
-    min={0}
-    max={750}
-    value={modularRightEdge}
-    onChange={setModularRightEdge}
-  />
+
+  {/* Mirror Horizontal Toggle */}
+  <div className="toggle-buttons">
+    <button
+      className={`check-toggle ${mirrorHorizontal ? 'active' : ''}`}
+      onClick={() => setMirrorHorizontal(!mirrorHorizontal)}
+    >
+      ✓
+    </button>
+    <span className="toggle-label">Toggle Mirror Horizontal</span>
+  </div>
+
+ <SliderControl
+  label="Left Horizontal Bar"
+  min={0}
+  max={750}
+  value={modularLeftEdge}
+  onChange={(val) => {
+    setModularLeftEdge(val);
+    if (mirrorHorizontal) setModularRightEdge(val);
+  }}
+/>
+
+<SliderControl
+  label="Right Horizontal Bars"
+  min={0}
+  max={750}
+  value={modularRightEdge}
+  onChange={(val) => {
+    setModularRightEdge(val);
+    if (mirrorHorizontal) setModularLeftEdge(val);
+  }}
+/>
+
 </li>
-
 
         </ul>
       </div>

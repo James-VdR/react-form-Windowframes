@@ -57,17 +57,22 @@ body, html {
   padding: 20px;
   position: relative;
   z-index: 1;
+  flex-grow: 1;
+  justify-content: space-between; /* <-- spread scroll area and button */
+  min-height: 600px; /* ensure some vertical space */
 }
 
 .selector-scroll-zone {
-  max-height: 540px;
+  max-height: 650px;
   overflow-y: auto;
   display: flex;
   flex-direction: column;
-  gap: 40px;
+  gap: 5px;
   width: 100%;
-  padding-right: 8px; /* To avoid hidden scrollbar */
+  padding-right: 8px;
+  margin-bottom: 0px; /* ⬅️ ensures gap above button */
 }
+
 
 .selector-row {
   display: flex;
