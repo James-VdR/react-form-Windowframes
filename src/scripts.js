@@ -196,6 +196,50 @@ function applyGlassMaterial(mesh) {
   });
 }
 
+
+function updateMiddleVerticalBars(leftOffsetMM = 0, rightOffsetMM = 0) {
+  const leftBar = findMeshByName('Outside_Frame_Middle_YL');
+  const rightBar = findMeshByName('Outside_Frame_Middle_YR');
+  const hBarLeft = findMeshByName('Outside_Frame_Middle_XL');
+  const hBarRight = findMeshByName('Outside_Frame_Middle_XR');
+
+  if (!leftBar || !rightBar) return;
+
+  const scaleW = scaleParams.Width || 1.0;
+
+  //  Make sure these match what's used in `resizeFrameParts`
+  const widthOffsetFactorL = 0.67;
+  const widthOffsetFactorR = 1.30;
+
+  const leftOffset = leftOffsetMM / 1000;
+  const rightOffset = rightOffsetMM / 1000;
+
+  // Cache original positions if not done yet
+  if (!leftBar.userData.originalPosition) leftBar.userData.originalPosition = leftBar.position.clone();
+  if (!rightBar.userData.originalPosition) rightBar.userData.originalPosition = rightBar.position.clone();
+  if (hBarLeft && !hBarLeft.userData.originalPosition) hBarLeft.userData.originalPosition = hBarLeft.position.clone();
+  if (hBarRight && !hBarRight.userData.originalPosition) hBarRight.userData.originalPosition = hBarRight.position.clone();
+
+  // Vertical bars
+  leftBar.position.x = leftBar.userData.originalPosition.x + (scaleW - 1.0) * widthOffsetFactorL + leftOffset;
+  rightBar.position.x = rightBar.userData.originalPosition.x + (scaleW - 1.0) * widthOffsetFactorR + rightOffset;
+
+  if (hBarLeft && hBarLeft.userData.originalPosition) {
+  hBarLeft.position.x = hBarLeft.userData.originalPosition.x + leftOffset;
+}
+
+
+  if (hBarRight && hBarRight.userData.originalPosition) {
+  hBarRight.position.x = hBarRight.userData.originalPosition.x + rightOffset;
+}
+
+}
+
+
+
+
+
+
 function resizeFrameParts(meshes, scaleParams) {
   meshes.forEach(mesh => {
     const name = mesh.name.toLowerCase();
@@ -806,6 +850,19 @@ if (!guiWrapper) {
           modularParams.enabledHeight = heightEnabled;
           applyModularStacking();
         },
+
+    setMiddleBarOffset: (leftOffsetMM, rightOffsetMM) => {
+  updateMiddleVerticalBars(leftOffsetMM, rightOffsetMM);
+  // Cache post-width-change "flush" X positions for horizontal bars
+const hBarLeft = findMeshByName('Outside_Frame_Middle_XL');
+const hBarRight = findMeshByName('Outside_Frame_Middle_XR');
+
+if (hBarLeft) hBarLeft.userData.flushBaseX = hBarLeft.position.x;
+if (hBarRight) hBarRight.userData.flushBaseX = hBarRight.position.x;
+
+  showDimensionLines(); 
+},
+
         setMaterialForZone: (zoneName, matName) => {
   if (!materialLibrary[matName] || !zones[zoneName]) return;
 
@@ -861,100 +918,7 @@ setRightHorizontalOffset: (value) => {
   }
 },
 
-setLeftVerticalOffset: (value) => {
-  if (!pivotGroup) return;
 
-  const verticalMesh = findMeshByName('Outside_Frame_Middle_YL');
-  const horizontalMesh = findMeshByName('Outside_Frame_Middle_XL');
-
-  if (
-    verticalMesh &&
-    horizontalMesh &&
-    verticalMesh.userData.originalPosition &&
-    horizontalMesh.userData.originalScale &&
-    horizontalMesh.userData.originalPosition
-  ) {
-    const clamped = Math.max(-0.15, Math.min(0.50, value));
-    verticalMesh.position.x = verticalMesh.userData.originalPosition.x + clamped;
-
-    const deltaX = clamped;
-    const origScale = horizontalMesh.userData.originalScale.clone();
-
-    // Only apply fudge when expanding past 0
-    const fudge = deltaX > 0.001 ? 0.1 : 0;
-
-    // Apply clean scaling in X with conditional fudge
-    horizontalMesh.scale.set(
-      origScale.x + deltaX + fudge ,
-      origScale.y,
-      origScale.z
-    );
-  }
-},
-
-
-setRightVerticalOffset: (value) => {
-  if (!pivotGroup) return;
-
-  const verticalMesh = findMeshByName('Outside_Frame_Middle_YR');
-  const horizontalMesh = findMeshByName('Outside_Frame_Middle_XR');
-  const rightFrame = findMeshByName('right_frame');
-
-  if (
-    verticalMesh &&
-    horizontalMesh &&
-    verticalMesh.userData.originalPosition &&
-    horizontalMesh.userData.originalPosition &&
-    horizontalMesh.userData.originalScale &&
-    rightFrame
-  ) {
-    const clamped = Math.max(-0.50, Math.min(0.15, value));
-    const origScale = horizontalMesh.userData.originalScale.clone();
-
-    // Get world-space right edge of the frame
-    const box = new THREE.Box3().setFromObject(rightFrame);
-    const rightEdgeX = box.max.x;
-
-    // Convert to local space
-    const rightEdgeWorld = new THREE.Vector3(rightEdgeX, 0, 0);
-    pivotGroup.worldToLocal(rightEdgeWorld);
-
-    // Manual tweak offset (tune this freely)
-    const offsetTweak = -1;
-
-    // Adjust vertical bar position with manual tweak
-    verticalMesh.position.x = rightEdgeWorld.x + clamped + offsetTweak;
-
-    if (clamped < 0) {
-      const fudgePositionLeft = -0.035;
-      horizontalMesh.position.x = rightEdgeWorld.x + clamped + offsetTweak + fudgePositionLeft;
-
-      const stretch = -clamped * 0.25;
-      const fudgeStretch = 0.015;
-
-      horizontalMesh.scale.set(
-        origScale.x + stretch + fudgeStretch,
-        origScale.y,
-        origScale.z
-      );
-    } else if (clamped > 0) {
-      const shrink = clamped * 1;
-      const shift = shrink * 1.15;
-      const fudgeShrink = 0.001;
-
-      horizontalMesh.position.x = rightEdgeWorld.x + clamped + offsetTweak + shift;
-
-      horizontalMesh.scale.set(
-        Math.max(origScale.x - shrink + fudgeShrink, 0.02),
-        origScale.y,
-        origScale.z
-      );
-    } else {
-      horizontalMesh.position.x = rightEdgeWorld.x + offsetTweak;
-      horizontalMesh.scale.copy(origScale);
-    }
-  }
-},
 getScene: () => scene,
 
 

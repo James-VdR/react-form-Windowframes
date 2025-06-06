@@ -81,6 +81,13 @@ const [width, setWidth] = useState(1000);  //sets start value
   };
 }, [modelPath]);
 
+useEffect(() => {
+  if (controller) {
+    controller.setModularEnabled(false, false); //  Force off
+  }
+}, [controller]);
+
+
 
 useEffect(() => {
   if (controller && modelReady) {

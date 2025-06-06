@@ -4,7 +4,7 @@ import '../Kofig.css';
 import { useNavigate } from 'react-router-dom';
 import SliderControl from '../SliderControl';
 import ColorSelectorGroup from '../ColorSelectorGroup';
-import { useLocation } from 'react-router-dom';
+
 import * as THREE from 'three';
 
 
@@ -35,8 +35,9 @@ function Kofig() {
   const [mirrorVertical, setMirrorVertical] = useState(false);
   const [mirrorHorizontal, setMirrorHorizontal] = useState(false);
 
+
  
-  const location = useLocation();
+  
   const [modelPath] = useState('/models/Window_Frame_Kofig.glb');
 
   const [modularLeftBar, setModularLeftBar] = useState(0);
@@ -79,6 +80,31 @@ const [height, setHeight] = useState(1000); //sets start value
 const [width, setWidth] = useState(1000);  //sets start value
 
 
+ const minWidth = 1000;
+const maxWidth = 4000;
+const minOffset = 235;
+const maxOffset = 2235;
+
+// How far along we are from 1000 to 4000
+const widthRatio = (width - minWidth) / (maxWidth - minWidth);
+
+// Interpolate the offset (in mm)
+const dynamicOffset = minOffset + widthRatio * (maxOffset - minOffset);
+const clampedOffset = Math.min(Math.max(dynamicOffset, minOffset), maxOffset);
+
+// Now set limits for vertical bar sliders
+// Ensure result stays within bounds AND is integer
+const roundToInt = (val) => Math.round(val);
+
+// Apply rounding fix
+const leftBarMin = roundToInt(-clampedOffset);
+const leftBarMax = 150;
+
+const rightBarMin = -150;
+const rightBarMax = roundToInt(clampedOffset);
+
+
+ // stop the vertical bastard from growing past 2235 so it doesnt zoom out the frame :)
 
 
 useEffect(() => {
@@ -96,6 +122,13 @@ useEffect(() => {
     isMounted = false;
   };
 }, [modelPath]);
+
+useEffect(() => {
+  if (controller) {
+    controller.setModularEnabled(false, false); // Force off
+  }
+}, [controller]);
+
 
   useEffect(() => {
   if (controller) controller.setHeight(height / 1000); // mm to scale
@@ -141,13 +174,7 @@ useEffect(() => {
   if (controller) controller.setRightHorizontalOffset(modularRightEdge / 1000); // mm to meters
 }, [controller, modularRightEdge]);
 
-useEffect(() => {
-  if (controller) controller.setLeftVerticalOffset(modularLeftBar / 1000);
-}, [controller, modularLeftBar]);
 
-useEffect(() => {
-  if (controller) controller.setRightVerticalOffset(modularRightBar / 1000);
-}, [controller, modularRightBar]);
 useEffect(() => {
   const extraHeight = Math.max(height - 1000, 0); // don't go below 750
   setHorizontalBarMax(750 + extraHeight);
@@ -255,34 +282,40 @@ useEffect(() => {
     </button>
     <span className="toggle-label">Toggle Mirror Vertical</span>
   </div>
-  
+
 <SliderControl
   label="Left Vertical Bar"
-  min={-150}
-  max={235}
+  min={leftBarMin}
+  max={leftBarMax}
   step={1}
   value={modularLeftBar}
   onChange={(val) => {
     setModularLeftBar(val);
+    if (controller) controller.setMiddleBarOffset(val, modularRightBar);
     if (mirrorVertical) {
       setModularRightBar(-val);
+      if (controller) controller.setMiddleBarOffset(val, -val);
     }
   }}
 />
 
 <SliderControl
   label="Right Vertical Bar"
-  min={-235}
-  max={150}
+  min={rightBarMin}
+  max={rightBarMax}
   step={1}
   value={modularRightBar}
   onChange={(val) => {
     setModularRightBar(val);
+    if (controller) controller.setMiddleBarOffset(modularLeftBar, val);
     if (mirrorVertical) {
       setModularLeftBar(-val);
+      if (controller) controller.setMiddleBarOffset(-val, val);
     }
   }}
 />
+
+
 
 
 
