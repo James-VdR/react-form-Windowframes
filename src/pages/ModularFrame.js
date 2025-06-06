@@ -4,7 +4,7 @@ import '../App.css';
 import { useNavigate } from 'react-router-dom';
 import SliderControl from '../SliderControl';
 import ColorSelectorGroup from '../ColorSelectorGroup';
-
+import { useLocation } from 'react-router-dom';
 
 // Mapping color names
 const MATERIAL_NAME_MAP = {
@@ -31,11 +31,9 @@ function ModularFrame() {
 
   const [horizontalEnabled, setHorizontalEnabled] = useState(false);
   const [verticalEnabled, setVerticalEnabled] = useState(false);
- 
+  const location = useLocation();
 
-  
-    const [modelPath] = useState('/models/Window_Frame_Cross.glb');
-  
+  const [modelPath] = useState(`/models/${location.state?.model || 'Window_Frame.glb'}`);
 
  
 
