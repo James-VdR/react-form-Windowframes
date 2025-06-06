@@ -4,7 +4,7 @@ import '../App.css';
 import { useNavigate } from 'react-router-dom';
 import SliderControl from '../SliderControl';
 import ColorSelectorGroup from '../ColorSelectorGroup';
-import { useLocation } from 'react-router-dom';
+
 
 // color fixing
 const MATERIAL_NAME_MAP = {
@@ -30,8 +30,10 @@ function RegularFrame() {
   const mountRef = useRef(null);
   
   const [controller, setController] = useState(null);
-  const location = useLocation();
- const [modelPath] = useState(`/model/${location.state?.model || 'Window_Frame.glb'}`);
+  
+ 
+   const [modelPath] = useState('/models/Window_Frame.glb');
+ 
 const [modelReady, setModelReady] = useState(false);
 
   const navigate = useNavigate();
