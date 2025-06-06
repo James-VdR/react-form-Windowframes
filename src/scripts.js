@@ -9,7 +9,7 @@ let scene;
 let gui;
 let camera, controls;
 let modelSwitcher = { model: 'Window_Frame.glb' };
-let currentModelPath = '/model/Window_Frame.glb';
+let currentModelPath = '/models/Window_Frame.glb';
 let scaleParams = { Height: 1, Width: 1, Thickness: 1 };
 let dimensionHelpers = [];
 let zones = {}; // holds the grouped mesh zones for resizing and material assignment
@@ -162,7 +162,7 @@ function resizeZoneParts(meshes, scaleParams, strategy) {
   else if (strategy === 'uniform') resizeUniformParts(meshes, scaleParams);
 }
 
-function loadMaterialLibrary(glbPath = '/model/Materials.glb', onComplete) {
+function loadMaterialLibrary(glbPath = '/models/Materials.glb', onComplete) {
   const loader = new GLTFLoader();
   loader.load(glbPath, (gltf) => {
     gltf.scene.traverse((child) => {
@@ -337,6 +337,25 @@ function loadWindowModel(scene, modelPath, scaleParams) {
         zones[zoneName].push(child);
       }
     });
+
+    const targetNames = [
+  'Outside_Frame_Middle_XL',
+  'Outside_Frame_Middle_YL',
+  'Outside_Frame_Middle_XR',
+  'Outside_Frame_Middle_YR'
+];
+
+targetNames.forEach(name => {
+  const mesh = findMeshByName(name);
+  if (mesh) {
+    const box = new THREE.Box3().setFromObject(mesh);
+    const size = box.getSize(new THREE.Vector3());
+    console.log(`[Mesh Size] ${name}:`, size);
+  } else {
+    console.warn(`[Mesh Not Found] ${name}`);
+  }
+});
+
 
     setupDynamicGUI(zones, scaleParams, pivotGroup);
     updateCameraDistance(pivotGroup);
@@ -674,7 +693,7 @@ function reloadModel(path) {
   loadWindowModel(scene, path, scaleParams);
 }
 
-export function initThree(container, modelPath = '/model/Window_Frame.glb') {
+export function initThree(container, modelPath = '/models/Window_Frame.glb') {
   return new Promise((resolve) => {
     while (container.firstChild) container.removeChild(container.firstChild);
 
@@ -744,14 +763,14 @@ if (!guiWrapper) {
       .name('Select Model')
       .onChange((value) => {
         modelSwitcher.model = value;
-        currentModelPath = `/model/${value}`;
+        currentModelPath = `/models/${value}`;
         reloadModel(currentModelPath);
       });
     modelFolder.open();
 
     currentModelPath = modelPath;
 
-    loadMaterialLibrary('/model/Materials.glb', () => {
+    loadMaterialLibrary('/models/Materials.glb', () => {
       reloadModel(currentModelPath);
 
       let controlAPI = {
@@ -807,22 +826,40 @@ if (!guiWrapper) {
   }
 
 },
+
 setLeftHorizontalOffset: (value) => {
   if (!pivotGroup) return;
-  const mesh = findMeshByName('Outside_Frame_Middle_XL');
-  if (mesh && mesh.userData.originalPosition) {
-    mesh.position.y = mesh.userData.originalPosition.y - value;
+
+  const barMesh = findMeshByName('Outside_Frame_Middle_XL');
+  const topFrame = findMeshByName('top_frame'); 
+
+  if (barMesh && topFrame) {
+    const box = new THREE.Box3().setFromObject(topFrame);
+    const topY = box.getCenter(new THREE.Vector3()).y;
+
+    const fudgeOffset = -1.05; 
+
+    barMesh.position.y = topY - value + fudgeOffset;
   }
 },
 
+
+
 setRightHorizontalOffset: (value) => {
   if (!pivotGroup) return;
-  const mesh = findMeshByName('Outside_Frame_Middle_XR');
-  if (mesh && mesh.userData.originalPosition) {
-    mesh.position.y = mesh.userData.originalPosition.y - value;
+
+  const barMesh = findMeshByName('Outside_Frame_Middle_XR');
+  const topFrame = findMeshByName('top_frame'); 
+
+  if (barMesh && topFrame) {
+    const box = new THREE.Box3().setFromObject(topFrame);
+    const topY = box.getCenter(new THREE.Vector3()).y;
+
+    const fudgeOffset = -1.05; 
+
+    barMesh.position.y = topY - value + fudgeOffset;
   }
-}
-,
+},
 
 setLeftVerticalOffset: (value) => {
   if (!pivotGroup) return;
@@ -848,7 +885,7 @@ setLeftVerticalOffset: (value) => {
 
     // Apply clean scaling in X with conditional fudge
     horizontalMesh.scale.set(
-      origScale.x + deltaX + fudge,
+      origScale.x + deltaX + fudge ,
       origScale.y,
       origScale.z
     );
@@ -861,69 +898,71 @@ setRightVerticalOffset: (value) => {
 
   const verticalMesh = findMeshByName('Outside_Frame_Middle_YR');
   const horizontalMesh = findMeshByName('Outside_Frame_Middle_XR');
+  const rightFrame = findMeshByName('right_frame');
 
   if (
     verticalMesh &&
     horizontalMesh &&
     verticalMesh.userData.originalPosition &&
     horizontalMesh.userData.originalPosition &&
-    horizontalMesh.userData.originalScale
+    horizontalMesh.userData.originalScale &&
+    rightFrame
   ) {
     const clamped = Math.max(-0.50, Math.min(0.15, value));
-    const origPos = horizontalMesh.userData.originalPosition;
     const origScale = horizontalMesh.userData.originalScale.clone();
 
-    // Move vertical frame
-    verticalMesh.position.x = verticalMesh.userData.originalPosition.x + clamped;
+    // Get world-space right edge of the frame
+    const box = new THREE.Box3().setFromObject(rightFrame);
+    const rightEdgeX = box.max.x;
 
-    // === Behavior when sliding left (negative)
-   if (clamped < 0) {
-  const fudgePositionLeft = -0.035; // position nudge
-  horizontalMesh.position.x = origPos.x + clamped + fudgePositionLeft;
+    // Convert to local space
+    const rightEdgeWorld = new THREE.Vector3(rightEdgeX, 0, 0);
+    pivotGroup.worldToLocal(rightEdgeWorld);
 
-  const stretch = -clamped * 0.25;
-  const fudgeStretch = 0.015; // width fudge
-  horizontalMesh.scale.set(
-    origScale.x + stretch + fudgeStretch,
-    origScale.y,
-    origScale.z
-  );
-}
+    // Manual tweak offset (tune this freely)
+    const offsetTweak = -1;
 
+    // Adjust vertical bar position with manual tweak
+    verticalMesh.position.x = rightEdgeWorld.x + clamped + offsetTweak;
 
-   else if (clamped > 0) {
-  const shrink = clamped * 1;
-  const shift = shrink * 1.15;
+    if (clamped < 0) {
+      const fudgePositionLeft = -0.035;
+      horizontalMesh.position.x = rightEdgeWorld.x + clamped + offsetTweak + fudgePositionLeft;
 
-  const fudgeShrink = 0.001; // ← this is your subtle fix
+      const stretch = -clamped * 0.25;
+      const fudgeStretch = 0.015;
 
-  horizontalMesh.position.x = origPos.x + clamped + shift;
+      horizontalMesh.scale.set(
+        origScale.x + stretch + fudgeStretch,
+        origScale.y,
+        origScale.z
+      );
+    } else if (clamped > 0) {
+      const shrink = clamped * 1;
+      const shift = shrink * 1.15;
+      const fudgeShrink = 0.001;
 
-  horizontalMesh.scale.set(
-    Math.max(origScale.x - shrink + fudgeShrink, 0.02),
-    origScale.y,
-    origScale.z
-  );
+      horizontalMesh.position.x = rightEdgeWorld.x + clamped + offsetTweak + shift;
 
-
-}
-
-
-
-    // === Reset to original if centered
-    else {
-      horizontalMesh.position.x = origPos.x;
+      horizontalMesh.scale.set(
+        Math.max(origScale.x - shrink + fudgeShrink, 0.02),
+        origScale.y,
+        origScale.z
+      );
+    } else {
+      horizontalMesh.position.x = rightEdgeWorld.x + offsetTweak;
       horizontalMesh.scale.copy(origScale);
     }
   }
-}
-,
+},
+getScene: () => scene,
+
 
         hideGUI: () => {
           const wrapper = document.getElementById('gui-wrapper');
           if (wrapper) wrapper.style.display = 'none'; 
     }
-
+    
       };
 
       function animate() {

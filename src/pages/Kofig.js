@@ -4,6 +4,8 @@ import '../Kofig.css';
 import { useNavigate } from 'react-router-dom';
 import SliderControl from '../SliderControl';
 import ColorSelectorGroup from '../ColorSelectorGroup';
+import { useLocation } from 'react-router-dom';
+import * as THREE from 'three';
 
 
 // color fixing
@@ -28,17 +30,20 @@ const MATERIAL_NAME_MAP = {
 
 function Kofig() {
   const mountRef = useRef(null);
- 
+  const [horizontalBarMax, setHorizontalBarMax] = useState(750);
   const [controller, setController] = useState(null);
+  const [mirrorVertical, setMirrorVertical] = useState(false);
+  const [mirrorHorizontal, setMirrorHorizontal] = useState(false);
 
  
-  
+  const location = useLocation();
   const [modelPath] = useState('/models/Window_Frame_Kofig.glb');
 
   const [modularLeftBar, setModularLeftBar] = useState(0);
   const [modularLeftEdge, setModularLeftEdge] = useState(0);
   const [modularRightBar, setModularRightBar] = useState(0);
   const [modularRightEdge, setModularRightEdge] = useState(0);
+  
 
   const navigate = useNavigate();
 
@@ -143,7 +148,42 @@ useEffect(() => {
 useEffect(() => {
   if (controller) controller.setRightVerticalOffset(modularRightBar / 1000);
 }, [controller, modularRightBar]);
+useEffect(() => {
+  const extraHeight = Math.max(height - 1000, 0); // don't go below 750
+  setHorizontalBarMax(750 + extraHeight);
+}, [height]);
 
+useEffect(() => {
+  if (!controller || typeof controller.getScene !== 'function') return;
+
+  const scene = controller.getScene();
+  const logSize = (name) => {
+    const mesh = scene.getObjectByName(name);
+    if (mesh) {
+      const box = new THREE.Box3().setFromObject(mesh);
+      const size = box.getSize(new THREE.Vector3());
+      const worldPos = new THREE.Vector3();
+      mesh.getWorldPosition(worldPos);
+      console.log(`[${name}] Size:`, size, '| World Pos:', worldPos);
+    } else {
+      console.warn(`[Mesh not found] ${name}`);
+    }
+  };
+
+  logSize('Outside_Frame_Middle_XL');
+  logSize('Outside_Frame_Middle_YL');
+  logSize('Outside_Frame_Middle_XR');
+  logSize('Outside_Frame_Middle_YR');
+
+}, [
+  controller,
+  modularLeftBar,
+  modularRightBar,
+  modularLeftEdge,
+  modularRightEdge,
+  height,
+  width,
+]);
 
 
   return (
@@ -202,44 +242,85 @@ useEffect(() => {
           onSelect={setModularColor}
         />
             </li>
-          <li className="modular-positions-section">
+       <li className="modular-positions-section">
   <h2>Modular Positions</h2>
 
-  <SliderControl
-    label="Left Vertical Bar"
-    min={-150}
-    max={235}
-    step={1}
-    value={modularLeftBar}
-    onChange={setModularLeftBar}
-  />
+  {/* Mirror Vertical Toggle */}
+  <div className="toggle-buttons">
+    <button
+      className={`check-toggle ${mirrorVertical ? 'active' : ''}`}
+      onClick={() => setMirrorVertical(!mirrorVertical)}
+    >
+      ✓
+    </button>
+    <span className="toggle-label">Toggle Mirror Vertical</span>
+  </div>
+  
+<SliderControl
+  label="Left Vertical Bar"
+  min={-150}
+  max={235}
+  step={1}
+  value={modularLeftBar}
+  onChange={(val) => {
+    setModularLeftBar(val);
+    if (mirrorVertical) {
+      setModularRightBar(-val);
+    }
+  }}
+/>
 
-  <SliderControl
-    label="Left Horizontal Bar"
-    min={0}
-    max={750}
-    value={modularLeftEdge}
-    onChange={setModularLeftEdge}
-  />
+<SliderControl
+  label="Right Vertical Bar"
+  min={-235}
+  max={150}
+  step={1}
+  value={modularRightBar}
+  onChange={(val) => {
+    setModularRightBar(val);
+    if (mirrorVertical) {
+      setModularLeftBar(-val);
+    }
+  }}
+/>
 
-  <SliderControl
-    label="Right Vertical Bar"
-    min={-235}
-    max={150}
-    step={1}
-    value={modularRightBar}
-    onChange={setModularRightBar}
-  />
 
-  <SliderControl
-    label="Right Horizontal Bars"
-    min={0}
-    max={750}
-    value={modularRightEdge}
-    onChange={setModularRightEdge}
-  />
+
+  {/* Mirror Horizontal Toggle */}
+  <div className="toggle-buttons">
+    <button
+      className={`check-toggle ${mirrorHorizontal ? 'active' : ''}`}
+      onClick={() => setMirrorHorizontal(!mirrorHorizontal)}
+    >
+      ✓
+    </button>
+    <span className="toggle-label">Toggle Mirror Horizontal</span>
+  </div>
+
+<SliderControl
+  label="Left Horizontal Bar"
+  min={0}
+  max={horizontalBarMax}
+  value={modularLeftEdge}
+  onChange={(val) => {
+    setModularLeftEdge(val);
+    if (mirrorHorizontal) setModularRightEdge(val);
+  }}
+/>
+
+<SliderControl
+  label="Right Horizontal Bars"
+  min={0}
+  max={horizontalBarMax}
+  value={modularRightEdge}
+  onChange={(val) => {
+    setModularRightEdge(val);
+    if (mirrorHorizontal) setModularLeftEdge(val);
+  }}
+/>
+
+
 </li>
-
 
         </ul>
       </div>
