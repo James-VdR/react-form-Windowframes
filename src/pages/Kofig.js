@@ -4,6 +4,7 @@ import '../Kofig.css';
 import { useNavigate } from 'react-router-dom';
 import SliderControl from '../SliderControl';
 import ColorSelectorGroup from '../ColorSelectorGroup';
+import { useLocation } from 'react-router-dom';
 
 
 // color fixing
@@ -34,7 +35,7 @@ function Kofig() {
   const [mirrorHorizontal, setMirrorHorizontal] = useState(false);
 
  
-  
+  const location = useLocation();
   const [modelPath] = useState('/models/Window_Frame_Kofig.glb');
 
   const [modularLeftBar, setModularLeftBar] = useState(0);
