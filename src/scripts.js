@@ -338,6 +338,25 @@ function loadWindowModel(scene, modelPath, scaleParams) {
       }
     });
 
+    const targetNames = [
+  'Outside_Frame_Middle_XL',
+  'Outside_Frame_Middle_YL',
+  'Outside_Frame_Middle_XR',
+  'Outside_Frame_Middle_YR'
+];
+
+targetNames.forEach(name => {
+  const mesh = findMeshByName(name);
+  if (mesh) {
+    const box = new THREE.Box3().setFromObject(mesh);
+    const size = box.getSize(new THREE.Vector3());
+    console.log(`[Mesh Size] ${name}:`, size);
+  } else {
+    console.warn(`[Mesh Not Found] ${name}`);
+  }
+});
+
+
     setupDynamicGUI(zones, scaleParams, pivotGroup);
     updateCameraDistance(pivotGroup);
     showDimensionLines(); // ← Show lines immediately
@@ -807,22 +826,40 @@ if (!guiWrapper) {
   }
 
 },
+
 setLeftHorizontalOffset: (value) => {
   if (!pivotGroup) return;
-  const mesh = findMeshByName('Outside_Frame_Middle_XL');
-  if (mesh && mesh.userData.originalPosition) {
-    mesh.position.y = mesh.userData.originalPosition.y - value;
+
+  const barMesh = findMeshByName('Outside_Frame_Middle_XL');
+  const topFrame = findMeshByName('top_frame'); 
+
+  if (barMesh && topFrame) {
+    const box = new THREE.Box3().setFromObject(topFrame);
+    const topY = box.getCenter(new THREE.Vector3()).y;
+
+    const fudgeOffset = -1.05; 
+
+    barMesh.position.y = topY - value + fudgeOffset;
   }
 },
 
+
+
 setRightHorizontalOffset: (value) => {
   if (!pivotGroup) return;
-  const mesh = findMeshByName('Outside_Frame_Middle_XR');
-  if (mesh && mesh.userData.originalPosition) {
-    mesh.position.y = mesh.userData.originalPosition.y - value;
+
+  const barMesh = findMeshByName('Outside_Frame_Middle_XR');
+  const topFrame = findMeshByName('top_frame'); 
+
+  if (barMesh && topFrame) {
+    const box = new THREE.Box3().setFromObject(topFrame);
+    const topY = box.getCenter(new THREE.Vector3()).y;
+
+    const fudgeOffset = -1.05; 
+
+    barMesh.position.y = topY - value + fudgeOffset;
   }
-}
-,
+},
 
 setLeftVerticalOffset: (value) => {
   if (!pivotGroup) return;
@@ -848,7 +885,7 @@ setLeftVerticalOffset: (value) => {
 
     // Apply clean scaling in X with conditional fudge
     horizontalMesh.scale.set(
-      origScale.x + deltaX + fudge,
+      origScale.x + deltaX + fudge ,
       origScale.y,
       origScale.z
     );
@@ -918,13 +955,14 @@ setRightVerticalOffset: (value) => {
     }
   }
 },
+getScene: () => scene,
 
 
         hideGUI: () => {
           const wrapper = document.getElementById('gui-wrapper');
           if (wrapper) wrapper.style.display = 'none'; 
     }
-
+    
       };
 
       function animate() {

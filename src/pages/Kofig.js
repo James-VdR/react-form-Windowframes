@@ -4,7 +4,7 @@ import '../Kofig.css';
 import { useNavigate } from 'react-router-dom';
 import SliderControl from '../SliderControl';
 import ColorSelectorGroup from '../ColorSelectorGroup';
-import { useLocation } from 'react-router-dom';
+
 
 
 // color fixing
@@ -27,15 +27,41 @@ const MATERIAL_NAME_MAP = {
 };
 
 
+function logBarMeshSizes(controller) {
+  if (!controller || typeof controller.getScene !== 'function') return;
+
+  const meshNames = [
+    'Outside_Frame_Middle_XL',
+    'Outside_Frame_Middle_YL',
+    'Outside_Frame_Middle_XR',
+    'Outside_Frame_Middle_YR'
+  ];
+
+  const scene = controller.getScene?.(); // fallback if needed
+  const THREE = window.THREE || require('three');
+
+  meshNames.forEach(name => {
+    const mesh = scene?.getObjectByName(name, true);
+    if (mesh) {
+      const box = new THREE.Box3().setFromObject(mesh);
+      const size = box.getSize(new THREE.Vector3());
+      console.log(`[Updated Mesh Size] ${name}:`, size);
+    } else {
+      console.warn(`[Missing Mesh] ${name}`);
+    }
+  });
+}
+
+
 function Kofig() {
   const mountRef = useRef(null);
- 
+  const [horizontalBarMax, setHorizontalBarMax] = useState(750);
   const [controller, setController] = useState(null);
   const [mirrorVertical, setMirrorVertical] = useState(false);
   const [mirrorHorizontal, setMirrorHorizontal] = useState(false);
+  const scene = controller.getScene();
 
- 
-  const location = useLocation();
+
   const [modelPath] = useState('/models/Window_Frame_Kofig.glb');
 
   const [modularLeftBar, setModularLeftBar] = useState(0);
@@ -126,6 +152,29 @@ useEffect(() => {
   }
 }, [controller, modularColor]);
 
+useEffect(() => {
+  if (!controller) return;
+
+  const scene = controller.getScene();
+
+  const logSize = (name) => {
+    const mesh = scene.getObjectByName(name);
+    if (mesh) {
+      const box = new THREE.Box3().setFromObject(mesh);
+      const size = box.getSize(new THREE.Vector3());
+      console.log(`[Mesh Size] ${name}:`, size);
+    } else {
+      console.warn(`[Mesh Not Found] ${name}`);
+    }
+  };
+
+  // Initial log
+  logSize('Outside_Frame_Middle_XL');
+  logSize('Outside_Frame_Middle_YL');
+  logSize('Outside_Frame_Middle_XR');
+  logSize('Outside_Frame_Middle_YR');
+
+}, [controller, modularLeftEdge, modularRightEdge, modularLeftBar, modularRightBar]);
 
 
 useEffect(() => {
@@ -133,20 +182,29 @@ useEffect(() => {
 }, [controller]);
 
 useEffect(() => {
-  if (controller) controller.setLeftHorizontalOffset(modularLeftEdge / 1000); // mm to meters
+  if (controller) controller.setLeftHorizontalOffset(modularLeftEdge / 1000);
+  logBarMeshSizes(controller);
 }, [controller, modularLeftEdge]);
 
 useEffect(() => {
-  if (controller) controller.setRightHorizontalOffset(modularRightEdge / 1000); // mm to meters
+  if (controller) controller.setRightHorizontalOffset(modularRightEdge / 1000);
+  logBarMeshSizes(controller);
 }, [controller, modularRightEdge]);
 
 useEffect(() => {
   if (controller) controller.setLeftVerticalOffset(modularLeftBar / 1000);
+  logBarMeshSizes(controller);
 }, [controller, modularLeftBar]);
 
 useEffect(() => {
   if (controller) controller.setRightVerticalOffset(modularRightBar / 1000);
+  logBarMeshSizes(controller);
 }, [controller, modularRightBar]);
+
+useEffect(() => {
+  const extraHeight = Math.max(height - 1000, 0); // don't go below 750
+  setHorizontalBarMax(750 + extraHeight);
+}, [height]);
 
 
 
@@ -261,10 +319,10 @@ useEffect(() => {
     <span className="toggle-label">Toggle Mirror Horizontal</span>
   </div>
 
- <SliderControl
+<SliderControl
   label="Left Horizontal Bar"
   min={0}
-  max={750}
+  max={horizontalBarMax}
   value={modularLeftEdge}
   onChange={(val) => {
     setModularLeftEdge(val);
@@ -275,13 +333,14 @@ useEffect(() => {
 <SliderControl
   label="Right Horizontal Bars"
   min={0}
-  max={750}
+  max={horizontalBarMax}
   value={modularRightEdge}
   onChange={(val) => {
     setModularRightEdge(val);
     if (mirrorHorizontal) setModularLeftEdge(val);
   }}
 />
+
 
 </li>
 
