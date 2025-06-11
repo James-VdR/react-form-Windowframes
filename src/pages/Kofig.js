@@ -80,6 +80,12 @@ const [width, setWidth] = useState(1000);  //sets start value
 
 
 
+useEffect(() => {
+  if (controller) {
+    controller.setModularEnabled(false, false); // Reset any previous modular state
+  }
+}, [controller]);
+
 
 useEffect(() => {
   let isMounted = true;
