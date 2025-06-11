@@ -160,6 +160,34 @@ useEffect(() => {
 }, [height]);
 
 useEffect(() => {
+  if (!controller) return;
+
+  const scene = controller.getScene();
+  if (!scene) return;
+
+  console.log('[DEBUG] Rebuilding wall after resize');
+
+  // Remove old wall if present
+  const oldWall = scene.getObjectByName('DynamicWall');
+  if (oldWall) scene.remove(oldWall);
+
+  const wallMaterial = new THREE.MeshStandardMaterial({
+    color: 0xffffff,
+    roughness: 1,
+    metalness: 0
+  });
+
+  const newWall = controller.createDynamicWall?.(wallMaterial);
+  if (newWall) {
+    console.log('[DEBUG] Wall rebuilt and added');
+    scene.add(newWall);
+  } else {
+    console.warn('[DEBUG] Failed to create wall');
+  }
+}, [controller, height, width]);
+
+
+useEffect(() => {
   if (!controller || typeof controller.getScene !== 'function') return;
 
   const scene = controller.getScene();

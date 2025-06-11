@@ -3,7 +3,13 @@ import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { GUI } from 'lil-gui';
 import { RGBELoader } from 'three/examples/jsm/loaders/RGBELoader.js';
+import { computeBoundsTree, disposeBoundsTree, acceleratedRaycast } from 'three-mesh-bvh';
+import { CSG } from 'three-csg-ts';
 
+
+THREE.BufferGeometry.prototype.computeBoundsTree = computeBoundsTree;
+THREE.BufferGeometry.prototype.disposeBoundsTree = disposeBoundsTree;
+THREE.Mesh.prototype.raycast = acceleratedRaycast;
 
 let pivotGroup; // Group containing the loaded 3D model, allowing for easy manipulation
 let scene; // The Three.js scene where all objects are placed
@@ -24,6 +30,10 @@ let modularParams = {
 
 const materialLibrary = {}; // Stores loaded materials from the 'Materials.glb' file
 const modelOptions = ['Window_Frame.glb', 'Window_Frame_Cross.glb', 'Window_Frame_Kofig.glb']; // Available window models
+
+const textureLoader = new THREE.TextureLoader();
+const brickTexture = textureLoader.load('/textures/brick.jpg'); // adjust path if needed
+
 
 let controlAPI; // Declare controlAPI in a higher scope
 
@@ -154,6 +164,66 @@ function applyModularStacking() {
  * @param {string} name - The name of the mesh.
  * @returns {string} The identified zone name (e.g., 'frame', 'glass', 'outside').
  */
+
+let initialWallMin = null;
+let initialWallSize = null;
+
+function createDynamicWallAroundModel(modelGroup, wallMaterial) {
+  if (!modelGroup) return null;
+
+  const margin = 0.2;
+  const wallThickness = 0.2;
+
+  modelGroup.updateMatrixWorld(true);
+  modelGroup.traverse(obj => obj.isMesh && obj.updateMatrixWorld(true));
+
+  const box = new THREE.Box3().setFromObject(modelGroup);
+  const currentSize = box.getSize(new THREE.Vector3());
+  const currentMin = box.min.clone(); // bottom-left anchor of model
+
+  // Store initial bounds (only once)
+  if (!initialWallMin) {
+    initialWallMin = currentMin.clone();
+    initialWallSize = currentSize.clone();
+  }
+
+  // Calculate current growth from original size
+  const deltaX = currentSize.x - initialWallSize.x;
+  const deltaY = currentSize.y - initialWallSize.y;
+
+  const wallWidth = initialWallSize.x + deltaX + margin * 2;
+  const wallHeight = initialWallSize.y + deltaY + margin * 2;
+
+  // ✅ Position wall flush to original bottom-left
+  const wallGeom = new THREE.BoxGeometry(wallWidth, wallHeight, wallThickness);
+  wallGeom.translate(wallWidth / 2, wallHeight / 2, 0); // shift origin to bottom-left
+
+  const wallMesh = new THREE.Mesh(wallGeom, wallMaterial);
+  wallMesh.position.set(
+    initialWallMin.x - margin,
+    initialWallMin.y - margin,
+    initialWallMin.z - wallThickness / 2
+  );
+
+  // 🕳 Hole size = current model size
+  const holeGeom = new THREE.BoxGeometry(currentSize.x, currentSize.y, wallThickness + 0.01);
+  holeGeom.translate(currentSize.x / 2, currentSize.y / 2, 0);
+  const holeMesh = new THREE.Mesh(holeGeom);
+  holeMesh.position.set(
+    currentMin.x,
+    currentMin.y,
+    currentMin.z - wallThickness / 2
+  );
+
+  const wallWithHole = CSG.subtract(wallMesh, holeMesh);
+  wallWithHole.name = 'DynamicWall';
+
+  return wallWithHole;
+}
+
+
+
+
 function getZoneNameFromMesh(name) {
     const lname = name.toLowerCase();
     if (lname.includes('outside') && lname.includes('frame')) return 'outside';
@@ -222,16 +292,18 @@ function applyGlassMaterial(mesh) {
     mesh.material = new THREE.MeshPhysicalMaterial({
         color: 0xffffff,
         metalness: 0,
-        roughness: 0.05, // Lower roughness for more clear reflections
-        transmission: 0.9, // Higher transmission for clear glass
-        thickness: 0.1,    // Thinner glass for more realistic refraction
+        roughness: 0.015,          // Very smooth = sharp reflections
+        transmission: 1.0,         // Full light transmission
+        thickness: 0.01,           // Thinner glass = less internal haze
         transparent: true,
-        opacity: 1.0,      // Full opacity with transmission for PBR glass
-        ior: 1.5,          // Index of refraction for glass
-        envMapIntensity: 1, // Intensity of environment map influence
-        side: THREE.DoubleSide, // Render both front and back faces
+        opacity: 1.0,              // Fully opaque, since transmission handles transparency
+        ior: 1.45,                 // Glass-like index of refraction
+        envMapIntensity: 1.0,      // Moderate reflection strength
+        side: THREE.DoubleSide,    // Render both sides (optional for performance)
+        reflectivity: 0.1          // Adds subtle surface reflections
     });
 }
+
 
 /**
  * Resizes frame parts of the model, adjusting scale and position to maintain structural integrity.
@@ -365,7 +437,28 @@ function loadWindowModel(scene, modelPath, scaleParams) {
 
         pivotGroup = new THREE.Group();
         pivotGroup.add(model);
+
+        if (scene.getObjectByName('DynamicWall')) {
+    scene.remove(scene.getObjectByName('DynamicWall'));
+}
+
+ const wallMat = new THREE.MeshStandardMaterial({
+  map: brickTexture,
+  roughness: 1,
+  metalness: 0
+});
+
+ 
+
+
         scene.add(pivotGroup);
+
+      const wall = createDynamicWallAroundModel(pivotGroup, wallMat);
+if (wall) {
+    scene.add(wall);
+}
+
+
 
         controls.target.copy(center);
         controls.update();
@@ -487,6 +580,22 @@ function setupDynamicGUI(zones, scaleParams, pivotGroup) {
 
                         // Update camera distance to fit the resized model
                         updateCameraDistance(pivotGroup);
+
+                        console.log('[DEBUG] Rebuilding wall after resize');
+
+                        // Rebuild wall after resizing
+if (scene.getObjectByName('DynamicWall')) {
+    scene.remove(scene.getObjectByName('DynamicWall'));
+}
+const wallMat = new THREE.MeshStandardMaterial({
+  map: brickTexture,
+  roughness: 1,
+  metalness: 0
+});
+
+const newWall = createDynamicWallAroundModel(pivotGroup, wallMat);
+if (newWall) scene.add(newWall);
+
                     });
             });
         }
@@ -1096,6 +1205,8 @@ export function initThree(container, modelPath = '/models/Window_Frame.glb') {
                         }
                     }
                 },
+                createDynamicWall: (material) => createDynamicWallAroundModel(pivotGroup, material),
+
                 getScene: () => scene,
                 hideGUI: () => {
                     const wrapper = document.getElementById('gui-wrapper');
