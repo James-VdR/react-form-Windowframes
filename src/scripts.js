@@ -128,7 +128,8 @@ function applyModularStacking() {
 
         // Adjust label positions relative to the dimension lines
         const heightLabelPos = heightMid.clone().add(new THREE.Vector3(1, 0, 0.1));   // Right of center
-        const widthLabelPos = widthMid.clone().add(new THREE.Vector3(0.5, -0.2, 0.1));   // Under the line
+        const widthLabelPos = widthMid.clone().add(new THREE.Vector3(0, -0.2, 0.1));
+
 
         // Create text labels as 3D sprites
         const heightLabel = createTextLabel(heightMM, heightLabelPos);
@@ -586,29 +587,56 @@ function createDimensionLine(start, end) {
  * @returns {THREE.Sprite} The created sprite object.
  */
 function createTextLabel(text, position) {
-    console.log('[createTextLabel] Called with position:', position);
-
     const canvas = document.createElement('canvas');
-    canvas.width = 512; // Canvas dimensions
+    canvas.width = 512;
     canvas.height = 128;
 
     const context = canvas.getContext('2d');
-    context.font = 'bold 48px Arial'; // Font style and size
-    context.fillStyle = 'black'; // Text color
-    context.fillText(text, 10, 80); // Draw text on canvas
 
-    const texture = new THREE.CanvasTexture(canvas); // Create texture from canvas
+    // ✅ Apply font styling
+    context.font = '400 54px "Poppins", sans-serif';
+    context.fillStyle = 'rgba(0, 0, 0, 0.5)';
+    context.textBaseline = 'middle';
+    context.fillText(text, 10, canvas.height / 2);
+
+    const texture = new THREE.CanvasTexture(canvas);
     texture.needsUpdate = true;
 
-    const spriteMaterial = new THREE.SpriteMaterial({ map: texture, depthTest: false }); // Material for the sprite
-    const sprite = new THREE.Sprite(spriteMaterial); // Create the sprite
-    sprite.scale.set(1.2, 0.5, 0.5); // Adjust sprite scale to control text size in 3D
-    sprite.position.copy(position); // Set sprite position
+    const spriteMaterial = new THREE.SpriteMaterial({
+        map: texture,
+        transparent: true,
+        depthTest: false
+    });
 
-    console.log('[createTextLabel] Sprite position:', sprite.position);
+    const sprite = new THREE.Sprite(spriteMaterial);
+    sprite.scale.set(0.6, 0.25, 0.5); // ✅ Smaller sprite to match smaller font
+    sprite.position.copy(position);
 
     return sprite;
 }
+
+function createEndCap(position, isVertical = true) {
+    const size = 0.05;
+    const geometry = new THREE.BufferGeometry().setFromPoints([
+        new THREE.Vector3(-size, 0, 0),
+        new THREE.Vector3(size, 0, 0)
+    ]);
+
+    const material = new THREE.LineBasicMaterial({ color: 0x000000 });
+    const line = new THREE.Line(geometry, material);
+
+    // Rotate vertical caps
+    if (isVertical) line.rotation.z = Math.PI / 2;
+
+    // Avoid Z-fighting with slight forward offset
+    const pos = position.clone();
+    pos.z += 1.001; // push a bit towards the camera
+    line.position.copy(pos);
+
+    return line;
+}
+
+
 
 /**
  * Stacks clones of an original mesh along a specified axis.
@@ -757,8 +785,21 @@ function showDimensionLines() {
     const heightLabel = createTextLabel(heightMM, heightLabelPos);
     const widthLabel = createTextLabel(widthMM, widthLabelPos);
 
+       const cap1 = createEndCap(rightTop, true);
+const cap2 = createEndCap(rightBottom, true);
+const cap3 = createEndCap(bottomLeft, false);
+const cap4 = createEndCap(bottomRight, false);
+dimensionHelpers.push(cap1, cap2, cap3, cap4);
+pivotGroup.add(cap1, cap2, cap3, cap4);
+
+
     dimensionHelpers.push(heightLine, widthLine, heightLabel, widthLabel);
+
+ 
+
     pivotGroup.add(...dimensionHelpers);
+
+
 }
 
 
