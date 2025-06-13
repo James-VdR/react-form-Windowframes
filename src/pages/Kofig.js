@@ -4,11 +4,10 @@ import '../Kofig.css';
 import { useNavigate } from 'react-router-dom';
 import SliderControl from '../SliderControl';
 import ColorSelectorGroup from '../ColorSelectorGroup';
-import { useLocation } from 'react-router-dom';
-import * as THREE from 'three';
 
 
-// color fixing
+
+
 const MATERIAL_NAME_MAP = {
   'White': 'White',
   'Cream': 'Creme',
@@ -27,7 +26,6 @@ const MATERIAL_NAME_MAP = {
   'Black': 'Zwart'
 };
 
-
 function Kofig() {
   const mountRef = useRef(null);
   const [horizontalBarMax, setHorizontalBarMax] = useState(750);
@@ -35,303 +33,221 @@ function Kofig() {
   const [mirrorVertical, setMirrorVertical] = useState(false);
   const [mirrorHorizontal, setMirrorHorizontal] = useState(false);
 
- 
-  const location = useLocation();
   const [modelPath] = useState('/models/Window_Frame_Kofig.glb');
-
+  const model = "KofigFrame";
   const [modularLeftBar, setModularLeftBar] = useState(0);
   const [modularLeftEdge, setModularLeftEdge] = useState(0);
   const [modularRightBar, setModularRightBar] = useState(0);
   const [modularRightEdge, setModularRightEdge] = useState(0);
-  
 
   const navigate = useNavigate();
 
   const handleBack = () => {
-  navigate('/');
+    navigate('/');
   };
 
- const COLORS = [
-  { name: 'White', ral: '9010', hex: '#f4f4f4' },
-  { name: 'Cream', ral: '9001', hex: '#fdf4d3' },
-  { name: 'Ivory', ral: '1015', hex: '#eae3c6' },
-  { name: 'WineRed', ral: '3005', hex: '#5e1b22' },
-  { name: 'PineGreen', ral: '6009', hex: '#1c3c1b' },
-  { name: 'MonumentGreen', ral: '6005', hex: '#2f4538' },
-  { name: 'BlueSteel', ral: '5011', hex: '#232c3f' },
-  { name: 'Golden Oak', ral: '8003', hex: '#a75b1f' },
-  { name: 'Mahogany', ral: '8016', hex: '#4c2f27' },
-  { name: 'SilverGrey', ral: '7001', hex: '#c0c0c0' },
-  { name: 'BasaltGrey', ral: '7012', hex: '#4e5754' },
-  { name: 'QuartzGrey', ral: '7039', hex: '#6c6860' },
-  { name: 'Anthracite', ral: '7016', hex: '#373f43' },
-  { name: 'BlackGrey', ral: '7021', hex: '#2e3234' },
-  { name: 'Black', ral: '9005', hex: '#0a0a0a' }
-];
+  const [submitted, setSubmitted] = useState(false);
 
 
-const [modularColor, setModularColor] = useState(COLORS[0]);
-const [frameColor, setFrameColor] = useState(COLORS[0]);
-const [insideColor, setInsideColor] = useState(COLORS[1]);
+  const COLORS = [
+    { name: 'White', ral: '9010', hex: '#f4f4f4' },
+    { name: 'Cream', ral: '9001', hex: '#fdf4d3' },
+    { name: 'Ivory', ral: '1015', hex: '#eae3c6' },
+    { name: 'WineRed', ral: '3005', hex: '#5e1b22' },
+    { name: 'PineGreen', ral: '6009', hex: '#1c3c1b' },
+    { name: 'MonumentGreen', ral: '6005', hex: '#2f4538' },
+    { name: 'BlueSteel', ral: '5011', hex: '#232c3f' },
+    { name: 'Golden Oak', ral: '8003', hex: '#a75b1f' },
+    { name: 'Mahogany', ral: '8016', hex: '#4c2f27' },
+    { name: 'SilverGrey', ral: '7001', hex: '#c0c0c0' },
+    { name: 'BasaltGrey', ral: '7012', hex: '#4e5754' },
+    { name: 'QuartzGrey', ral: '7039', hex: '#6c6860' },
+    { name: 'Anthracite', ral: '7016', hex: '#373f43' },
+    { name: 'BlackGrey', ral: '7021', hex: '#2e3234' },
+    { name: 'Black', ral: '9005', hex: '#0a0a0a' }
+  ];
 
-
-const [height, setHeight] = useState(1000); //sets start value
-const [width, setWidth] = useState(1000);  //sets start value
-
-
-
-
-useEffect(() => {
-  let isMounted = true;
-
-   console.log('[Kofig] mountRef.current:', mountRef.current);
-
-  initThree(mountRef.current, modelPath).then((api) => {
-    if (isMounted) {
-      setController(api);
-    }
-  });
-
-  return () => {
-    isMounted = false;
-  };
-}, [modelPath]);
+  const [modularColor, setModularColor] = useState(COLORS[0]);
+  const [frameColor, setFrameColor] = useState(COLORS[0]);
+  const [insideColor, setInsideColor] = useState(COLORS[1]);
+  const [height, setHeight] = useState(1000);
+  const [width, setWidth] = useState(1000);
 
   useEffect(() => {
-  if (controller) controller.setHeight(height / 1000); // mm to scale
-}, [controller,height ]);
+    if (controller) controller.setModularEnabled(false, false);
+  }, [controller]);
 
-useEffect(() => {
-  if (controller) controller.setWidth(width / 1000);
-}, [controller,width ]);
+  useEffect(() => {
+    let isMounted = true;
+    initThree(mountRef.current, modelPath).then((api) => {
+      if (isMounted) setController(api);
+    });
+    return () => {
+      isMounted = false;
+    };
+  }, [modelPath]);
 
-useEffect(() => {
-  if (controller && MATERIAL_NAME_MAP[frameColor.name]) {
-    const mappedName = MATERIAL_NAME_MAP[frameColor.name];
-    controller.setMaterialForZone('frame', mappedName); // ← "frame" is the correct zone
-  }
-}, [controller, frameColor]);
+  useEffect(() => {
+    if (controller) controller.setHeight(height / 1000);
+  }, [controller, height]);
 
-useEffect(() => {
-  if (controller && MATERIAL_NAME_MAP[insideColor.name]) {
-    const mappedName = MATERIAL_NAME_MAP[insideColor.name];
-    controller.setMaterialForZone('frameInside', mappedName); // ← use correct zone
-  }
-}, [controller, insideColor]);
+  useEffect(() => {
+    if (controller) controller.setWidth(width / 1000);
+  }, [controller, width]);
 
-
-useEffect(() => {
-  if (controller) {
-    const glbName = MATERIAL_NAME_MAP[modularColor.name]; // or make a new `modularColor` state if needed
-    controller.setMaterialForZone('outside', glbName);
-  }
-}, [controller, modularColor]);
-
-
-
-useEffect(() => {
-  if (controller) controller.hideGUI();
-}, [controller]);
-
-useEffect(() => {
-  if (controller) controller.setLeftHorizontalOffset(modularLeftEdge / 1000); // mm to meters
-}, [controller, modularLeftEdge]);
-
-useEffect(() => {
-  if (controller) controller.setRightHorizontalOffset(modularRightEdge / 1000); // mm to meters
-}, [controller, modularRightEdge]);
-
-useEffect(() => {
-  if (controller) controller.setLeftVerticalOffset(modularLeftBar / 1000);
-}, [controller, modularLeftBar]);
-
-useEffect(() => {
-  if (controller) controller.setRightVerticalOffset(modularRightBar / 1000);
-}, [controller, modularRightBar]);
-useEffect(() => {
-  const extraHeight = Math.max(height - 1000, 0); // don't go below 750
-  setHorizontalBarMax(750 + extraHeight);
-}, [height]);
-
-useEffect(() => {
-  if (!controller || typeof controller.getScene !== 'function') return;
-
-  const scene = controller.getScene();
-  const logSize = (name) => {
-    const mesh = scene.getObjectByName(name);
-    if (mesh) {
-      const box = new THREE.Box3().setFromObject(mesh);
-      const size = box.getSize(new THREE.Vector3());
-      const worldPos = new THREE.Vector3();
-      mesh.getWorldPosition(worldPos);
-      console.log(`[${name}] Size:`, size, '| World Pos:', worldPos);
-    } else {
-      console.warn(`[Mesh not found] ${name}`);
+  useEffect(() => {
+    if (controller && MATERIAL_NAME_MAP[frameColor.name]) {
+      controller.setMaterialForZone('frame', MATERIAL_NAME_MAP[frameColor.name]);
     }
+  }, [controller, frameColor]);
+
+  useEffect(() => {
+    if (controller && MATERIAL_NAME_MAP[insideColor.name]) {
+      controller.setMaterialForZone('frameInside', MATERIAL_NAME_MAP[insideColor.name]);
+    }
+  }, [controller, insideColor]);
+
+  useEffect(() => {
+    if (controller && MATERIAL_NAME_MAP[modularColor.name]) {
+      controller.setMaterialForZone('outside', MATERIAL_NAME_MAP[modularColor.name]);
+    }
+  }, [controller, modularColor]);
+
+  useEffect(() => {
+    if (controller) controller.hideGUI();
+  }, [controller]);
+
+  useEffect(() => {
+    if (controller) controller.setLeftHorizontalOffset(modularLeftEdge / 1000);
+  }, [controller, modularLeftEdge]);
+
+  useEffect(() => {
+    if (controller) controller.setRightHorizontalOffset(modularRightEdge / 1000);
+  }, [controller, modularRightEdge]);
+
+  useEffect(() => {
+    if (controller) controller.setLeftVerticalOffset(modularLeftBar / 1000);
+  }, [controller, modularLeftBar]);
+
+  useEffect(() => {
+    if (controller) controller.setRightVerticalOffset(modularRightBar / 1000);
+  }, [controller, modularRightBar]);
+
+  useEffect(() => {
+    const extraHeight = Math.max(height - 1000, 0);
+    setHorizontalBarMax(750 + extraHeight);
+  }, [height]);
+
+ const handleSubmit = async () => {
+  const payload = {
+    model,
+    width, 
+    height,
+    modularLeftBar,
+    modularRightBar,
+    modularLeftEdge,
+    modularRightEdge,
+    frameColor: frameColor.name,
+    insideColor: insideColor.name,
+    modularColor: modularColor.name,
   };
+  console.log("Sending payload to Zapier:", payload);
 
-  logSize('Outside_Frame_Middle_XL');
-  logSize('Outside_Frame_Middle_YL');
-  logSize('Outside_Frame_Middle_XR');
-  logSize('Outside_Frame_Middle_YR');
+  try {
+       await fetch('https://hooks.zapier.com/hooks/catch/14955932/uy82dks/', {
+      "mode": "no-cors", // needed for Zapier (no response expected)
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
 
-}, [
-  controller,
-  modularLeftBar,
-  modularRightBar,
-  modularLeftEdge,
-  modularRightEdge,
-  height,
-  width,
-]);
+    // Since no-cors returns opaque responses, don't check status
+    console.log('✅ Sent to Zapier (no-cors assumed success)');
+  } catch (err) {
+    console.error('❌ Zapier webhook error:', err);
+  } finally {
+    setSubmitted(true); // Disable further submissions
+  }
+};
 
 
   return (
     <div className="kofig-root container">
-    <div className="container">
-      <div className="sidebar">
-  <div className="kofig-header">
-    <h1>Kofig Demo</h1>
-    <button className="back-button" onClick={handleBack}>←</button>
-  </div>
+      <div className="container">
+        <div className="sidebar">
+          <div className="kofig-header">
+            <h1>Kofig Demo</h1>
+            <button className="back-button" onClick={handleBack}>←</button>
+          </div>
 
+          <ul>
+            <li><SliderControl label="Height" min={1000} max={3000} value={height} onChange={setHeight} /></li>
+            <li><SliderControl label="Width" min={1000} max={4000} value={width} onChange={setWidth} /></li>
 
-        <ul>
-          
-          <li>
-  <SliderControl
-    label="Height"
-    min={1000}
-    max={3000}
-    value={height}
-    onChange={setHeight}
-  />
-</li>
-<li>
-  <SliderControl
-    label="Width"
-    min={1000}
-    max={4000}
-    value={width}
-    onChange={setWidth}
-  />
-</li>
-
-       
-          <li>
-                <ColorSelectorGroup
-                title="Frame Color"
-                colors={COLORS}
-                selected={frameColor}
-                onSelect={setFrameColor}
-                                        />
+            <li>
+              <ColorSelectorGroup title="Frame Color" colors={COLORS} selected={frameColor} onSelect={setFrameColor} />
             </li>
             <li>
-            <ColorSelectorGroup
-                title="Inside Frame Color"
-                colors={COLORS}
-                selected={insideColor}
-                onSelect={setInsideColor}
-            />
+              <ColorSelectorGroup title="Inside Frame Color" colors={COLORS} selected={insideColor} onSelect={setInsideColor} />
             </li>
             <li>
-            <ColorSelectorGroup
-          title="Modular Frame Color"
-          colors={COLORS}
-          selected={modularColor}
-          onSelect={setModularColor}
-        />
+              <ColorSelectorGroup title="Modular Frame Color" colors={COLORS} selected={modularColor} onSelect={setModularColor} />
             </li>
-       <li className="modular-positions-section">
-  <h2>Modular Positions</h2>
 
-  {/* Mirror Vertical Toggle */}
-  <div className="toggle-buttons">
-    <button
-      className={`check-toggle ${mirrorVertical ? 'active' : ''}`}
-      onClick={() => setMirrorVertical(!mirrorVertical)}
-    >
-      ✓
-    </button>
-    <span className="toggle-label">Toggle Mirror Vertical</span>
-  </div>
-  
-<SliderControl
-  label="Left Vertical Bar"
-  min={-150}
-  max={235}
-  step={1}
-  value={modularLeftBar}
-  onChange={(val) => {
-    setModularLeftBar(val);
-    if (mirrorVertical) {
-      setModularRightBar(-val);
-    }
-  }}
-/>
+            <li className="modular-positions-section">
+              <h2>Modular Positions</h2>
 
-<SliderControl
-  label="Right Vertical Bar"
-  min={-235}
-  max={150}
-  step={1}
-  value={modularRightBar}
-  onChange={(val) => {
-    setModularRightBar(val);
-    if (mirrorVertical) {
-      setModularLeftBar(-val);
-    }
-  }}
-/>
+              <div className="toggle-buttons">
+                <button className={`check-toggle ${mirrorVertical ? 'active' : ''}`} onClick={() => setMirrorVertical(!mirrorVertical)}>✓</button>
+                <span className="toggle-label">Toggle Mirror Vertical</span>
+              </div>
 
+              <SliderControl label="Left Vertical Bar" min={-150} max={235} step={1} value={modularLeftBar}
+                onChange={(val) => {
+                  setModularLeftBar(val);
+                  if (mirrorVertical) setModularRightBar(-val);
+                }}
+              />
+              <SliderControl label="Right Vertical Bar" min={-235} max={150} step={1} value={modularRightBar}
+                onChange={(val) => {
+                  setModularRightBar(val);
+                  if (mirrorVertical) setModularLeftBar(-val);
+                }}
+              />
 
+              <div className="toggle-buttons">
+                <button className={`check-toggle ${mirrorHorizontal ? 'active' : ''}`} onClick={() => setMirrorHorizontal(!mirrorHorizontal)}>✓</button>
+                <span className="toggle-label">Toggle Mirror Horizontal</span>
+              </div>
 
-  {/* Mirror Horizontal Toggle */}
-  <div className="toggle-buttons">
-    <button
-      className={`check-toggle ${mirrorHorizontal ? 'active' : ''}`}
-      onClick={() => setMirrorHorizontal(!mirrorHorizontal)}
-    >
-      ✓
-    </button>
-    <span className="toggle-label">Toggle Mirror Horizontal</span>
-  </div>
+              <SliderControl label="Left Horizontal Bar" min={0} max={horizontalBarMax} value={modularLeftEdge}
+                onChange={(val) => {
+                  setModularLeftEdge(val);
+                  if (mirrorHorizontal) setModularRightEdge(val);
+                }}
+              />
+              <SliderControl label="Right Horizontal Bar" min={0} max={horizontalBarMax} value={modularRightEdge}
+                onChange={(val) => {
+                  setModularRightEdge(val);
+                  if (mirrorHorizontal) setModularLeftEdge(val);
+                }}
+              />
+            </li>
+          </ul>
 
-<SliderControl
-  label="Left Horizontal Bar"
-  min={0}
-  max={horizontalBarMax}
-  value={modularLeftEdge}
-  onChange={(val) => {
-    setModularLeftEdge(val);
-    if (mirrorHorizontal) setModularRightEdge(val);
-  }}
-/>
+          <button
+  className="submit-button"
+  onClick={handleSubmit}
+  disabled={submitted}
+>
+  {submitted ? 'Submitted' : 'Submit'}
+</button>
 
-<SliderControl
-  label="Right Horizontal Bars"
-  min={0}
-  max={horizontalBarMax}
-  value={modularRightEdge}
-  onChange={(val) => {
-    setModularRightEdge(val);
-    if (mirrorHorizontal) setModularLeftEdge(val);
-  }}
-/>
+        </div>
 
-
-</li>
-
-        </ul>
+        <main className="main-content" ref={mountRef} style={{ width: '100%', height: '100vh' }}></main>
       </div>
-
-      <main className="main-content" ref={mountRef} style={{ width: '100%', height: '100vh' }}>
-        {/* 3D scene renders here */}
-      </main>
-      
-
     </div>
-    </div> 
   );
 }
 

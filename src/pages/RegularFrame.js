@@ -26,15 +26,18 @@ const MATERIAL_NAME_MAP = {
 };
 
 
-function RegularFrame() {
+  function RegularFrame() {
   const mountRef = useRef(null);
   
   const [controller, setController] = useState(null);
   const location = useLocation();
- const [modelPath] = useState(`/models/${location.state?.model || 'Window_Frame.glb'}`);
-const [modelReady, setModelReady] = useState(false);
-
+  const [modelPath] = useState(`/models/${location.state?.model || 'Window_Frame.glb'}`);
+  const [modelReady, setModelReady] = useState(false);
+  const model =  "RegularFrame";
   const navigate = useNavigate();
+
+  const [submitted, setSubmitted] = useState(false);
+
 
   const handleBack = () => {
   navigate('/');
@@ -81,6 +84,13 @@ const [width, setWidth] = useState(1000);  //sets start value
   };
 }, [modelPath]);
 
+useEffect(() => {
+  if (controller) {
+    controller.setModularEnabled(false, false); //  Force off
+  }
+}, [controller]);
+
+
 
 useEffect(() => {
   if (controller && modelReady) {
@@ -113,7 +123,36 @@ useEffect(() => {
   if (controller && modelReady) controller.hideGUI();
 }, [controller, modelReady]);
 
+  const handleSubmit = async () => {
+    const payload = {
+      model,
+      width, 
+      height,
+      frameColor: frameColor.name,
+      insideColor: insideColor.name,
+    };
+    console.log("Sending payload to Zapier:", payload);
 
+ try {
+  await fetch('https://hooks.zapier.com/hooks/catch/14955932/uy82dks/', {
+  "mode":"no-cors",
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify(payload),
+});
+
+
+      
+  
+  
+    // Since no-cors returns opaque responses, don't check status
+    console.log('✅ Sent to Zapier (no-cors assumed success)');
+  } catch (err) {
+    console.error('❌ Zapier webhook error:', err);
+  } finally {
+    setSubmitted(true); // Disable further submissions
+  }
+};
 
   return (
     <div className="container">
@@ -158,6 +197,14 @@ useEffect(() => {
             </li>
 
         </ul>
+       
+         <button
+  className="submit-button"
+  onClick={handleSubmit}
+  disabled={submitted}
+>
+  {submitted ? 'Submitted' : 'Submit'}
+</button>
       </nav>
 
       <main className="main-content" ref={mountRef} style={{ width: '100%', height: '100vh' }}>

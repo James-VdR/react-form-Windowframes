@@ -35,12 +35,13 @@ function ModularFrame() {
 
   const [modelPath] = useState(`/models/${location.state?.model || 'Window_Frame.glb'}`);
 
+  const model = "ModularFrame"
  
 
 
   
 
-
+  const [submitted, setSubmitted] = useState(false);
   const navigate = useNavigate();
   const handleBack = () => navigate('/');
 
@@ -117,6 +118,40 @@ function ModularFrame() {
     if (controller) controller.hideGUI();
   }, [controller]);
 
+  const handleSubmit = async () => {
+    const payload = {
+      model,
+      width, 
+      height,
+      frameColor: frameColor.name,
+      insideColor: insideColor.name,
+      modularColor: modularColor.name,
+      horizontalEnabled,
+      verticalEnabled,
+      ModuleHorizontal,
+      ModuleVertical,
+    };
+    console.log("Sending payload to Zapier:", payload);
+
+     try {
+  await fetch('https://hooks.zapier.com/hooks/catch/14955932/uy82dks/', {
+  "mode":"no-cors",
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify(payload),
+});
+
+
+     
+    // Since no-cors returns opaque responses, don't check status
+    console.log('✅ Sent to Zapier (no-cors assumed success)');
+  } catch (err) {
+    console.error('❌ Zapier webhook error:', err);
+  } finally {
+    setSubmitted(true); // Disable further submissions
+  }
+};
+
   return (
     <div className="container">
       <nav className="sidebar">
@@ -160,6 +195,15 @@ function ModularFrame() {
               <ColorSelectorGroup title="Modular Frame Color" colors={COLORS} selected={modularColor} onSelect={setModularColor} />
             </li>
           </ul>
+<button
+  className="submit-button"
+  onClick={handleSubmit}
+  disabled={submitted}
+>
+  {submitted ? 'Submitted' : 'Submit'}
+</button>
+
+
         </div>
       </nav>
 
