@@ -814,7 +814,7 @@ export function initThree(container, modelPath = '/models/Window_Frame.glb') {
         // Enable tone mapping for better handling of high dynamic range lighting
         renderer.toneMapping = THREE.ACESFilmicToneMapping;
         // Increased exposure for brighter overall scene
-        renderer.toneMappingExposure = 3; // Adjusted from 1.0 to 1.8 for brighter output
+        renderer.toneMappingExposure = 1.8; // Adjusted from 1.0 to 1.8 for brighter output
         renderer.outputColorSpace = THREE.SRGBColorSpace; // Corrected as per your fix
 
         // Initialize Scene
@@ -872,14 +872,35 @@ export function initThree(container, modelPath = '/models/Window_Frame.glb') {
         spotLight.shadow.mapSize.height = 1024;
         spotLight.shadow.bias = -0.0001; // Small bias to prevent shadow acne
         scene.add(spotLight);
+        
+        // Directional light from above to cast top-down shadow
+const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
+directionalLight.position.set(0, 35, 0); // Top of the scene
+directionalLight.castShadow = true;
+
+directionalLight.shadow.mapSize.width = 4096; // High-res for smooth blur
+directionalLight.shadow.mapSize.height = 4096;
+
+directionalLight.shadow.radius = 18; // Blur radius (requires WebGL2)
+directionalLight.shadow.bias = -0.001;
+
+
+directionalLight.shadow.camera.top = 5;
+directionalLight.shadow.camera.bottom = -5;
+directionalLight.shadow.camera.left = -5;
+directionalLight.shadow.camera.right = 5;
+directionalLight.shadow.camera.near = 0.5;
+directionalLight.shadow.camera.far = 50;
+
+scene.add(directionalLight);
 
         // Add a ground plane for shadows
         const ground = new THREE.Mesh(
             new THREE.PlaneGeometry(1200, 1200),
-            new THREE.ShadowMaterial({ opacity: 0.3 }) // Transparent material that receives shadows
+            new THREE.ShadowMaterial({ opacity: 0.1 }) // Transparent material that receives shadows
         );
         ground.rotation.x = -Math.PI / 2; // Rotate to be horizontal
-        ground.position.y = -5; // Position below the model
+        ground.position.y = -1.30; // Position below the model
         ground.receiveShadow = true; // Ground receives shadows
         scene.add(ground);
 
