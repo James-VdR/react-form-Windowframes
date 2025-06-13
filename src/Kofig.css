@@ -148,3 +148,33 @@
   margin-right: 16px;
   color: #000;
 }
+
+.kofig-root .submit-button {
+  width: 100px;
+  height: 40px;
+  border-radius: 50px;
+  border: 2px solid #000000;
+  background-color: #ffe600;
+  color: #000000;
+  font-size: 16px;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  margin: 20px auto 0 auto; /* Center horizontally, with top margin */
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.kofig-root .submit-button:hover {
+  background-color: #000000;
+  color: #ffe600;
+  border-color: #ffe600;
+}
+
+.kofig-root .submit-button:disabled {
+  background-color: #000000;
+  color: #ffe600;
+  border-color: #ffe600;
+  cursor: not-allowed;
+}

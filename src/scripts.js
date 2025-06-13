@@ -804,6 +804,7 @@ export function initThree(container, modelPath = '/models/Window_Frame.glb') {
 
         // Initialize WebGLRenderer
         const renderer = new THREE.WebGLRenderer({ antialias: true }); // Antialiasing for smoother edges
+        renderer.setPixelRatio(window.devicePixelRatio);
         renderer.shadowMap.enabled = true; // Enable shadow mapping
         renderer.setSize(width, height);
         container.appendChild(renderer.domElement);
