@@ -118,7 +118,12 @@ function applyModularStacking() {
         const baseHeight = 1.911; // Actual height in world units at scale 1.0 (e.g., if 1 unit = 1 meter, this is 1.911 meters)
         const unitToMM = 1000 / baseHeight; // Conversion factor: how many mm per 1 unit of height
 
-        const heightMM = (rawHeight * unitToMM).toFixed(0) + ' mm'; // Convert raw height to mm
+        let computedHeight = rawHeight * unitToMM;
+        if (computedHeight >= 1414.5) {
+        computedHeight -= 1;
+            }   
+        const heightMM = Math.round(computedHeight) + ' mm';
+
         // The width calculation seems specific to your model, adjusting for a base width of 500mm at scale 1.0
         const widthMM = (500 + ((rawWidth - 1.0) * 1000) / 2).toFixed(0) + ' mm';
 
@@ -128,7 +133,7 @@ function applyModularStacking() {
 
         // Adjust label positions relative to the dimension lines
         const heightLabelPos = heightMid.clone().add(new THREE.Vector3(1, 0, 0.1));   // Right of center
-        const widthLabelPos = widthMid.clone().add(new THREE.Vector3(0, -0.2, 0.1));
+        const widthLabelPos = widthMid.clone().add(new THREE.Vector3(0.20, -0.2, 0.1));
 
 
         // Create text labels as 3D sprites
@@ -137,6 +142,14 @@ function applyModularStacking() {
 
         // Add all dimension helper objects to the array and then to the pivot group
         dimensionHelpers.push(heightLine, widthLine, heightLabel, widthLabel);
+        // Create dimension end caps
+        const cap1 = createEndCap(rightTop, true);
+        const cap2 = createEndCap(rightBottom, true);
+        const cap3 = createEndCap(bottomLeft, false);
+        const cap4 = createEndCap(bottomRight, false);
+
+        dimensionHelpers.push(cap1, cap2, cap3, cap4);
+
         pivotGroup.add(...dimensionHelpers);
 
         if (rightFrame && bottomFrame) {
@@ -220,18 +233,22 @@ function loadMaterialLibrary(glbPath = '/models/Materials.glb', onComplete) {
  * @param {THREE.Mesh} mesh - The mesh to apply the glass material to.
  */
 function applyGlassMaterial(mesh) {
-    mesh.material = new THREE.MeshPhysicalMaterial({
-        color: 0xffffff,
-        metalness: 0,
-        roughness: 0.05, // Lower roughness for more clear reflections
-        transmission: 0.9, // Higher transmission for clear glass
-        thickness: 0.1,    // Thinner glass for more realistic refraction
-        transparent: true,
-        opacity: 1.0,      // Full opacity with transmission for PBR glass
-        ior: 1.5,          // Index of refraction for glass
-        envMapIntensity: 1, // Intensity of environment map influence
-        side: THREE.DoubleSide, // Render both front and back faces
-    });
+  mesh.material = new THREE.MeshPhysicalMaterial({
+  color: 0xffffff,
+  metalness: 0,
+  roughness: 0.02,        // LOWER for glossier surface
+  transmission: 0.98,     // Closer to 1 for clear glass
+  thickness: 0.2,         // More thickness for internal refraction
+  transparent: true,
+  opacity: 1.0,
+  ior: 1.52,              // Index of refraction for glass
+  envMapIntensity: 2.0,   // Stronger reflections from HDRI
+  reflectivity: 1,        // Reflective surface (if using legacy)
+  clearcoat: 1.0,         // Adds shiny clearcoat layer
+  clearcoatRoughness: 0.50, // Smooth clearcoat for gloss
+  side: THREE.DoubleSide
+});
+
 }
 
 /**
@@ -377,7 +394,11 @@ function loadWindowModel(scene, modelPath, scaleParams) {
                 // Ensure model meshes cast shadows
                 child.castShadow = true;
 
-                if (child.name.toLowerCase().includes('glass')) applyGlassMaterial(child); // Apply glass material to glass parts
+               if (child.name.toLowerCase().includes('glass')) {
+                applyGlassMaterial(child);
+                child.layers.set(1); // Place glass on its own render layer
+                }
+ // Apply glass material to glass parts
                 // Store original scale and position for later resizing calculations
                 child.userData.originalScale = child.scale.clone();
                 child.userData.originalPosition = child.position.clone();
@@ -625,16 +646,24 @@ function createEndCap(position, isVertical = true) {
     const material = new THREE.LineBasicMaterial({ color: 0x000000 });
     const line = new THREE.Line(geometry, material);
 
-    // Rotate vertical caps
-    if (isVertical) line.rotation.z = Math.PI / 2;
+    // Vertical cap: rotate to point up/down
+    if (isVertical) {
+        line.rotation.z = Math.PI / 1; // 90° rotation
+    }
+    if (!isVertical){
+        line.rotation.z = Math.PI/2
+    }
+    // Horizontal cap: no rotation needed — default orientation is horizontal
 
-    // Avoid Z-fighting with slight forward offset
+    // Slightly lift Z to avoid Z-fighting with dimension line
     const pos = position.clone();
-    pos.z += 1.001; // push a bit towards the camera
+    pos.z += 0.002;
     line.position.copy(pos);
 
     return line;
 }
+
+
 
 
 
@@ -773,14 +802,19 @@ function showDimensionLines() {
     const baseHeight = 1.911;
     const unitToMM = 1000 / baseHeight;
 
-    const heightMM = (rawHeight * unitToMM).toFixed(0) + ' mm';
+    let computedHeight = rawHeight * unitToMM;
+    if (computedHeight >= 1414.5) {
+    computedHeight -= 1;  
+    }
+    const heightMM = Math.round(computedHeight) + ' mm';
+
     const widthMM = (500 + ((rawWidth - 1.0) * 1000) / 2).toFixed(0) + ' mm';
 
     const heightMid = new THREE.Vector3().addVectors(rightTop, rightBottom).multiplyScalar(0.5);
     const widthMid = new THREE.Vector3().addVectors(bottomLeft, bottomRight).multiplyScalar(0.5);
 
     const heightLabelPos = heightMid.clone().add(new THREE.Vector3(0.60, 0, 0.1));
-    const widthLabelPos = widthMid.clone().add(new THREE.Vector3(0.5, -0.2, 0.1));
+    const widthLabelPos = widthMid.clone().add(new THREE.Vector3(0.20, -0.2, 0.1));
 
     const heightLabel = createTextLabel(heightMM, heightLabelPos);
     const widthLabel = createTextLabel(widthMM, widthLabelPos);
@@ -887,6 +921,10 @@ export function initThree(container, modelPath = '/models/Window_Frame.glb') {
         // Initialize Camera (Depth of Field is not applied by default with PerspectiveCamera alone)
         camera = new THREE.PerspectiveCamera(50, width / height, 0.1, 1000);
         camera.position.set(0, 5, 10); // Initial camera position
+        camera.layers.enable(0); // Default layer
+        camera.layers.enable(1); // Enable layer for glass reflections
+
+        
 
         // Initialize OrbitControls for camera interaction
         controls = new OrbitControls(camera, renderer.domElement);
@@ -898,6 +936,13 @@ export function initThree(container, modelPath = '/models/Window_Frame.glb') {
         controls.minPolarAngle = 0; // Prevent camera from going below the ground
         controls.maxPolarAngle = Math.PI; // Allow camera to look directly up
         controls.update();
+
+        // ✨ Directional light just for glass reflections
+        const reflectionLight = new THREE.DirectionalLight(0xffffff, 1.5);
+        reflectionLight.position.copy(camera.position).add(new THREE.Vector3(0, -10, 0)); // Behind and above camera
+        reflectionLight.layers.enable(1); // Only lights up objects on layer 1
+        scene.add(reflectionLight);
+
 
         // Add Ambient Light (uniform lighting from all directions)
         // Increased intensity for brighter ambient lighting
