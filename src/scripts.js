@@ -22,6 +22,9 @@ let modularParams = {
 };
 
 
+let hasUserResized = false;
+
+
 const materialLibrary = {}; // Stores loaded materials from the 'Materials.glb' file
 const modelOptions = ['Window_Frame.glb', 'Window_Frame_Cross.glb', 'Window_Frame_Kofig.glb']; // Available window models
 
@@ -384,6 +387,8 @@ function loadWindowModel(scene, modelPath, scaleParams) {
         pivotGroup = new THREE.Group();
         pivotGroup.add(model);
         scene.add(pivotGroup);
+        // Add this inside loadWindowModel, at the end of the loader callback
+   
 
         controls.target.copy(center);
         controls.update();
@@ -552,6 +557,8 @@ function setupDynamicGUI(zones, scaleParams, pivotGroup) {
     // -----------------------------
     const customAdjustmentsFolder = gui.addFolder('Custom Adjustments');
 
+    
+    
     // Controls for horizontal offsets of middle bars
     customAdjustmentsFolder.add({ value: 0 }, 'value', -1.0, 1.0)
         .name('Left Horiz Offset')
@@ -767,6 +774,99 @@ function stackClonesWidth(original, moduleSize, originReference = null) {
         pivotGroup.add(clone);
     }
 }
+
+function createSurroundingBrickWallSegments(windowGroup, texturePath = '/textures/brickwall.jpg') {
+    const loader = new THREE.TextureLoader();
+
+    loader.load(texturePath, (brickTexture) => {
+        brickTexture.wrapS = THREE.RepeatWrapping;
+        brickTexture.wrapT = THREE.RepeatWrapping;
+
+        const boundingBox = new THREE.Box3().setFromObject(windowGroup);
+        const size = boundingBox.getSize(new THREE.Vector3());
+        const min = boundingBox.min;
+
+        const padding = 0.5;
+        const wallDepth = 0.3;
+        const centerZ = min.z - wallDepth / 2 - 0.01;
+
+        // === FUDGE FACTORS ===
+        const xSizeFudge = 0.0;
+        const ySizeFudge = 0.0;
+        const yScaleFudge = -0.420;
+
+        const widthWithFudge = size.x - 2.0 * padding + xSizeFudge;
+        const heightWithFudge = size.y + 2 * padding + ySizeFudge + yScaleFudge;
+
+        // 🔄 Create a reusable function for dynamically scaled texture
+        const createWall = (width, height, name, posX, posY) => {
+            const texture = brickTexture.clone();
+            texture.repeat.set(width, height); // Adjust tile density to match wall size
+
+            const material = new THREE.MeshStandardMaterial({
+                map: texture,
+                side: THREE.DoubleSide
+            });
+
+            const wall = new THREE.Mesh(
+                new THREE.BoxGeometry(width, height, wallDepth),
+                material
+            );
+            wall.position.set(posX, posY, centerZ);
+            wall.name = name;
+            wall.receiveShadow = true;
+            return wall;
+        };
+
+        // === LEFT Wall
+        const wallLeft = createWall(
+            padding,
+            heightWithFudge,
+            'Wall_Left',
+            min.x - padding / 2,
+            min.y + heightWithFudge - 3.88 / 2 - (ySizeFudge + yScaleFudge) / 2
+        );
+
+        // === RIGHT Wall
+       // === RIGHT Wall (conditionally offset if resized)
+     // === RIGHT Wall (conditionally offset if resized)
+     
+     let rightWallOffsetX = hasUserResized ? -0.5 : 0;
+
+
+const wallRight = createWall(
+    padding,
+    heightWithFudge,
+    'Wall_Right',
+    min.x + size.x - 1 + padding / 2 + rightWallOffsetX,
+    min.y + heightWithFudge - 3.88 / 2 - (ySizeFudge + yScaleFudge) / 2
+);
+    
+        // === TOP Wall
+        const wallTop = createWall(
+            widthWithFudge,
+            padding,
+            'Wall_Top',
+            min.x + widthWithFudge / 2 - xSizeFudge / 2,
+            min.y + size.y + padding / 2
+        );
+
+        // === BOTTOM Wall
+        const wallBottom = createWall(
+            widthWithFudge,
+            padding,
+            'Wall_Bottom',
+            min.x + widthWithFudge / 2 - xSizeFudge / 2,
+            min.y - padding / 2 + 0.425
+        );
+
+        // Add all to scene
+        
+        scene.add(wallLeft, wallRight, wallTop, wallBottom);
+    });
+}
+
+
 
 
 function showDimensionLines() {
@@ -1043,6 +1143,7 @@ scene.add(directionalLight);
                 },
                 setWidth: (val) => {
                     scaleParams.Width = val;
+                    hasUserResized = true;
                     // Apply resize to all relevant zones
                     Object.entries(zoneBehaviors).forEach(([zn, config]) => {
                         const strategy = config?.resizeStrategy;
@@ -1204,6 +1305,41 @@ scene.add(directionalLight);
                         }
                     }
                 },
+    setWallVisible: (enabled) => {
+  const wallNames = ['Wall_Left', 'Wall_Right', 'Wall_Top', 'Wall_Bottom'];
+  if (enabled) {
+    // First clean up to avoid duplicates
+    wallNames.forEach(name => {
+      const wall = scene.getObjectByName(name);
+      if (wall) {
+        scene.remove(wall);
+        wall.geometry.dispose();
+        if (wall.material.map) wall.material.map.dispose();
+        wall.material.dispose();
+      }
+    });
+    // Recreate walls from scratch
+    if (pivotGroup) {
+      createSurroundingBrickWallSegments(pivotGroup);
+    } else {
+      console.warn('[setWallVisible] Cannot create walls — pivotGroup is undefined.');
+    }
+  } else {
+    // Just remove walls
+    wallNames.forEach(name => {
+      const wall = scene.getObjectByName(name);
+      if (wall) {
+        scene.remove(wall);
+        wall.geometry.dispose();
+        if (wall.material.map) wall.material.map.dispose();
+        wall.material.dispose();
+      }
+    });
+  }
+}
+
+,
+
                 getScene: () => scene,
                 hideGUI: () => {
                     const wrapper = document.getElementById('gui-wrapper');

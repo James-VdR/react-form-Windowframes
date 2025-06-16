@@ -6,6 +6,7 @@ import SliderControl from '../SliderControl';
 import ColorSelectorGroup from '../ColorSelectorGroup';
 import { useLocation } from 'react-router-dom';
 
+
 // color fixing
 const MATERIAL_NAME_MAP = {
   'White': 'White',
@@ -66,6 +67,10 @@ const [frameColor, setFrameColor] = useState(COLORS[0]);
 const [insideColor, setInsideColor] = useState(COLORS[1]);
 const [height, setHeight] = useState(1000); //sets start value
 const [width, setWidth] = useState(1000);  //sets start value
+const [wallEnabled, setWallEnabled] = useState(false);            // wall visible?
+const [wallToggleEnabled, setWallToggleEnabled] = useState(false); // toggle usable?
+const [hasResizedOnce, setHasResizedOnce] = useState(false);       // track initial resize
+
 
 
 
@@ -93,16 +98,37 @@ useEffect(() => {
 
 
 useEffect(() => {
-  if (controller && modelReady) {
-    controller.setHeight(height / 1000);
+  if (!modelReady || !controller) return;
+
+  // Apply new height
+  controller.setHeight(height / 1000);
+
+  // If the wall was on, turn it off
+  if (wallEnabled) {
+    setWallEnabled(false);
   }
-}, [controller, modelReady, height]);
+
+  // Enable the wall toggle button (once resizing happens)
+  setWallToggleEnabled(true);
+}, [height]);
 
 useEffect(() => {
-  if (controller && modelReady) {
-    controller.setWidth(width / 1000);
+  if (!modelReady || !controller) return;
+
+  // Apply new width
+  controller.setWidth(width / 1000);
+
+  // If the wall was on, turn it off
+  if (wallEnabled) {
+    setWallEnabled(false);
   }
-}, [controller, modelReady, width]);
+
+  // Enable the wall toggle button (once resizing happens)
+  setWallToggleEnabled(true);
+}, [width]);
+
+
+
 
 useEffect(() => {
   if (controller && modelReady && MATERIAL_NAME_MAP[frameColor.name]) {
@@ -118,10 +144,22 @@ useEffect(() => {
   }
 }, [controller, modelReady, insideColor]);
 
+useEffect(() => {
+  if (controller && modelReady) {
+    controller.setWallVisible(wallEnabled);
+  }
+}, [controller, modelReady, wallEnabled]);
 
 useEffect(() => {
   if (controller && modelReady) controller.hideGUI();
 }, [controller, modelReady]);
+useEffect(() => {
+  if (controller && modelReady) {
+    controller.setWallVisible(wallEnabled);
+  }
+}, [controller, modelReady, wallEnabled]);
+
+
 
   const handleSubmit = async () => {
     const payload = {
@@ -195,6 +233,24 @@ useEffect(() => {
                 onSelect={setInsideColor}
             />
             </li>
+
+<li className="toggle-wrapper">
+  <span>Show Wall</span>
+  <button
+    className={`mode-toggle ${wallEnabled ? 'enabled' : ''}`}
+    onClick={() => {
+      if (wallToggleEnabled) setWallEnabled(prev => !prev);
+    }}
+    disabled={!wallToggleEnabled}
+    title="Toggle wall visibility"
+    style={{ opacity: wallToggleEnabled ? 1 : 0.4, pointerEvents: wallToggleEnabled ? 'auto' : 'none' }}
+  >
+    🧱
+  </button>
+</li>
+
+
+
 
         </ul>
        
