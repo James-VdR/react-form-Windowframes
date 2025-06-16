@@ -35,6 +35,8 @@ function Kofig() {
 
   const [modelPath] = useState('/models/Window_Frame_Kofig.glb');
   const model = "KofigFrame";
+  const [modelReady, setModelReady] = useState(false);
+
   const [modularLeftBar, setModularLeftBar] = useState(0);
   const [modularLeftEdge, setModularLeftEdge] = useState(0);
   const [modularRightBar, setModularRightBar] = useState(0);
@@ -46,6 +48,8 @@ function Kofig() {
     navigate('/');
   };
 
+  const [wallEnabled, setWallEnabled] = useState(false);
+  const [wallToggleEnabled, setWallToggleEnabled] = useState(false);
   const [submitted, setSubmitted] = useState(false);
 
 
@@ -77,14 +81,16 @@ function Kofig() {
     if (controller) controller.setModularEnabled(false, false);
   }, [controller]);
 
-  useEffect(() => {
+   useEffect(() => {
     let isMounted = true;
     initThree(mountRef.current, modelPath).then((api) => {
-      if (isMounted) setController(api);
+      if (isMounted) {
+        setController(api);
+        setModelReady(true);
+        api.setWallVisible(false);
+      }
     });
-    return () => {
-      isMounted = false;
-    };
+    return () => { isMounted = false; };
   }, [modelPath]);
 
   useEffect(() => {
@@ -137,6 +143,39 @@ function Kofig() {
     const extraHeight = Math.max(height - 1000, 0);
     setHorizontalBarMax(750 + extraHeight);
   }, [height]);
+useEffect(() => {
+  if (controller && modelReady) {
+    controller.setWallVisible(wallEnabled);
+  }
+}, [controller, modelReady, wallEnabled]);
+
+  // Reset wall visibility and re-enable the toggle on resize
+useEffect(() => {
+  if (!controller || !modelReady) return;
+
+  // Apply height
+  controller.setHeight(height / 1000);
+
+  // Turn wall OFF if it's currently on
+  if (wallEnabled) setWallEnabled(false);
+
+  // Enable toggle button
+  setWallToggleEnabled(true);
+}, [height]);
+
+useEffect(() => {
+  if (!controller || !modelReady) return;
+
+  // Apply width
+  controller.setWidth(width / 1000);
+
+  // Turn wall OFF if it's currently on
+  if (wallEnabled) setWallEnabled(false);
+
+  // Enable toggle button
+  setWallToggleEnabled(true);
+}, [width]);
+
 
  const handleSubmit = async () => {
   const payload = {
@@ -233,7 +272,18 @@ function Kofig() {
                 }}
               />
             </li>
-            
+            <li className="toggle-wrapper">
+              <span>Show Wall</span>
+              <button
+                className={`mode-toggle ${wallEnabled ? 'enabled' : ''}`}
+                onClick={() => { if (wallToggleEnabled) setWallEnabled(prev => !prev); }}
+                disabled={!wallToggleEnabled}
+                title="Toggle wall visibility"
+                style={{ opacity: wallToggleEnabled ? 1 : 0.4, pointerEvents: wallToggleEnabled ? 'auto' : 'none' }}
+              >
+                🧱
+              </button>
+            </li>
             
           </ul>
 

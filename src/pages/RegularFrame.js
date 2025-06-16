@@ -69,7 +69,7 @@ const [height, setHeight] = useState(1000); //sets start value
 const [width, setWidth] = useState(1000);  //sets start value
 const [wallEnabled, setWallEnabled] = useState(false);            // wall visible?
 const [wallToggleEnabled, setWallToggleEnabled] = useState(false); // toggle usable?
-const [hasResizedOnce, setHasResizedOnce] = useState(false);       // track initial resize
+
 
 
 
