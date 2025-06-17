@@ -118,6 +118,8 @@ function ModularFrame() {
     if (controller) controller.hideGUI();
   }, [controller]);
 
+  
+
   const handleSubmit = async () => {
     const payload = {
       model,

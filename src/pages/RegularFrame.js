@@ -28,8 +28,7 @@ const MATERIAL_NAME_MAP = {
 
   function RegularFrame() {
   const mountRef = useRef(null);
-  const [wallEnabled, setWallEnabled] = useState(false);
-
+  
   const [controller, setController] = useState(null);
   const location = useLocation();
   const [modelPath] = useState(`/models/${location.state?.model || 'Window_Frame.glb'}`);

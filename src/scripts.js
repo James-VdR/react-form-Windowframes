@@ -233,23 +233,30 @@ function loadMaterialLibrary(glbPath = '/models/Materials.glb', onComplete) {
  * @param {THREE.Mesh} mesh - The mesh to apply the glass material to.
  */
 function applyGlassMaterial(mesh) {
-  mesh.material = new THREE.MeshPhysicalMaterial({
-  color: 0xffffff,
-  metalness: 0,
-  roughness: 0.02,        // LOWER for glossier surface
-  transmission: 0.98,     // Closer to 1 for clear glass
-  thickness: 0.2,         // More thickness for internal refraction
-  transparent: true,
-  opacity: 1.0,
-  ior: 1.52,              // Index of refraction for glass
-  envMapIntensity: 2.0,   // Stronger reflections from HDRI
-  reflectivity: 1,        // Reflective surface (if using legacy)
-  clearcoat: 1.0,         // Adds shiny clearcoat layer
-  clearcoatRoughness: 0.50, // Smooth clearcoat for gloss
-  side: THREE.DoubleSide
-});
+  const glassMaterial = new THREE.MeshPhysicalMaterial({
+    color: 0xffffff,
+    metalness: 0,
+    roughness: 0.01,
+    transmission: 1.0,          // Full transmission
+    thickness: 0.01,            // THINNER = fewer visual distortions
+    transparent: true,
+    opacity: 1.0,
+    ior: 1.0,                   // LOWER ior = flatter refraction (less warping)
+    envMapIntensity: 0.5,       // Reduce to prevent over-bright fake reflections
+    clearcoat: 0.0,             // TURN OFF clearcoat to avoid extra shine layer
+    reflectivity: 0.1,          // Reduce reflectivity to reduce confusion
+    depthWrite: false,          // Important: fixes phantom layering!
+    side: THREE.FrontSide       // Avoid rendering both sides of thin glass
+  });
 
+  // Optional: softer edges (eliminates hard ghosting from overlapping surfaces)
+  glassMaterial.polygonOffset = true;
+  glassMaterial.polygonOffsetFactor = -1;
+  glassMaterial.polygonOffsetUnits = -4;
+
+  mesh.material = glassMaterial;
 }
+
 
 /**
  * Resizes frame parts of the model, adjusting scale and position to maintain structural integrity.

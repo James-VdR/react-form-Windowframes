@@ -138,6 +138,8 @@ function Kofig() {
     setHorizontalBarMax(750 + extraHeight);
   }, [height]);
 
+  
+
  const handleSubmit = async () => {
   const payload = {
     model,
