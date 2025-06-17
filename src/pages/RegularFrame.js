@@ -28,7 +28,8 @@ const MATERIAL_NAME_MAP = {
 
   function RegularFrame() {
   const mountRef = useRef(null);
-  
+  const [wallEnabled, setWallEnabled] = useState(false);
+
   const [controller, setController] = useState(null);
   const location = useLocation();
   const [modelPath] = useState(`/models/${location.state?.model || 'Window_Frame.glb'}`);
@@ -197,7 +198,14 @@ useEffect(() => {
             </li>
 
         </ul>
-       
+        {/* WALL TOGGLE BUTTON */}
+    <button
+      className={`wall-toggle-button ${wallEnabled ? 'enabled' : ''}`}
+      onClick={() => setWallEnabled(prev => !prev)}
+      title="Toggle Wall Preview"
+    >
+      🧱
+    </button>
          <button
   className="submit-button"
   onClick={handleSubmit}
