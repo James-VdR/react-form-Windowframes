@@ -197,7 +197,6 @@ useEffect(() => {
             </li>
 
         </ul>
-       
          <button
   className="submit-button"
   onClick={handleSubmit}

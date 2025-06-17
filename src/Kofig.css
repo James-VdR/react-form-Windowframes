@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Open+Sans:wght@400&family=Poppins:wght@400;600;700&display=swap');
 
 * {
   margin: 0;
@@ -8,8 +8,9 @@
 
 .kofig-root body, html, #root {
   height: 100%;
-  font-family: 'Poppins', sans-serif;
-  background-color: rgb(0, 0, 0); /* ⬛ full background */
+  font-family: 'Open Sans', sans-serif;
+  background-color: #F6F6F6;
+  color: #2C2C2C;
 }
 
 .kofig-root .container {
@@ -18,55 +19,59 @@
   width: 100vw;
 }
 
-/* 🟡 Sidebar yellow panel */
+/* Sidebar */
 .kofig-root .sidebar {
   width: 25%;
-  background-color: #000000; /* bright yellow */
-  color: #000000;
+  background-color: #FFFFFF;
+  color: #2C2C2C;
   padding: 20px;
   display: flex;
   flex-direction: column;
   gap: 15px;
-  border-right: 1px solid #f1f1f1;
+  border-right: 1px solid #E5E5E5;
   position: relative;
   overflow-y: auto;
 }
 
-/* 🔳 Card-like item containers inside sidebar */
+/* Sidebar item */
 .kofig-root .sidebar li {
-  background-color: #ffe600; /* same yellow */
-  border: 1px solid #e5e5e5;
+  background-color: #F6F6F6;
+  border: 1px solid #E5E5E5;
   border-radius: 4px;
   padding: 10px;
   margin-bottom: 10px;
   list-style: none;
+  color: #4A4A4A;
+  font-weight: 500;
 }
 
-/* 🟡 Header zone */
+/* Header */
 .kofig-root .kofig-header {
-  background-color: rgb(255, 238, 0);
-  color: #ffe600;
+  background-color: #FFFFFF;
+  color: #2C2C2C;
   padding: 12px 20px;
   display: flex;
   align-items: center;
   justify-content: space-between;
+  border-bottom: 1px solid #E5E5E5;
 }
 
-/* 🟡 Title style */
+/* Title */
 .kofig-root .kofig-title h1 {
+  font-family: 'Poppins', sans-serif;
   font-size: 22px;
   font-weight: 600;
-  color: #ffe600;
+  color: #2C2C2C;
 }
 
-/* 🟡 Arrow Button */
+/* Back Button */
 .kofig-root .back-button {
   width: 40px;
   height: 40px;
   border-radius: 50%;
-  border: 2px solid #000000;
-  background-color: #ffe600;
-  color: rgb(0, 0, 0);
+  border: 2px solid #F9B233;
+  background-color: transparent;
+  color: #F9B233;
   font-size: 20px;
   font-weight: bold;
   display: flex;
@@ -76,16 +81,14 @@
   transition: background-color 0.3s ease, color 0.3s ease;
   z-index: 10;
   right: 10px;
-  
 }
 
 .kofig-root .back-button:hover {
-  background-color: black;
-  color: #ffe600;
-  border-color: #ffe600;
+  background-color: #F9B233;
+  color: #FFFFFF;
 }
 
-/* 👇 Optional: toggle switch styling for modular buttons */
+/* Mode Toggle */
 .kofig-root .mode-toggle {
   position: absolute;
   top: 10px;
@@ -93,9 +96,9 @@
   width: 34px;
   height: 34px;
   border-radius: 50%;
-  border: 2px solid #a3d69c;
+  border: 2px solid #F9B233;
   background-color: transparent;
-  color: #a3d69c;
+  color: #F9B233;
   font-size: 18px;
   font-weight: bold;
   display: flex;
@@ -106,34 +109,11 @@
 }
 
 .kofig-root .mode-toggle.enabled {
-  background-color: #a3d69c;
+  background-color: #F9B233;
   color: white;
 }
 
-/*  Checkmark-style toggle buttons */
-.kofig-root .check-toggle {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  border: 2px solid #000000;
-  background-color: #ffe600;
-  color: black;
-  font-size: 22px;
-  font-weight: bold;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  margin-right: 10px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-}
-
-.kofig-root .check-toggle.active {
-  background-color: black;
-  color: #ffe600;
-  border-color: #ffe600;
-}
-
+/* Toggle buttons */
 .kofig-root .toggle-buttons {
   display: flex;
   align-items: center;
@@ -146,35 +126,60 @@
   font-size: 14px;
   font-weight: 500;
   margin-right: 16px;
-  color: #000;
+  color: #4A4A4A;
 }
 
+/* Toggle check circle */
+.kofig-root .check-toggle {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 2px solid #F9B233;
+  background-color: transparent;
+  color: #F9B233;
+  font-size: 22px;
+  font-weight: bold;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 10px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.kofig-root .check-toggle.active {
+  background-color: #F9B233;
+  color: white;
+}
+
+/* Submit Button */
 .kofig-root .submit-button {
   width: 100px;
   height: 40px;
   border-radius: 50px;
-  border: 2px solid #000000;
-  background-color: #ffe600;
-  color: #000000;
+  border: 2px solid #F9B233;
+  background-color: transparent;
+  color: #F9B233;
   font-size: 16px;
   font-weight: bold;
+  font-family: 'Poppins', sans-serif;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  margin: 20px auto 0 auto; /* Center horizontally, with top margin */
+  margin: 20px auto 0 auto;
   transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 .kofig-root .submit-button:hover {
-  background-color: #000000;
-  color: #ffe600;
-  border-color: #ffe600;
+  background-color: #F9B233;
+  color: white;
 }
 
 .kofig-root .submit-button:disabled {
-  background-color: #000000;
-  color: #ffe600;
-  border-color: #ffe600;
+  background-color: transparent;
+  color: #F9B233;
+  border-color: #F9B233;
   cursor: not-allowed;
+  opacity: 0.5;
 }
