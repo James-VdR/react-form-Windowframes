@@ -198,14 +198,6 @@ useEffect(() => {
             </li>
 
         </ul>
-        {/* WALL TOGGLE BUTTON */}
-    <button
-      className={`wall-toggle-button ${wallEnabled ? 'enabled' : ''}`}
-      onClick={() => setWallEnabled(prev => !prev)}
-      title="Toggle Wall Preview"
-    >
-      🧱
-    </button>
          <button
   className="submit-button"
   onClick={handleSubmit}
