@@ -178,7 +178,7 @@ function Kofig() {
       <div className="container">
         <div className="sidebar">
           <div className="kofig-header">
-            <h1>Kofig Demo</h1>
+            <h1>Config Demo</h1>
             <button className="back-button" onClick={handleBack}>←</button>
           </div>
 
