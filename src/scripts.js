@@ -132,6 +132,18 @@ function loadWindowModel(scene, modelPath, scaleParams) {
     pivotGroup.add(model);
     scene.add(pivotGroup);
 
+    ['top_frame', 'bottom_frame', 'left_frame', 'right_frame'].forEach(name => {
+  const mesh = findMeshByName(name);
+  if (mesh) {
+    const box = new THREE.Box3().setFromObject(mesh);
+    const size = box.getSize(new THREE.Vector3());
+    console.log(`[Frame Size] ${name} - Width: ${size.x.toFixed(3)} units, Height: ${size.y.toFixed(3)} units, Thickness: ${size.z.toFixed(3)} units`);
+  } else {
+    console.warn(`[Frame Size] ${name} not found.`);
+  }
+});
+
+
     controls.target.copy(center);
     controls.update();
 
@@ -198,7 +210,7 @@ function setupDynamicGUI(zones, scaleParams, pivotGroup) {
 
     if (config.allowResize) {
       ['Height', 'Width', 'Thickness'].forEach(param => {
-        let min = 1, max = 2.999;
+        let min = 1, max = 3.000;
 
         if (param === 'Thickness') {
           min = 1;
