@@ -29,7 +29,7 @@ function getZoneNameFromMesh(name) {
 const zoneBehaviors = {
   frame: { resizeStrategy: 'frame', allowResize: true, allowColorChange: true },
   frameInside: { resizeStrategy: 'frame', allowColorChange: true },
-  glass: { resizeStrategy: 'uniform', allowColorChange: true },
+  glass: { resizeStrategy: 'uniform',},
   inside: { allowColorChange: true },
   outside: { resizeStrategy: 'frame', allowColorChange: true },
   misc: { allowColorChange: true },
