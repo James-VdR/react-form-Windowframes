@@ -20,7 +20,7 @@ function getZoneNameFromMesh(name) {
   if (lname.includes('outside') && lname.includes('frame')) return 'outside';
   if (lname.includes('frame') && lname.includes('inside')) return 'frameInside';
   if (lname.includes('frame')) return 'frame';
-  if (lname.includes('glass')) return 'glass';
+  if (lname.includes('glass')) return 'glass'; 
   if (lname.includes('inside')) return 'inside';
   if (lname.includes('outside')) return 'outside';
   return 'misc';
@@ -29,6 +29,8 @@ function getZoneNameFromMesh(name) {
 const zoneBehaviors = {
   frame: { resizeStrategy: 'frame', allowResize: true, allowColorChange: true },
   frameInside: { resizeStrategy: 'frame', allowColorChange: true },
+  horizontalframe:{resizeStrategy: '', allowColorChange:true},
+  verticalframe:{resizeStrategy: '', allowColorChange:true},
   glass: { resizeStrategy: 'uniform',},
   inside: { allowColorChange: true },
   outside: { resizeStrategy: 'frame', allowColorChange: true },
@@ -86,6 +88,8 @@ function resizeFrameParts(meshes, scaleParams) {
       origScale.y * scaleParams.Height,
       origScale.z * scaleParams.Thickness
     );
+
+    
 
     mesh.position.copy(origPos);
   });
@@ -303,32 +307,7 @@ function applyModularStacking() {
 
 
   // --- HEIGHT STACKING ---
-  const baseMeshY = findMeshByName('outside_frame_middle_x');
-  if (modularParams.enabledHeight) {
-    if (baseMeshY) {
-      stackClones(baseMeshY, 'y', modularParams.ModuleHeight);
-      baseMeshY.visible = false;
-    } else {
-      console.warn('Base mesh for height stacking not found.');
-    }
-  } else {
-    if (baseMeshY) baseMeshY.visible = true; //  Make mesh visible again
-  }
-
-  // --- WIDTH STACKING ---
-  const baseMeshX = findMeshByName('outside_frame_middle_y');
-  const leftRef = findMeshByName('left_frame');
-  if (modularParams.enabledWidth) {
-    if (baseMeshX && leftRef) {
-      stackClonesWidth(baseMeshX, modularParams.ModuleWidth, leftRef);
-      baseMeshX.visible = false;
-    } else {
-      console.warn('Base mesh for width stacking not found.');
-    }
-  } else {
-    if (baseMeshX) baseMeshX.visible = true; // Make mesh visible again
-  }
-
+  
   // === Dimension Lines ===
 const rightFrame = findMeshByName('right_frame');
 const bottomFrame = findMeshByName('bottom_frame');
@@ -438,106 +417,6 @@ function createTextLabel(text, position) {
 
   return sprite;
 }
-
-
-
-
-function stackClones(original, axis, moduleSize, originReference = null) {
-  const boundingBox = new THREE.Box3().setFromObject(pivotGroup);
-  const size = boundingBox.getSize(new THREE.Vector3());
-  const totalLength = axis === 'x' ? size.x : size.y;
-  const count = Math.floor(totalLength / moduleSize);
-
- let lastPosition;
-
-// Use Left_Frame as geometric origin if provided
-if (axis === 'x' && originReference) {
-  const originPos = new THREE.Vector3();
-  originReference.getWorldPosition(originPos);
-  pivotGroup.worldToLocal(originPos);
-
-  // Shift slightly forward to center like height stacking (optional tweak)
-  lastPosition = originPos.x + moduleSize * 0.5;
-} else {
-  lastPosition = original.position[axis];
-}
-
-
-// Add offset to start clones slightly inward (for width stacking)
-// Offset entire clone row so it centers relative to original
-if (axis === 'x') {
-  lastPosition -= (count * moduleSize) / 2;
-}
-
-
-
-  for (let i = 1; i <= count; i++) {
-    const clone = original.clone();
-    clone.name = `${original.name}_Clone_${axis.toUpperCase()}_${i}`;
-    clone.userData.isModularClone = true;
-
-    clone.geometry = clone.geometry.clone();
-    clone.material = Array.isArray(clone.material)
-      ? clone.material.map(m => m.clone())
-      : clone.material.clone();
-
-    const worldPos = new THREE.Vector3();
-    original.getWorldPosition(worldPos);
-    pivotGroup.worldToLocal(worldPos);
-
-    // Flip stacking direction for Width (X-axis)
-    const direction = (axis === 'x') ? -1 : -1;
-    worldPos[axis] = lastPosition + moduleSize * direction;
-
-    clone.position.copy(worldPos);
-
-    clone.visible = true;
-    pivotGroup.add(clone);
-
-    lastPosition = worldPos[axis];
-  }
-}
-
-function stackClonesWidth(original, moduleSize, originReference = null) {
-  const boundingBox = new THREE.Box3().setFromObject(pivotGroup);
-  const size = boundingBox.getSize(new THREE.Vector3());
-  const count = Math.floor(size.x / moduleSize);
-
-  if (!originReference) {
-    console.warn('[stackClonesWidth] No origin reference (left_frame) provided.');
-    return;
-  }
-
-  // Get geometric origin from left_frame
-  const originPos = new THREE.Vector3();
-  originReference.getWorldPosition(originPos);
-  pivotGroup.worldToLocal(originPos);
-
-  let startX = originPos.x - 0.88;; // Start exactly at left_frame
-
-  for (let i = 0; i < count; i++) {
-    const clone = original.clone();
-    clone.name = `${original.name}_Clone_X_${i}`;
-    clone.userData.isModularClone = true;
-
-    clone.geometry = clone.geometry.clone();
-    clone.material = Array.isArray(clone.material)
-      ? clone.material.map(m => m.clone())
-      : clone.material.clone();
-
-    const worldPos = new THREE.Vector3();
-    original.getWorldPosition(worldPos);
-    pivotGroup.worldToLocal(worldPos);
-
-    // Align clone rightward with precise step
-    worldPos.x = startX + i * moduleSize;
-
-    clone.position.copy(worldPos);
-    clone.visible = true;
-    pivotGroup.add(clone);
-  }
-}
-
 
 function showDimensionLines() {
   if (!pivotGroup) return;
