@@ -113,12 +113,12 @@ function ModularFrame() {
   useEffect(() => {
     if (controller) controller.setModularEnabled(horizontalEnabled, verticalEnabled);
   }, [controller, horizontalEnabled, verticalEnabled]);
-
+/*
   useEffect(() => {
     if (controller) controller.hideGUI();
   }, [controller]);
 
-  
+  */
 
   const handleSubmit = async () => {
     const payload = {

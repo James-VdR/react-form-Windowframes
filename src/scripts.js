@@ -23,7 +23,7 @@ let modularParams = {
 
 
 const materialLibrary = {}; // Stores loaded materials from the 'Materials.glb' file
-const modelOptions = ['Window_Frame.glb', 'Window_Frame_Cross.glb', 'Window_Frame_Kofig.glb']; // Available window models
+const modelOptions = ['Window_Frame.glb', 'Window_Frame_Cross.glb', 'Window_Frame_Kofig.glb' , 'Window_Frame_Three.glb' , 'Window_Frame_Two.glb']; // Available window models
 
 let controlAPI; // Declare controlAPI in a higher scope
 
@@ -1120,97 +1120,81 @@ scene.add(directionalLight);
                     }
                 },
                 setLeftVerticalOffset: (value) => {
-                    if (!pivotGroup) return;
+    if (!pivotGroup) return;
 
-                    const verticalMesh = findMeshByName('Outside_Frame_Middle_YL');
-                    const horizontalMesh = findMeshByName('Outside_Frame_Middle_XL');
+    const verticalMesh = findMeshByName('Outside_Frame_Middle_YL');
+    const horizontalMesh = findMeshByName('Outside_Frame_Middle_XL');
 
-                    if (
-                        verticalMesh &&
-                        horizontalMesh &&
-                        verticalMesh.userData.originalPosition &&
-                        horizontalMesh.userData.originalScale &&
-                        horizontalMesh.userData.originalPosition
-                    ) {
-                        const clamped = Math.max(-0.15, Math.min(0.50, value));
-                        verticalMesh.position.x = verticalMesh.userData.originalPosition.x + clamped;
+    if (verticalMesh && verticalMesh.userData.originalPosition) {
+        verticalMesh.position.x = verticalMesh.userData.originalPosition.x + value;
 
-                        const deltaX = clamped;
-                        const origScale = horizontalMesh.userData.originalScale.clone();
+        if (horizontalMesh && horizontalMesh.userData.originalScale && horizontalMesh.userData.originalPosition) {
+            const deltaX = value;
+            const origScale = horizontalMesh.userData.originalScale.clone();
+            const fudge = deltaX > 0.001 ? 0.1 : 0;
 
-                        // Only apply fudge when expanding past 0
-                        const fudge = deltaX > 0.001 ? 0.1 : 0;
+            horizontalMesh.scale.set(origScale.x + deltaX + fudge, origScale.y, origScale.z);
+        }
+    }
+},
 
-                        // Apply clean scaling in X with conditional fudge
-                        horizontalMesh.scale.set(
-                            origScale.x + deltaX + fudge,
-                            origScale.y,
-                            origScale.z
-                        );
-                    }
-                },
-                setRightVerticalOffset: (value) => {
-                    if (!pivotGroup) return;
+               setRightVerticalOffset: (value) => {
+    if (!pivotGroup) return;
 
-                    const verticalMesh = findMeshByName('Outside_Frame_Middle_YR');
-                    const horizontalMesh = findMeshByName('Outside_Frame_Middle_XR');
-                    const rightFrame = findMeshByName('right_frame');
+    const verticalMesh = findMeshByName('Outside_Frame_Middle_YR');
+    const horizontalMesh = findMeshByName('Outside_Frame_Middle_XR');
+    const rightFrame = findMeshByName('right_frame');
 
-                    if (
-                        verticalMesh &&
-                        horizontalMesh &&
-                        verticalMesh.userData.originalPosition &&
-                        horizontalMesh.userData.originalPosition &&
-                        horizontalMesh.userData.originalScale &&
-                        rightFrame
-                    ) {
-                        const clamped = Math.max(-0.50, Math.min(0.15, value));
-                        const origScale = horizontalMesh.userData.originalScale.clone();
+    if (verticalMesh && verticalMesh.userData.originalPosition) {
+        
+        // Apply value directly without clamp
+        verticalMesh.position.x = verticalMesh.userData.originalPosition.x + value;
 
-                        // Get world-space right edge of the frame
-                        const box = new THREE.Box3().setFromObject(rightFrame);
-                        const rightEdgeX = box.max.x;
+        if (horizontalMesh && rightFrame && horizontalMesh.userData.originalPosition && horizontalMesh.userData.originalScale) {
+            const origScale = horizontalMesh.userData.originalScale.clone();
 
-                        // Convert to local space
-                        const rightEdgeWorld = new THREE.Vector3(rightEdgeX, 0, 0);
-                        pivotGroup.worldToLocal(rightEdgeWorld);
+            const box = new THREE.Box3().setFromObject(rightFrame);
+            const rightEdgeX = box.max.x;
 
-                        // Manual tweak offset (tune this freely)
-                        const offsetTweak = -1;
+            const rightEdgeWorld = new THREE.Vector3(rightEdgeX, 0, 0);
+            pivotGroup.worldToLocal(rightEdgeWorld);
 
-                        // Adjust vertical bar position with manual tweak
-                        verticalMesh.position.x = rightEdgeWorld.x + clamped + offsetTweak;
+            const offsetTweak = -1;
 
-                        if (clamped < 0) {
-                            const fudgePositionLeft = -0.035;
-                            horizontalMesh.position.x = rightEdgeWorld.x + clamped + offsetTweak + fudgePositionLeft;
+            verticalMesh.position.x = rightEdgeWorld.x + value + offsetTweak;
 
-                            const stretch = -clamped * 0.25;
-                            const fudgeStretch = 0.015;
+            if (value < 0) {
+                const fudgePositionLeft = -0.035;
+                horizontalMesh.position.x = rightEdgeWorld.x + value + offsetTweak + fudgePositionLeft;
 
-                            horizontalMesh.scale.set(
-                                origScale.x + stretch + fudgeStretch,
-                                origScale.y,
-                                origScale.z
-                            );
-                        } else if (clamped > 0) {
-                            const shrink = clamped * 1;
-                            const shift = shrink * 1.15;
-                            const fudgeShrink = 0.001;
+                const stretch = -value * 0.25;
+                const fudgeStretch = 0.015;
 
-                            horizontalMesh.position.x = rightEdgeWorld.x + clamped + offsetTweak + shift;
+                horizontalMesh.scale.set(
+                    origScale.x + stretch + fudgeStretch,
+                    origScale.y,
+                    origScale.z
+                );
+            } else if (value > 0) {
+                const shrink = value * 1;
+                const shift = shrink * 1.15;
+                const fudgeShrink = 0.001;
 
-                            horizontalMesh.scale.set(
-                                Math.max(origScale.x - shrink + fudgeShrink, 0.02),
-                                origScale.y,
-                                origScale.z
-                            );
-                        } else {
-                            horizontalMesh.position.x = rightEdgeWorld.x + offsetTweak;
-                            horizontalMesh.scale.copy(origScale);
-                        }
-                    }
-                },
+                horizontalMesh.position.x = rightEdgeWorld.x + value + offsetTweak + shift;
+
+                horizontalMesh.scale.set(
+                    Math.max(origScale.x - shrink + fudgeShrink, 0.02),
+                    origScale.y,
+                    origScale.z
+                );
+            } else {
+                horizontalMesh.position.x = rightEdgeWorld.x + offsetTweak;
+                horizontalMesh.scale.copy(origScale);
+            }
+        }
+    }
+},
+
                 getScene: () => scene,
                 hideGUI: () => {
                     const wrapper = document.getElementById('gui-wrapper');

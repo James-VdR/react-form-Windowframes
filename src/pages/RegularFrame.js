@@ -118,11 +118,11 @@ useEffect(() => {
   }
 }, [controller, modelReady, insideColor]);
 
-
+/*
 useEffect(() => {
   if (controller && modelReady) controller.hideGUI();
 }, [controller, modelReady]);
-
+*/
   const handleSubmit = async () => {
     const payload = {
       model,
