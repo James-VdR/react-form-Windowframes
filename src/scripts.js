@@ -19,7 +19,8 @@ function getZoneNameFromMesh(name) {
   const lname = name.toLowerCase();
   if (lname.includes('outside') && lname.includes('frame')) return 'outside';
   if (lname.includes('frame') && lname.includes('inside')) return 'frameInside';
-  if (lname.includes('frame')) return 'frame';
+  if (lname.includes('frame') && lname.includes('right') || lname.includes('left')) return 'horizontalframe';
+  if (lname.includes('frame') && lname.includes('top') || lname.includes('bottom')) return 'verticalframe';
   if (lname.includes('glass')) return 'glass'; 
   if (lname.includes('inside')) return 'inside';
   if (lname.includes('outside')) return 'outside';
@@ -75,10 +76,6 @@ function applyGlassMaterial(mesh) {
 }
 function resizeFrameParts(meshes, scaleParams) {
   meshes.forEach(mesh => {
-    if (!mesh.userData.originalScale || !mesh.userData.originalPosition) {
-      mesh.userData.originalScale = mesh.scale.clone();
-      mesh.userData.originalPosition = mesh.position.clone();
-    }
 
     const origScale = mesh.userData.originalScale;
     const origPos = mesh.userData.originalPosition;
@@ -86,10 +83,9 @@ function resizeFrameParts(meshes, scaleParams) {
     mesh.scale.set(
       origScale.x * scaleParams.Width,
       origScale.y * scaleParams.Height,
-      origScale.z * scaleParams.Thickness
+      origScale.z,
     );
 
-    
 
     mesh.position.copy(origPos);
   });
