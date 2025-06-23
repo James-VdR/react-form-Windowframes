@@ -71,11 +71,8 @@ function applyGlassMaterial(mesh) {
     side: THREE.DoubleSide,
   });
 }
-
 function resizeFrameParts(meshes, scaleParams) {
   meshes.forEach(mesh => {
-    const name = mesh.name.toLowerCase();
-
     if (!mesh.userData.originalScale || !mesh.userData.originalPosition) {
       mesh.userData.originalScale = mesh.scale.clone();
       mesh.userData.originalPosition = mesh.position.clone();
@@ -84,42 +81,13 @@ function resizeFrameParts(meshes, scaleParams) {
     const origScale = mesh.userData.originalScale;
     const origPos = mesh.userData.originalPosition;
 
-    mesh.scale.copy(origScale);
+    mesh.scale.set(
+      origScale.x * scaleParams.Width,
+      origScale.y * scaleParams.Height,
+      origScale.z * scaleParams.Thickness
+    );
+
     mesh.position.copy(origPos);
-
-    const deltaHeight = scaleParams.Height - 1.0;
-
-    // Compensation to pull Left/Right down a bit on scale up
-    const correctionOffset = -deltaHeight * 0.20; // 
-
-    if (name.includes('left') || name.includes('right') || name.includes('middle_y')) {
-      mesh.scale.y = origScale.y * scaleParams.Height;
-
-      // Shift DOWN slightly to compensate scaling gap
-      mesh.position.y = origPos.y + correctionOffset;
-
-      if (name.includes('right')) {
-        const deltaWidth = scaleParams.Width - 1.0;
-        const correctionOffsetX = deltaWidth * 1; // same logic as height
-        mesh.position.x = origPos.x + deltaWidth * origScale.z + correctionOffsetX;
-      }
-
-    }
-
-    if (name.includes('top') || name.includes('middle_x')) {
-  mesh.scale.x = origScale.x * scaleParams.Width;
-
-  const correctionOffset = deltaHeight * 0.90;
-  mesh.position.y = origPos.y + deltaHeight * origScale.y + correctionOffset;
-}
-
-
-    if (name.includes('bottom')) {
-      mesh.scale.x = origScale.x * scaleParams.Width;
-      mesh.position.y = origPos.y;
-    }
-
-    mesh.scale.z = origScale.z * scaleParams.Thickness;
   });
 }
 
@@ -135,28 +103,16 @@ function resizeUniformParts(meshes, scaleParams) {
     const origScale = mesh.userData.originalScale;
     const origPos = mesh.userData.originalPosition;
 
-    const deltaHeight = scaleParams.Height - 1.0;
-    const deltaWidth = scaleParams.Width - 1.0;
-
-    const correctionOffsetY = -deltaHeight * 0.20;
-    const correctionOffsetX = -deltaWidth * 0.11;
-
-    // Slightly over-scale width to close the gap on the right
-    const widthCorrectionFactor = 1 + (deltaWidth * 0.03); // tune this
-
     mesh.scale.set(
-      origScale.x * scaleParams.Width * widthCorrectionFactor,
+      origScale.x * scaleParams.Width,
       origScale.y * scaleParams.Height,
       origScale.z * scaleParams.Thickness
     );
 
-    mesh.position.set(
-      origPos.x + correctionOffsetX,
-      origPos.y + correctionOffsetY,
-      origPos.z
-    );
+    mesh.position.copy(origPos);
   });
 }
+
 
 
 
@@ -381,19 +337,16 @@ if (rightFrame && bottomFrame) {
   const heightLine = createDimensionLine(rightBottom, rightTop);
   const widthLine = createDimensionLine(bottomLeft, bottomRight);
 
-  
-  const rawHeight = (boxRight.max.y - boxRight.min.y);
-  const rawWidth = (boxBottom.max.x - boxBottom.min.x);
-
+  const rawHeight = boxRight.max.y - boxRight.min.y;
+  const rawWidth = boxBottom.max.x - boxBottom.min.x;
   // Assume raw scale of 1.0 means 2000mm width and ~1912mm height
   // Use actual raw height at scale 1.0 and scale 3.0 to calibrate
-    const baseHeight = 1.911; // actual height in world units at scale 1.0 = ~1000mm
-    const unitToMM = 1000 / baseHeight; // how many mm per 1 unit of height
-
-    const heightMM = (rawHeight * unitToMM).toFixed(0) + ' mm';
 
 
-    const widthMM = (500 + ((rawWidth - 1.0) * 1000) / 2).toFixed(0) + ' mm';
+
+ 
+    const heightMM = (rawHeight * 1000).toFixed(0) + ' mm';
+    const widthMM = (rawWidth * 1000).toFixed(0) + ' mm';
   // Normalize scale: assume 1.0 = 1000mm, actual model is ~2000mm → divide by 2
 
 
@@ -577,7 +530,6 @@ function stackClonesWidth(original, moduleSize, originReference = null) {
 function showDimensionLines() {
   if (!pivotGroup) return;
 
-  // Remove old lines if they exist
   dimensionHelpers.forEach(obj => pivotGroup.remove(obj));
   dimensionHelpers = [];
 
@@ -589,8 +541,8 @@ function showDimensionLines() {
   const boxRight = new THREE.Box3().setFromObject(rightFrame);
   const boxBottom = new THREE.Box3().setFromObject(bottomFrame);
 
-  const zOffset = 0.1;
-  const yOffset = 0.18;
+  const zOffset = 0.05;
+  const yOffset = 0.05;
 
   const rightTop = new THREE.Vector3(boxRight.max.x + zOffset, boxRight.max.y + yOffset, 0);
   const rightBottom = new THREE.Vector3(boxRight.max.x + zOffset, boxRight.min.y - yOffset, 0);
@@ -604,17 +556,14 @@ function showDimensionLines() {
   const rawHeight = boxRight.max.y - boxRight.min.y;
   const rawWidth = boxBottom.max.x - boxBottom.min.x;
 
-  const baseHeight = 1.911;
-  const unitToMM = 1000 / baseHeight;
-
-  const heightMM = (rawHeight * unitToMM).toFixed(0) + ' mm';
-  const widthMM = (500 + ((rawWidth - 1.0) * 1000) / 2).toFixed(0) + ' mm';
+  const heightMM = (rawHeight * 1000).toFixed(0) + ' mm';
+  const widthMM = (rawWidth * 1000).toFixed(0) + ' mm';
 
   const heightMid = new THREE.Vector3().addVectors(rightTop, rightBottom).multiplyScalar(0.5);
   const widthMid = new THREE.Vector3().addVectors(bottomLeft, bottomRight).multiplyScalar(0.5);
 
-  const heightLabelPos = heightMid.clone().add(new THREE.Vector3(0.60, 0, 0.1));
-  const widthLabelPos = widthMid.clone().add(new THREE.Vector3(0.5, -0.2, 0.1));
+  const heightLabelPos = heightMid.clone().add(new THREE.Vector3(0.2, 0, 0.05));
+  const widthLabelPos = widthMid.clone().add(new THREE.Vector3(0.2, -0.1, 0.05));
 
   const heightLabel = createTextLabel(heightMM, heightLabelPos);
   const widthLabel = createTextLabel(widthMM, widthLabelPos);
