@@ -22,14 +22,12 @@ function App() {
     <div className="container">
       <nav className="sidebar">
         <img src={logo} alt="Logo" className="bottom-image" />
-        <h1>Home</h1>
+        <h1>model 1
+        </h1>
         <ul>
-          <li>Section A</li>
-          <li>Section B</li>
-          <li>Section C</li>
-          <li>Section D</li>
-          <li>Section E</li>
-          <li>Footer</li>
+          <li>Height</li>
+          <li>Width</li>
+          <li>Color</li>
         </ul>
       </nav>
 
