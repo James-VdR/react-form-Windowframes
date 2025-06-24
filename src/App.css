@@ -60,3 +60,7 @@ body, html, #root {
   color: white;
   z-index: 1;
 }
+
+#value-field{
+  width: 50px;
+}
