@@ -4,6 +4,13 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 
 let scene, camera, controls, renderer;
 
+const loader = new GLTFLoader();
+loader.load('./models/debug_window.glb', function(glb){
+
+  scene.add(glb.scene);
+  console.log(glb);
+})
+
 export function initThree(container) {
   while (container.firstChild) container.removeChild(container.firstChild);
 
@@ -25,8 +32,8 @@ export function initThree(container) {
   controls.enableDamping = true;
   controls.dampingFactor = 0.05;
   controls.enableZoom = true;
-  controls.enablePan = true;
-  controls.screenSpacePanning = true;
+  controls.enablePan = false;
+  controls.screenSpacePanning = false;
   controls.minPolarAngle = 0;
   controls.maxPolarAngle = Math.PI;
   controls.update();
@@ -53,12 +60,4 @@ export function initThree(container) {
     controls.update();
   }
   renderer.setAnimationLoop(animate);
-
-  window.addEventListener('resize', () => {
-    const w = container.clientWidth;
-    const h = container.clientHeight;
-    camera.aspect = w / h;
-    camera.updateProjectionMatrix();
-    renderer.setSize(w, h);
-  });
 }
