@@ -174,7 +174,7 @@ useEffect(() => {
   <SliderControl
     label="Width"
     min={1000}
-    max={4000}
+    max={3000}
     value={width}
     onChange={setWidth}
   />

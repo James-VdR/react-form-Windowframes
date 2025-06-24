@@ -3,8 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import './WindowSelector.css';
 
 import frame1 from '../Images/Regular_Window_Model.jpg';
-import frame2 from '../Images/Modular_Window_Model.jpg';
-import kofigLogo from '../Images/KofigLogo.jpg';
+import frame2 from '../Images/Window_Frame_Two.jpg';
+import kofigLogo from '../Images/Window_Frame_Three.jpg';
 
 function WindowSelector() {
   const [selected, setSelected] = useState('');
@@ -24,10 +24,10 @@ function WindowSelector() {
       modelPath = 'Window_Frame.glb';
       route = '/regular-frame';
     } else if (selected === 'modular') {
-      modelPath = 'Window_Frame_Cross.glb';
+      modelPath = 'Window_Frame_Two.glb';
       route = '/modular-frame';
     } else if (selected === 'kofig') {
-      modelPath = 'Kofig_Window_Model.glb';
+      modelPath = 'Window_Frame_Three.glb';
       route = '/kofig-frame';
     }
 

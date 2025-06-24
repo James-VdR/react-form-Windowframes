@@ -447,7 +447,7 @@ function loadWindowModel(scene, modelPath, scaleParams) {
         setupDynamicGUI(zones, scaleParams, pivotGroup);
         // Update camera distance to frame the new model
         updateCameraDistance(pivotGroup);
-        showDimensionLines(); // Show dimension lines immediately after model load
+       // showDimensionLines(); // Show dimension lines immediately after model load
 
 
     });
@@ -499,7 +499,7 @@ function setupDynamicGUI(zones, scaleParams, pivotGroup) {
                     min = 1; // Thickness might have a fixed range
                     max = 1;
                 } else if (param === 'Width') {
-                    max = 4; // Width can have a larger range
+                    max = 3; // Width can have a larger range
                 }
 
                 folder.add(scaleParams, param, min, max)

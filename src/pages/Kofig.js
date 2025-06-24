@@ -38,7 +38,7 @@ function Kofig() {
   const [rightBarMax, setRightBarMax] = useState(150);
 
 
-  const [modelPath] = useState('/models/Window_Frame_Kofig.glb');
+  const [modelPath] = useState('/models/Window_Frame_Three.glb');
   const model = "KofigFrame";
   const [modularLeftBar, setModularLeftBar] = useState(0);
   const [modularLeftEdge, setModularLeftEdge] = useState(0);
@@ -199,13 +199,13 @@ useEffect(() => {
       <div className="container">
         <div className="sidebar">
           <div className="kofig-header">
-            <h1>Kofig Demo</h1>
+            <h1>3 Section Window.</h1>
             <button className="back-button" onClick={handleBack}>←</button>
           </div>
 
           <ul>
             <li><SliderControl label="Height" min={1000} max={3000} value={height} onChange={setHeight} /></li>
-            <li><SliderControl label="Width" min={1000} max={4000} value={width} onChange={setWidth} /></li>
+            <li><SliderControl label="Width" min={1000} max={3000} value={width} onChange={setWidth} /></li>
 
             <li>
               <ColorSelectorGroup title="Frame Color" colors={COLORS} selected={frameColor} onSelect={setFrameColor} />

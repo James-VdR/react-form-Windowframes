@@ -158,7 +158,7 @@ function ModularFrame() {
     <div className="container">
       <nav className="sidebar">
         <button className="back-button" onClick={handleBack}>←</button>
-        <h1>Modular Window</h1>
+        <h1>Two Section Window.</h1>
 
         <div className="sidebar-scroll">
           <ul>
@@ -166,7 +166,7 @@ function ModularFrame() {
               <SliderControl label="Height" min={1000} max={3000} value={height} onChange={setHeight} />
             </li>
             <li>
-              <SliderControl label="Width" min={1000} max={4000} value={width} onChange={setWidth} />
+              <SliderControl label="Width" min={1000} max={3000} value={width} onChange={setWidth} />
             </li>
 
             <li className="modular-block">
