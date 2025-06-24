@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import './App.css';
 
-import { initThree } from './scripts';
+import { initThree } from './Scene.js';
 
 import logo from './Images/reuzenpandalogo.jpg';
 
