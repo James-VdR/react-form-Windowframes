@@ -1,13 +1,13 @@
 import React, { useEffect, useRef, useState } from "react";
 import "./App.css";
-
+import {Scaling} from './ScalingLogic.js';
 import { initThree } from "./Scene.js";
 
 import logo from "./Images/reuzenpandalogo.jpg";
 
 function App() {
   const mountRef = useRef(null);
-
+  const sliderRef = useRef();
   // Optional: State to hold which model you want to load
   const [modelPath] = useState("/models/Window_Frame.glb");
 
@@ -17,7 +17,11 @@ function App() {
       initThree(mountRef.current, modelPath);
     }
   }, [modelPath]); // Re-run if modelPath changes, reloads scene with new model
-
+useEffect(() =>{
+  if(sliderRef.current){
+    Scaling(sliderRef.current);
+  }
+}, []);
   return (
     <div className="container">
       <div class="sidebar">

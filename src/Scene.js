@@ -10,6 +10,9 @@ loader.load('./models/debug_window.glb', function(glb){
 
   scene.add(glb.scene);
   console.log(glb);
+
+  //this makes this publicly avaiable globally so now we can call it in scalinglogic 8=D
+  window.loadedModel = glb.scene;
 })
 
 export function initThree(container) {
