@@ -25,9 +25,11 @@ function App() {
         <h1>model 1</h1>
         <div class="Slider">
           <p>Height</p>
-          <input type="range" min="1000" max="3000" defaultValue="1000"></input>
+          <input type="range" min="1000" max="3000" defaultValue="1000" id="scaleSlider"></input>
           <input type="text" placeholder="Height" id="value-field"></input>
         </div>
+
+
         <div class="Slider">
           <p>Width</p>
           <input type="range" min="1000" max="3000" defaultValue="1000"></input>
