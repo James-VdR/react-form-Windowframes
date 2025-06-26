@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import "./App.css";
-import { Scaling } from "./ScalingLogic.js";
+import { heightScaling, widthScaling} from "./ScalingLogic.js";
 import { initThree, applyMaterial} from "./Scene.js";
 import { loadMaterialLibrary, getMaterialColorOptions } from "./MaterialLibrary.js";
 import { ColorSelectorGroup } from "./ColorSelectorGroup.js";
@@ -10,10 +10,14 @@ import { applyMaterialToMainFrame } from "./Scene.js";
 
 function App() {
   const mountRef = useRef(null);
-  const sliderRef = useRef();
+  const heightSliderRef = useRef();
+  const widthSliderRef = useRef();
   // Optional: State to hold which model you want to load
   const [modelPath] = useState("/models/Window_Frame.glb");
-  const [scaleValue, setScaleValue] = useState(1);
+  //const [scaleValue, setScaleValue] = useState(1);
+
+  const [heightScaleValue, setHeightScaleValue] = useState(1);
+  const [widthScaleValue, setWidthScaleValue] = useState(1);
 
   //materials and such and colorOptions are loaded.
   const [materialsLoaded, setMaterialsLoaded] = useState(false);
@@ -41,15 +45,29 @@ function App() {
     console.log("Applying material:", color.name);
   }
 
-  //wasnt aware a slider ref was added, made it work though
-  //basically uses the scaling function in scalingLogic.js and calls it in the function useEffect
-  useEffect(() => {
+  /*useEffect(() => {
     if (sliderRef.current) {
       Scaling(sliderRef.current, (scale) => {
         setScaleValue(scale);
       });
     }
-  }, []);
+  }, []);*/
+
+  useEffect(() => {
+    if(heightSliderRef.current){
+      heightScaling(heightSliderRef.current, (heightScale) => {
+        setHeightScaleValue(heightScale);
+      })
+    }
+  })
+
+  useEffect(() => {
+    if(widthSliderRef.current){
+      heightScaling(widthSliderRef.current, (widthScale) => {
+        setHeightScaleValue(widthScale);
+      })
+    }
+  })
 
   useEffect(() => {
     if (mountRef.current) {
@@ -64,16 +82,28 @@ function App() {
         <img src={logo} alt="Logo" className="bottom-image" />
         <h1>model 1</h1>
 
-        <div class="Slider">
+        <div class="heightSlider">
           <p>Height</p>
           <input
             type="range"
             min="1000"
             max="3000"
             defaultValue="1000"
-            ref={sliderRef}
+            ref={heightSliderRef}
           ></input>
-          <p id="scaleValue">Scale: {scaleValue.toFixed(2)}</p>
+          <p id="heightScaleValue">Scale: {heightScaleValue.toFixed(2)}</p>
+        </div>
+
+        <div class="widthSlider">
+          <p>width</p>
+          <input
+            type="range"
+            min="1000"
+            max="3000"
+            defaultValue="1000"
+            ref={widthSliderRef}
+          ></input>
+          <p id="widthScaleValue">Scale: {widthScaleValue.toFixed(2)}</p>
         </div>
 
         <div className="Slider">

@@ -4,7 +4,7 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import "./ScalingLogic";
 import { loadMaterialLibrary } from './MaterialLibrary';
 import { applyGlassMaterial } from './MaterialLibrary';
-
+import { RGBELoader } from 'three/examples/jsm/loaders/RGBELoader.js';
  export let scene, camera, controls, renderer, model;
 
  let targetMesh = null;
@@ -36,6 +36,7 @@ import { applyGlassMaterial } from './MaterialLibrary';
 
 const loader = new GLTFLoader();
 let mainFrameParts = [];
+
 loader.load('./models/debug_window.glb', function(glb) {
   model = glb.scene;
   scene.add(model);
@@ -117,6 +118,27 @@ export function initThree(container) {
   ground.position.y = -5;
   ground.receiveShadow = true;
   scene.add(ground);
+
+  // Load HDR environment map for realistic global illumination and reflections
+const pmremGenerator = new THREE.PMREMGenerator(renderer); // Helper for pre-filtering environment maps
+pmremGenerator.compileEquirectangularShader(); // Compile the shader for efficiency
+
+new RGBELoader()
+.setPath('/models/') // Set the path to your HDRI file
+.load('Background.hdr', (texture) => { // Replace 'venice_sunset_1k.hdr' with your HDRI filename
+const envMap = pmremGenerator.fromEquirectangular(texture).texture;
+scene.environment = envMap; // Apply the environment map to the scene for reflections and general lighting
+scene.background = envMap;  // Set the environment map as the scene background
+texture.dispose(); // Dispose of the original texture as it's no longer needed
+pmremGenerator.dispose();
+}, 
+
+undefined, (error) => {
+console.error('An error occurred loading the HDRI:', error);
+// Fallback to a solid background color if HDRI fails to load
+scene.environment = null;
+scene.background = new THREE.Color(0xf0f0f0);
+});
 
   function animate() {
     renderer.render(scene, camera);
