@@ -2,18 +2,77 @@ import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import "./ScalingLogic";
+import { loadMaterialLibrary } from './MaterialLibrary';
+import { applyGlassMaterial } from './MaterialLibrary';
 
-let scene, camera, controls, renderer;
+ export let scene, camera, controls, renderer, model;
+
+ let targetMesh = null;
+
+ 
+  function centerModel(model){
+    const box = new THREE.Box3().setFromObject(model);
+    const center = box.getCenter(new THREE.Vector3()); 
+    model.position.sub(center);
+  }
+
+  
+  export function frameModel(camera, controls, model){
+    const box = new THREE.Box3().setFromObject(model); 
+    const size = box.getSize(new THREE.Vector3()).length(); 
+    const center = box.getCenter(new THREE.Vector3());
+
+    const distance = size * 1.2; 
+    const direction = new THREE.Vector3(0,0,1); 
+    camera.position.copy(center.clone().add(direction.multiplyScalar(distance))); 
+
+    camera.lookAt(center);
+
+    if(controls){
+      controls.target.copy(center);
+      controls.update(); 
+    }
+  }
 
 const loader = new GLTFLoader();
-loader.load('./models/debug_window.glb', function(glb){
+let mainFrameParts = [];
+loader.load('./models/debug_window.glb', function(glb) {
+  model = glb.scene;
+  scene.add(model);
 
-  scene.add(glb.scene);
-  console.log(glb);
+  // Traverse to find your target mesh
+  model.traverse((child) => {
+    if (child.isMesh) {
+      const name = child.name.toLowerCase();
 
-  //this makes this publicly avaiable globally so now we can call it in scalinglogic 8=D
+      if(
+        name.includes("top") ||
+        name.includes("bottom") ||
+        name.includes("left") ||
+        name.includes("right")
+      ){
+        mainFrameParts.push(child);
+      }
+    }
+  });
+
+  centerModel(model);   
+  frameModel(camera, controls, model);
+
   window.loadedModel = glb.scene;
-})
+});
+
+export function applyMaterialToMainFrame(material){
+  if(mainFrameParts.length === 0){
+    console.warn("cant find your damn frame parts");
+    return;
+  }
+
+  mainFrameParts.forEach((mesh) =>{
+    mesh.material = material.clone();
+  });
+}
+
 
 export function initThree(container) {
   while (container.firstChild) container.removeChild(container.firstChild);
@@ -27,8 +86,8 @@ export function initThree(container) {
   container.appendChild(renderer.domElement);
   renderer.setClearColor(0xa3d69c);
 
+  //initializes everything
   scene = new THREE.Scene();
-
   camera = new THREE.PerspectiveCamera(50, width / height, 0.1, 1000);
   camera.position.set(0, 5, 10);
 
@@ -36,8 +95,8 @@ export function initThree(container) {
   controls.enableDamping = true;
   controls.dampingFactor = 0.05;
   controls.enableZoom = true;
-  controls.enablePan = false;
-  controls.screenSpacePanning = false;
+  controls.enablePan = true;
+  controls.screenSpacePanning = true;
   controls.minPolarAngle = 0;
   controls.maxPolarAngle = Math.PI;
   controls.update();
@@ -65,3 +124,10 @@ export function initThree(container) {
   }
   renderer.setAnimationLoop(animate);
 }
+  export function applyMaterial(material){
+    if(targetMesh){
+      targetMesh.material = material.clone();
+    }else{
+      console.warn("target mesh not found reeee tard");
+    }
+  }

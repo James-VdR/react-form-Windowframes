@@ -1,11 +1,12 @@
-
+import * as THREE from 'three';
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 const materialLibrary = {};
 /**
  
 Loads materials from a specified GLB file and stores them in the materialLibrary.
 @param {string} glbPath - Path to the GLB file containing materials.
 @param {function} onComplete - Callback function to execute once materials are loaded.*/
-function loadMaterialLibrary(glbPath = '/models/Materials.glb', onComplete) {
+export function loadMaterialLibrary(glbPath = '/models/Materials.glb', onComplete) {
     const loader = new GLTFLoader();
     loader.load(glbPath, (gltf) => {
         gltf.scene.traverse((child) => {
@@ -45,7 +46,17 @@ const MATERIAL_NAME_MAP = {
   'Black': 'Zwart'
 };
 
-function applyGlassMaterial(mesh) {
+export function getMaterialColorOptions() {
+  return Object.entries(materialLibrary).map(([name, material]) => ({
+    name: name,
+    ral: name.replace(/\s/g, ""), // or a real RAL mapping
+    hex: `#${material.color.getHexString()}`,
+    material: material,
+  }));
+}
+
+
+export function applyGlassMaterial(mesh) {
   const glassMaterial = new THREE.MeshPhysicalMaterial({
     color: 0xffffff,
     metalness: 0,
