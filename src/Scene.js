@@ -72,6 +72,7 @@ function loadModel() {
   loader.load("./models/debug_window.glb", (glb) => {
     model = glb.scene;
     scene.add(model);
+    
 
     groupFrameParts(model);
     centerModel(model);
@@ -79,6 +80,7 @@ function loadModel() {
 
     if (typeof modelReadyCallback === "function") {
       modelReadyCallback();
+      
     }
   });
 }
@@ -98,6 +100,7 @@ function groupFrameParts(model) {
       if (["left", "right", "top", "bottom"].some(part => name.includes(part))) {
         mainFrameParts.push(child);
       }
+     
     }
   });
 }
@@ -117,10 +120,12 @@ function frameModel(model) {
   camera.lookAt(center);
   controls.target.copy(center);
   controls.update();
+  
 }
 
 export function applyMaterialToMainFrame(material) {
   mainFrameParts.forEach((mesh) => {
     mesh.material = material.clone();
+    
   });
 }
