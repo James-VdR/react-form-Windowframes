@@ -5,6 +5,7 @@ import "./ScalingLogic";
 import { loadMaterialLibrary } from './MaterialLibrary';
 import { applyGlassMaterial } from './MaterialLibrary';
 import { RGBELoader } from 'three/examples/jsm/loaders/RGBELoader.js';
+import { vertexIndex } from 'three/tsl';
  export let scene, camera, controls, renderer, model;
 
  let targetMesh = null;
@@ -36,15 +37,27 @@ import { RGBELoader } from 'three/examples/jsm/loaders/RGBELoader.js';
 
 const loader = new GLTFLoader();
 let mainFrameParts = [];
+let verticalGroup = [];
+let horizontalGroup = [];
 
 loader.load('./models/debug_window.glb', function(glb) {
   model = glb.scene;
   scene.add(model);
 
+
+
   // Traverse to find your target mesh
   model.traverse((child) => {
     if (child.isMesh) {
       const name = child.name.toLowerCase();
+
+      if(name.includes("left") || name.Includes("right")){
+        return 'verticalGroup';
+      }
+
+      if(name.includes("bottom") || name.Includes("top")){
+        return 'horizontalGroup';
+      }
 
       if(
         name.includes("top") ||
@@ -52,7 +65,7 @@ loader.load('./models/debug_window.glb', function(glb) {
         name.includes("left") ||
         name.includes("right")
       ){
-        mainFrameParts.push(child);
+        return 'mainFrameParts';
       }
     }
   });

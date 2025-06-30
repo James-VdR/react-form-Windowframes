@@ -27,6 +27,7 @@ export function heightScaling(heightSliderElement, onScaleChange, verticalGroup)
       verticalGroup.scale.y = heightScale;
 
       console.log(heightScale);
+      console.log(verticalGroup);
 
       if(typeof onScaleChange === 'function'){
         onScaleChange(heightScale);
@@ -46,6 +47,7 @@ export function widthScaling(widthSliderElement, onScaleChange, horizontalGroup)
         onScaleChange(widthScale);
       }
       console.log(widthScale);
+      console.log(horizontalGroup);
     }
   })
 }

@@ -24,9 +24,9 @@ function App() {
   const [colorOptions, setColorOptions] = useState([]);
   const [selectedColor, setSelectedColor] = useState(null);
 
-  //const material = new THREE.MeshBasicMaterial({selectedColor});
+ // const material = new THREE.MeshBasicMaterial({selectedColor});
 
-  //const mesh = new THREE.Mesh(box, material);
+ // const mesh = new THREE.Mesh(box, material);
 
 
   useEffect(() => {
@@ -63,8 +63,8 @@ function App() {
 
   useEffect(() => {
     if(widthSliderRef.current){
-      heightScaling(widthSliderRef.current, (widthScale) => {
-        setHeightScaleValue(widthScale);
+      widthScaling(widthSliderRef.current, (widthScale) => {
+        setWidthScaleValue(widthScale);
       })
     }
   })
