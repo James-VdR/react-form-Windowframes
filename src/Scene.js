@@ -10,6 +10,7 @@ export const horizontalParts = [];
 export const mainFrameParts = [];
 
 let modelReadyCallback = null;
+let boundingBoxHelper = null;
 
 export function registerOnModelReady(callback) {
   modelReadyCallback = callback;
@@ -52,12 +53,15 @@ export function initThree(container) {
 
   loadModel();
 
-  renderer.setAnimationLoop(() => {
-    renderer.render(scene, camera);
-    controls.update();
-  });
+renderer.setAnimationLoop(() => {
+  if (boundingBoxHelper && model) {
+    boundingBoxHelper.update();
+  }
+  
+  renderer.render(scene, camera);
+  controls.update();
+});
 }
-
 function loadModel() {
   const loader = new GLTFLoader();
 
@@ -82,6 +86,12 @@ function loadModel() {
       modelReadyCallback();
       
     }
+    // Add Bounding Box Helper
+  if (boundingBoxHelper) {
+    scene.remove(boundingBoxHelper);
+  }
+  boundingBoxHelper = new THREE.BoxHelper(model, 0xff0000); // Red bounding box
+  scene.add(boundingBoxHelper);
   });
 }
 

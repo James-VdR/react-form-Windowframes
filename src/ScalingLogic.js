@@ -1,5 +1,5 @@
-import {camera, controls, model, frameModel, horizontalParts, verticalParts} from './Scene.js'
-import { groupFrameParts } from './Scene.js';
+import {model, horizontalParts, verticalParts} from './Scene.js'
+
 
 //this is uniform scaling only
 export function Scaling(sliderElement, onScaleChange) {
@@ -21,11 +21,17 @@ export function Scaling(sliderElement, onScaleChange) {
 //sketch for height and width scaling
 export function heightScaling(heightSliderElement, onScaleChange) {
   heightSliderElement.addEventListener('input', (event) => {
-    const scaleX = parseFloat(event.target.value) / 1000;
-    verticalParts.forEach(mesh => mesh.scale.z = scaleX);
+    const scaleZ = parseFloat(event.target.value) / 1000;
+    verticalParts.forEach(mesh => mesh.scale.z = scaleZ);
+
+    /*   const topFrame = horizontalParts.find(mesh => mesh.name.toLowerCase() === "top_frame");
+    if (topFrame) {
+      // Example logic: move top_frame along X based on scale
+      topFrame.position.y = scaleZ ;  // Adjust 500 based on your scene units
+    }*/
 
     if (typeof onScaleChange === 'function') {
-      onScaleChange(scaleX);
+      onScaleChange(scaleZ);
     }
   });
 }
@@ -34,6 +40,11 @@ export function widthScaling(widthSliderElement, onScaleChange) {
   widthSliderElement.addEventListener('input', (event) => {
     const scaleX = parseFloat(event.target.value) / 1000;
     horizontalParts.forEach(mesh => mesh.scale.z = scaleX);
+
+   /* const rightframe = verticalParts.find(mesh => mesh.name.toLowerCase() === "right_frame");
+    if (rightframe) {
+      rightframe.position.x = scaleX ;
+    }*/
 
     if (typeof onScaleChange === 'function') {
       onScaleChange(scaleX);

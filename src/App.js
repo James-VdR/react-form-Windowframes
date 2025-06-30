@@ -67,7 +67,7 @@ function App() {
           <p>Height</p>
           <input
             type="range"
-            min="1000"
+            min="3000"
             max="6000"
             defaultValue="1000"
             ref={heightSliderRef}
@@ -79,7 +79,7 @@ function App() {
           <p>Width</p>
           <input
             type="range"
-            min="1000"
+            min="3000"
             max="6000"
             defaultValue="1000"
             ref={widthSliderRef}
