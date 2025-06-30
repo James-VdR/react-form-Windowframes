@@ -24,11 +24,11 @@ export function heightScaling(heightSliderElement, onScaleChange) {
     const scaleZ = parseFloat(event.target.value) / 1000;
     verticalParts.forEach(mesh => mesh.scale.z = scaleZ);
 
-    /*   const topFrame = horizontalParts.find(mesh => mesh.name.toLowerCase() === "top_frame");
+       const topFrame = horizontalParts.find(mesh => mesh.name.toLowerCase() === "top_frame");
     if (topFrame) {
       // Example logic: move top_frame along X based on scale
-      topFrame.position.y = scaleZ ;  // Adjust 500 based on your scene units
-    }*/
+      topFrame.position.y = scaleZ - 2.5;  // Adjust 500 based on your scene units
+    }
 
     if (typeof onScaleChange === 'function') {
       onScaleChange(scaleZ);
@@ -41,10 +41,10 @@ export function widthScaling(widthSliderElement, onScaleChange) {
     const scaleX = parseFloat(event.target.value) / 1000;
     horizontalParts.forEach(mesh => mesh.scale.z = scaleX);
 
-   /* const rightframe = verticalParts.find(mesh => mesh.name.toLowerCase() === "right_frame");
+    const rightframe = verticalParts.find(mesh => mesh.name.toLowerCase() === "right_frame");
     if (rightframe) {
-      rightframe.position.x = scaleX ;
-    }*/
+      rightframe.position.x = scaleX  - 2.5 ;
+    }
 
     if (typeof onScaleChange === 'function') {
       onScaleChange(scaleX);
