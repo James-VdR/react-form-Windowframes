@@ -1,34 +1,30 @@
 import React, { useEffect, useRef, useState } from "react";
 import "./App.css";
-import { heightScaling, widthScaling} from "./ScalingLogic.js";
-import { initThree, applyMaterial} from "./Scene.js";
 import { loadMaterialLibrary, getMaterialColorOptions } from "./MaterialLibrary.js";
 import { ColorSelectorGroup } from "./ColorSelectorGroup.js";
 import logo from "./Images/reuzenpandalogo.jpg";
-import { applyMaterialToMainFrame } from "./Scene.js";
-
+import {
+  initThree,
+  applyMaterialToMainFrame,
+  verticalParts,
+  horizontalParts,
+  registerOnModelReady,
+} from "./Scene";
+import { heightScaling, widthScaling } from "./ScalingLogic";
 
 function App() {
   const mountRef = useRef(null);
   const heightSliderRef = useRef();
   const widthSliderRef = useRef();
-  // Optional: State to hold which model you want to load
-  const [modelPath] = useState("/models/Window_Frame.glb");
-  //const [scaleValue, setScaleValue] = useState(1);
 
   const [heightScaleValue, setHeightScaleValue] = useState(1);
   const [widthScaleValue, setWidthScaleValue] = useState(1);
 
-  //materials and such and colorOptions are loaded.
   const [materialsLoaded, setMaterialsLoaded] = useState(false);
   const [colorOptions, setColorOptions] = useState([]);
   const [selectedColor, setSelectedColor] = useState(null);
 
- // const material = new THREE.MeshBasicMaterial({selectedColor});
-
- // const mesh = new THREE.Mesh(box, material);
-
-
+  // Load material library ONCE when component mounts
   useEffect(() => {
     loadMaterialLibrary("/models/Materials.glb", () => {
       const options = getMaterialColorOptions();
@@ -37,80 +33,60 @@ function App() {
     });
   }, []);
 
+  // Initialize Three.js scene ONCE when component mounts
+  useEffect(() => {
+    if (mountRef.current) {
+      initThree(mountRef.current);
+    }
+
+    registerOnModelReady(() => {
+      if (heightSliderRef.current) {
+        heightScaling(heightSliderRef.current, setHeightScaleValue, verticalParts);
+      }
+      if (widthSliderRef.current) {
+        widthScaling(widthSliderRef.current, setWidthScaleValue, horizontalParts);
+      }
+    });
+  }, []); // Empty dependency array prevents re-runs
+
   function handleColorSelect(color) {
     setSelectedColor(color);
-    if(color.material){
-      applyMaterialToMainFrame(color.material); // will apply the color.
+    if (color.material) {
+      applyMaterialToMainFrame(color.material);
     }
     console.log("Applying material:", color.name);
   }
 
-  /*useEffect(() => {
-    if (sliderRef.current) {
-      Scaling(sliderRef.current, (scale) => {
-        setScaleValue(scale);
-      });
-    }
-  }, []);*/
-
-  useEffect(() => {
-    if(heightSliderRef.current){
-      heightScaling(heightSliderRef.current, (heightScale) => {
-        setHeightScaleValue(heightScale);
-      })
-    }
-  })
-
-  useEffect(() => {
-    if(widthSliderRef.current){
-      widthScaling(widthSliderRef.current, (widthScale) => {
-        setWidthScaleValue(widthScale);
-      })
-    }
-  })
-
-  useEffect(() => {
-    if (mountRef.current) {
-      // Pass the mount DOM element AND the model path you want to load
-      initThree(mountRef.current, modelPath);
-    }
-  }, [modelPath]); // Re-run if modelPath changes, reloads scene with new model
-
   return (
     <div className="container">
-      <div class="sidebar">
+      <div className="sidebar">
         <img src={logo} alt="Logo" className="bottom-image" />
         <h1>model 1</h1>
 
-        <div class="heightSlider">
+        <div className="heightSlider">
           <p>Height</p>
           <input
             type="range"
             min="1000"
-            max="3000"
+            max="6000"
             defaultValue="1000"
             ref={heightSliderRef}
-          ></input>
+          />
           <p id="heightScaleValue">Scale: {heightScaleValue.toFixed(2)}</p>
         </div>
 
-        <div class="widthSlider">
-          <p>width</p>
+        <div className="widthSlider">
+          <p>Width</p>
           <input
             type="range"
             min="1000"
-            max="3000"
+            max="6000"
             defaultValue="1000"
             ref={widthSliderRef}
-          ></input>
+          />
           <p id="widthScaleValue">Scale: {widthScaleValue.toFixed(2)}</p>
         </div>
 
-        <div className="Slider">
-          <p>Width</p>
-          <input type="color" />
-        </div>
-``
         {materialsLoaded ? (
           <ColorSelectorGroup
             title="Frame Color"
@@ -122,12 +98,13 @@ function App() {
           <p>Loading materials...</p>
         )}
       </div>
+
       <main
         className="main-content"
         ref={mountRef}
         style={{ width: "100%", height: "100vh" }}
       >
-        {/* The 3D scene will render inside this element */}
+        {/* 3D scene renders here */}
       </main>
     </div>
   );

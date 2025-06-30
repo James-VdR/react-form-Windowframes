@@ -1,5 +1,5 @@
-import {camera, controls, model, frameModel} from './Scene.js'
-
+import {camera, controls, model, frameModel, horizontalParts, verticalParts} from './Scene.js'
+import { groupFrameParts } from './Scene.js';
 
 //this is uniform scaling only
 export function Scaling(sliderElement, onScaleChange) {
@@ -19,35 +19,24 @@ export function Scaling(sliderElement, onScaleChange) {
 }
 
 //sketch for height and width scaling
-export function heightScaling(heightSliderElement, onScaleChange, verticalGroup){
+export function heightScaling(heightSliderElement, onScaleChange) {
   heightSliderElement.addEventListener('input', (event) => {
-    const heightScale = parseFloat(event.target.value) / 1000;
+    const scaleX = parseFloat(event.target.value) / 1000;
+    verticalParts.forEach(mesh => mesh.scale.z = scaleX);
 
-    if(verticalGroup){
-      verticalGroup.scale.y = heightScale;
-
-      console.log(heightScale);
-      console.log(verticalGroup);
-
-      if(typeof onScaleChange === 'function'){
-        onScaleChange(heightScale);
-      }
+    if (typeof onScaleChange === 'function') {
+      onScaleChange(scaleX);
     }
-  })
+  });
 }
 
-export function widthScaling(widthSliderElement, onScaleChange, horizontalGroup){
+export function widthScaling(widthSliderElement, onScaleChange) {
   widthSliderElement.addEventListener('input', (event) => {
-    const widthScale = parseFloat(event.target.value) / 1000;
+    const scaleX = parseFloat(event.target.value) / 1000;
+    horizontalParts.forEach(mesh => mesh.scale.z = scaleX);
 
-    if(horizontalGroup){
-      horizontalGroup.scale.x = widthScale;
-
-      if(typeof onScaleChange === 'function'){
-        onScaleChange(widthScale);
-      }
-      console.log(widthScale);
-      console.log(horizontalGroup);
+    if (typeof onScaleChange === 'function') {
+      onScaleChange(scaleX);
     }
-  })
+  });
 }
