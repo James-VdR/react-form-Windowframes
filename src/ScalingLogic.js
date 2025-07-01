@@ -1,17 +1,14 @@
-import {model, horizontalParts, verticalParts} from './Scene.js'
-
+import { model, horizontalParts, verticalParts } from "./Scene.js";
 
 //this is uniform scaling only
 export function Scaling(sliderElement, onScaleChange) {
-  sliderElement.addEventListener('input', (event) => {
+  sliderElement.addEventListener("input", (event) => {
     const scale = parseFloat(event.target.value) / 1000;
-    
+
     if (model) {
-      
       model.scale.set(scale, scale, scale);
       //frameModel(camera, controls, model); //this was for centering the camera, but keeping it in makes any change in scale unnoticable :(
-
-      if(typeof onScaleChange === 'function'){
+      if (typeof onScaleChange === "function") {
         onScaleChange(scale);
       }
     }
@@ -19,47 +16,51 @@ export function Scaling(sliderElement, onScaleChange) {
 }
 
 let originalTopFrameY = null;
-let originalScaleZ = null;
 
 export function heightScaling(heightSliderElement, onScaleChange) {
-  heightSliderElement.addEventListener('input', (event) => {
-    const scaleZ = parseFloat(event.target.value) / 1000;
+  heightSliderElement.addEventListener("input", (event) => {
+    const newHeight = parseFloat(event.target.value);
+    const baseHeight = 1000;
+    const scaleY = newHeight / baseHeight;
 
-    verticalParts.forEach(mesh => mesh.scale.z = scaleZ);
+    verticalParts.forEach((mesh) => (mesh.scale.y = scaleY));
 
-    const topFrame = horizontalParts.find(mesh => mesh.name.toLowerCase() === "top_frame");
+    const topFrame = horizontalParts.find(
+      (mesh) => mesh.name.toLowerCase() === "top_frame"
+    );
     if (topFrame) {
       if (originalTopFrameY === null) {
         originalTopFrameY = topFrame.position.y;
       }
-      if (originalScaleZ === null) {
-        originalScaleZ = scaleZ;
-      }
 
-      const scaleDifference = scaleZ - originalScaleZ;
-      topFrame.position.y = originalTopFrameY + scaleDifference * 2.0;
+      const scaleDifference = (newHeight - baseHeight) / 2 / 1000;
+      topFrame.position.y = originalTopFrameY + scaleDifference;
     }
 
-    if (typeof onScaleChange === 'function') {
-      onScaleChange(scaleZ);
+    if (typeof onScaleChange === "function") {
+      onScaleChange(newHeight);
     }
   });
 }
 
-
 export function widthScaling(widthSliderElement, onScaleChange) {
-  widthSliderElement.addEventListener('input', (event) => {
-    const scaleX = parseFloat(event.target.value) / 2000;
-    horizontalParts.forEach(mesh => mesh.scale.z = scaleX);
+  widthSliderElement.addEventListener("input", (event) => {
+    const newWidth = parseFloat(event.target.value);
+    const baseWidth = 2000;
+    const scaleZ = newWidth / baseWidth;
 
-    const rightframe = verticalParts.find(mesh => mesh.name.toLowerCase() === "right_frame");
+    horizontalParts.forEach((mesh) => (mesh.scale.z = scaleZ));
+
+    const rightframe = verticalParts.find(
+      (mesh) => mesh.name.toLowerCase() === "right_frame"
+    );
     if (rightframe) {
-      rightframe.position.x = 0;
+      rightframe.position.z = 0;
       console.log(rightframe.position.x);
     }
 
-    if (typeof onScaleChange === 'function') {
-      onScaleChange(scaleX);
+    if (typeof onScaleChange === "function") {
+      onScaleChange(scaleZ);
     }
   });
 }

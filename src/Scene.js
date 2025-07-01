@@ -105,8 +105,8 @@ function groupFrameParts(model) {
       const name = child.name.toLowerCase();
       console.log("Found Mesh:", name);
 
-      if (name.includes("left") || name.includes("right")) verticalParts.push(child);
-      if (name.includes("top") || name.includes("bottom")) horizontalParts.push(child);
+      if (name.includes("left") || name.includes("right") || name.includes("glass")) verticalParts.push(child);
+      if (name.includes("top") || name.includes("bottom") || name.includes("glass")) horizontalParts.push(child);
       if (["left", "right", "top", "bottom"].some(part => name.includes(part))) {
         mainFrameParts.push(child);
       }
