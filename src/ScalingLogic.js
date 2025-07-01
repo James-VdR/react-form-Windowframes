@@ -1,4 +1,4 @@
-import { model, horizontalParts, verticalParts } from "./Scene.js";
+import { model, horizontalParts, verticalParts,glassParts } from "./Scene.js";
 
 //this is uniform scaling only
 export function Scaling(sliderElement, onScaleChange) {
@@ -42,6 +42,13 @@ export function heightScaling(heightSliderElement, onScaleChange) {
       console.log(`Top frame Y position: ${topFrame.position.y}`);
     }
 
+    glassParts.forEach((mesh) => {
+  mesh.scale.y = scaleY * 1.1;
+  mesh.position.y = (-0.15 * scaleY) / 2; // Adjust "1.0" to your actual model's glass height
+});
+
+
+
     if (typeof onScaleChange === "function") {
       onScaleChange(scaleY);
     }
@@ -72,6 +79,11 @@ export function widthScaling(widthSliderElement, onScaleChange) {
 
       console.log(`Right frame X position: ${rightFrame.position.x}`);
     }
+
+    glassParts.forEach((mesh) => {
+    mesh.scale.z = scaleZ;
+  });
+
 
     if (typeof onScaleChange === "function") {
       onScaleChange(scaleZ);

@@ -61,15 +61,17 @@ export function applyGlassMaterial(mesh) {
     color: 0xffffff,
     metalness: 0,
     roughness: 0.01,
-    transmission: 1.0,          // Full transmission
-    thickness: 0.01,            // THINNER = fewer visual distortions
+    transmission: 1.0,
+    thickness: 0.01,
     transparent: true,
     opacity: 1.0,
-    ior: 1.0,                   // LOWER ior = flatter refraction (less warping)
-    envMapIntensity: 0.5,       // Reduce to prevent over-bright fake reflections
-    clearcoat: 0.0,             // TURN OFF clearcoat to avoid extra shine layer
-    reflectivity: 0.1,          // Reduce reflectivity to reduce confusion
-    depthWrite: false,          // Important: fixes phantom layering!
-    side: THREE.FrontSide       // Avoid rendering both sides of thin glass
+    ior: 1.0,
+    envMapIntensity: 0.5,
+    clearcoat: 0.0,
+    reflectivity: 0.1,
+    depthWrite: false,
+    side: THREE.FrontSide
   });
+
+  mesh.material = glassMaterial;
 }

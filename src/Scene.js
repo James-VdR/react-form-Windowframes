@@ -2,13 +2,15 @@ import * as THREE from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import { RGBELoader } from "three/examples/jsm/loaders/RGBELoader.js";
-
+import { applyGlassMaterial } from "./MaterialLibrary";
 export let scene, camera, controls, renderer, model;
 
 export const verticalParts = [];
 export const horizontalParts = [];
 export const mainFrameParts = [];
 export const insideFrameParts = [];
+export const glassParts = [];
+
 let modelReadyCallback = null;
 let boundingBoxHelper = null;
 
@@ -105,14 +107,21 @@ function groupFrameParts(model) {
       const name = child.name.toLowerCase();
       console.log("Found Mesh:", name);
 
-      if (name.includes("left_frame") || name.includes("right_frame") || name.includes("glass")) verticalParts.push(child);
-      if (name.includes("top_frame") || name.includes("bottom_frame") || name.includes("glass")) horizontalParts.push(child);
-      if (["left_frame", "right_frame", "top_frame", "bottom_frame"].some(part => name.includes(part))) {
-        mainFrameParts.push(child);
-      }
-     if (["left_inside", "right_inside", "top_inside", "bottom_inside"].some(part => name.includes(part))) {
-        insideFrameParts.push(child);
-      }
+if (name.includes("left_frame") || name.includes("right_frame")) verticalParts.push(child);
+if (name.includes("top_frame") || name.includes("bottom_frame")) horizontalParts.push(child);
+if (name.includes("glass")) glassParts.push(child);
+glassParts.forEach((mesh) => {
+  applyGlassMaterial(mesh);
+});
+
+
+if (["left_frame", "right_frame", "top_frame", "bottom_frame"].some(part => name.includes(part))) {
+  mainFrameParts.push(child);
+}
+if (["left_inside", "right_inside", "top_inside", "bottom_inside"].some(part => name.includes(part))) {
+  insideFrameParts.push(child);
+}
+
     }
   });
 }
