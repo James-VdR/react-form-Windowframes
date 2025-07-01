@@ -15,13 +15,15 @@ export function Scaling(sliderElement, onScaleChange) {
   });
 }
 
-let originalTopFrameY = null;
+
+
+
 
 export function heightScaling(heightSliderElement, onScaleChange) {
   heightSliderElement.addEventListener("input", (event) => {
-    const newHeight = parseFloat(event.target.value);
-    const baseHeight = 1000;
-    const scaleY = newHeight / baseHeight;
+    const newWidth = parseFloat(event.target.value);
+    const baseWidth = 2000;
+    const scaleY = newWidth / baseWidth;
 
     verticalParts.forEach((mesh) => (mesh.scale.y = scaleY));
 
@@ -29,16 +31,12 @@ export function heightScaling(heightSliderElement, onScaleChange) {
       (mesh) => mesh.name.toLowerCase() === "top_frame"
     );
     if (topFrame) {
-      if (originalTopFrameY === null) {
-        originalTopFrameY = topFrame.position.y;
-      }
-
-      const scaleDifference = (newHeight - baseHeight) / 2 / 1000;
-      topFrame.position.y = originalTopFrameY + scaleDifference;
+      topFrame.position.y = 0;
+      console.log(topFrame.position.y);
     }
 
     if (typeof onScaleChange === "function") {
-      onScaleChange(newHeight);
+      onScaleChange(scaleY);
     }
   });
 }
