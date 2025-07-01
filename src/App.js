@@ -9,6 +9,7 @@ import {
   verticalParts,
   horizontalParts,
   registerOnModelReady,
+  applyMaterialsToInsideFrame,
 } from "./Scene";
 import { heightScaling, widthScaling } from "./ScalingLogic";
 
@@ -49,10 +50,17 @@ function App() {
     });
   }, []); // Empty dependency array prevents re-runs
 
-  function handleColorSelect(color) {
+  function handleMainFrameColorSelect(color) {
     setSelectedColor(color);
     if (color.material) {
       applyMaterialToMainFrame(color.material);
+    }
+    console.log("Applying material:", color.name);
+  }
+   function handleInsideFrameColorSelect(color) {
+    setSelectedColor(color);
+    if (color.material) {
+      applyMaterialsToInsideFrame(color.material);
     }
     console.log("Applying material:", color.name);
   }
@@ -92,7 +100,19 @@ function App() {
             title="Frame Color"
             colors={colorOptions}
             selected={selectedColor}
-            onSelect={handleColorSelect}
+            onSelect={handleMainFrameColorSelect}
+          />
+        ) : (
+          <p>Loading materials...</p>
+        )}
+
+        
+        {materialsLoaded ? (
+          <ColorSelectorGroup
+            title="insideFrame Color"
+            colors={colorOptions}
+            selected={selectedColor}
+            onSelect={handleInsideFrameColorSelect}
           />
         ) : (
           <p>Loading materials...</p>

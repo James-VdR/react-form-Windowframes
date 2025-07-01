@@ -8,7 +8,7 @@ export let scene, camera, controls, renderer, model;
 export const verticalParts = [];
 export const horizontalParts = [];
 export const mainFrameParts = [];
-
+export const insideFrameParts = [];
 let modelReadyCallback = null;
 let boundingBoxHelper = null;
 
@@ -99,7 +99,7 @@ function groupFrameParts(model) {
   verticalParts.length = 0;
   horizontalParts.length = 0;
   mainFrameParts.length = 0;
-
+  insideFrameParts.lenght = 0;
   model.traverse((child) => {
     if (child.isMesh) {
       const name = child.name.toLowerCase();
@@ -107,10 +107,12 @@ function groupFrameParts(model) {
 
       if (name.includes("left") || name.includes("right")) verticalParts.push(child);
       if (name.includes("top") || name.includes("bottom")) horizontalParts.push(child);
-      if (["left", "right", "top", "bottom"].some(part => name.includes(part))) {
+      if (["left_frame", "right_frame", "top_frame", "bottom_frame"].some(part => name.includes(part))) {
         mainFrameParts.push(child);
       }
-     
+     if (["left_inside", "right_inside", "top_inside", "bottom_inside"].some(part => name.includes(part))) {
+        insideFrameParts.push(child);
+      }
     }
   });
 }
@@ -137,5 +139,11 @@ export function applyMaterialToMainFrame(material) {
   mainFrameParts.forEach((mesh) => {
     mesh.material = material.clone();
     
+  });
+}
+
+export function applyMaterialsToInsideFrame(material){
+  insideFrameParts.forEach((mesh) => {
+    mesh.material = material.clone();
   });
 }
