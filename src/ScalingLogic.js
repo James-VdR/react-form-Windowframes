@@ -46,27 +46,16 @@ export function heightScaling(heightSliderElement, onScaleChange) {
   });
 }
 
-let originalRightFrameX = null;
-let originalScaleX = null;
 
 export function widthScaling(widthSliderElement, onScaleChange) {
   widthSliderElement.addEventListener('input', (event) => {
-    const scaleX = parseFloat(event.target.value) / 1000;
-    
+    const scaleX = parseFloat(event.target.value) / 2000;
     horizontalParts.forEach(mesh => mesh.scale.z = scaleX);
 
-    const rightFrame = verticalParts.find(mesh => mesh.name.toLowerCase() === "right_frame");
-    if (rightFrame) {
-      if (originalRightFrameX === null) {
-        originalRightFrameX = rightFrame.position.x;
-      }
-      if (originalScaleX === null) {
-        originalScaleX = scaleX;
-      }
-
-      const scaleDifference = scaleX - originalScaleX;
-      rightFrame.position.x = originalRightFrameX + scaleDifference * 2.0;
-      console.log(rightFrame.position.x);
+    const rightframe = verticalParts.find(mesh => mesh.name.toLowerCase() === "right_frame");
+    if (rightframe) {
+      rightframe.position.x = 0;
+      console.log(rightframe.position.x);
     }
 
     if (typeof onScaleChange === 'function') {

@@ -73,7 +73,7 @@ function loadModel() {
     mainFrameParts.length = 0;
   }
 
-  loader.load("./models/debug_window.glb", (glb) => {
+  loader.load("./models/new_window_frame.glb", (glb) => {
     model = glb.scene;
     scene.add(model);
     
