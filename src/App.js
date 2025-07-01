@@ -17,8 +17,8 @@ function App() {
   const heightSliderRef = useRef();
   const widthSliderRef = useRef();
 
-  const [heightScaleValue, setHeightScaleValue] = useState(1);
-  const [widthScaleValue, setWidthScaleValue] = useState(1);
+  const [heightScaleValue, setHeightScaleValue] = useState(3);
+  const [widthScaleValue, setWidthScaleValue] = useState(3);
 
   const [materialsLoaded, setMaterialsLoaded] = useState(false);
   const [colorOptions, setColorOptions] = useState([]);
@@ -69,7 +69,7 @@ function App() {
             type="range"
             min="3000"
             max="6000"
-            defaultValue="1000"
+            defaultValue="3000"
             ref={heightSliderRef}
           />
           <p id="heightScaleValue">Scale: {heightScaleValue.toFixed(2)}</p>
@@ -81,7 +81,7 @@ function App() {
             type="range"
             min="3000"
             max="6000"
-            defaultValue="1000"
+            defaultValue="3000"
             ref={widthSliderRef}
           />
           <p id="widthScaleValue">Scale: {widthScaleValue.toFixed(2)}</p>

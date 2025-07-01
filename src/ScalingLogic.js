@@ -18,16 +18,26 @@ export function Scaling(sliderElement, onScaleChange) {
   });
 }
 
-//sketch for height and width scaling
+let originalTopFrameY = null;
+let originalScaleZ = null;
+
 export function heightScaling(heightSliderElement, onScaleChange) {
   heightSliderElement.addEventListener('input', (event) => {
     const scaleZ = parseFloat(event.target.value) / 1000;
+
     verticalParts.forEach(mesh => mesh.scale.z = scaleZ);
 
-       const topFrame = horizontalParts.find(mesh => mesh.name.toLowerCase() === "top_frame");
+    const topFrame = horizontalParts.find(mesh => mesh.name.toLowerCase() === "top_frame");
     if (topFrame) {
-      // Example logic: move top_frame along X based on scale
-      topFrame.position.y = scaleZ - 2.5;  // Adjust 500 based on your scene units
+      if (originalTopFrameY === null) {
+        originalTopFrameY = topFrame.position.y;
+      }
+      if (originalScaleZ === null) {
+        originalScaleZ = scaleZ;
+      }
+
+      const scaleDifference = scaleZ - originalScaleZ;
+      topFrame.position.y = originalTopFrameY + scaleDifference * 2.0;
     }
 
     if (typeof onScaleChange === 'function') {
@@ -36,14 +46,27 @@ export function heightScaling(heightSliderElement, onScaleChange) {
   });
 }
 
+let originalRightFrameX = null;
+let originalScaleX = null;
+
 export function widthScaling(widthSliderElement, onScaleChange) {
   widthSliderElement.addEventListener('input', (event) => {
     const scaleX = parseFloat(event.target.value) / 1000;
+    
     horizontalParts.forEach(mesh => mesh.scale.z = scaleX);
 
-    const rightframe = verticalParts.find(mesh => mesh.name.toLowerCase() === "right_frame");
-    if (rightframe) {
-      rightframe.position.x = scaleX  - 2.5 ;
+    const rightFrame = verticalParts.find(mesh => mesh.name.toLowerCase() === "right_frame");
+    if (rightFrame) {
+      if (originalRightFrameX === null) {
+        originalRightFrameX = rightFrame.position.x;
+      }
+      if (originalScaleX === null) {
+        originalScaleX = scaleX;
+      }
+
+      const scaleDifference = scaleX - originalScaleX;
+      rightFrame.position.x = originalRightFrameX + scaleDifference * 2.0;
+      console.log(rightFrame.position.x);
     }
 
     if (typeof onScaleChange === 'function') {
