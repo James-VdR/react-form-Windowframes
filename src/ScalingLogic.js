@@ -21,18 +21,25 @@ export function Scaling(sliderElement, onScaleChange) {
 
 export function heightScaling(heightSliderElement, onScaleChange) {
   heightSliderElement.addEventListener("input", (event) => {
-    const newWidth = parseFloat(event.target.value);
-    const baseWidth = 2000;
-    const scaleY = newWidth / baseWidth;
+    const newHeight = parseFloat(event.target.value);
+    const minHeight = 1000;
+    const maxHeight = 2000;
+    const baseHeight = 2000;
+    
+    const scaleY = newHeight / baseHeight;
 
     verticalParts.forEach((mesh) => (mesh.scale.y = scaleY));
 
     const topFrame = horizontalParts.find(
       (mesh) => mesh.name.toLowerCase() === "top_frame"
     );
+    
     if (topFrame) {
-      topFrame.position.y = 0;
-      console.log(topFrame.position.y);
+      // Normalize slider value between 0 and 1
+      const normalizedValue = (newHeight - minHeight) / (maxHeight - minHeight);
+      topFrame.position.y = normalizedValue;
+
+      console.log(`Top frame Y position: ${topFrame.position.y}`);
     }
 
     if (typeof onScaleChange === "function") {
@@ -41,20 +48,29 @@ export function heightScaling(heightSliderElement, onScaleChange) {
   });
 }
 
+
 export function widthScaling(widthSliderElement, onScaleChange) {
   widthSliderElement.addEventListener("input", (event) => {
     const newWidth = parseFloat(event.target.value);
+    const minWidth = 500;
+    const maxWidth = 2000;
     const baseWidth = 2000;
+    
     const scaleZ = newWidth / baseWidth;
 
     horizontalParts.forEach((mesh) => (mesh.scale.z = scaleZ));
 
-    const rightframe = verticalParts.find(
+    const rightFrame = verticalParts.find(
       (mesh) => mesh.name.toLowerCase() === "right_frame"
     );
-    if (rightframe) {
-      rightframe.position.z = 0;
-      console.log(rightframe.position.x);
+
+    if (rightFrame) {
+      // Normalize slider value between 0 and 1
+      const normalizedValue = (newWidth - minWidth) / (maxWidth - minWidth);
+      // Map to range 0 to 1.5
+      rightFrame.position.x = normalizedValue * 1.5;
+
+      console.log(`Right frame X position: ${rightFrame.position.x}`);
     }
 
     if (typeof onScaleChange === "function") {
@@ -62,3 +78,4 @@ export function widthScaling(widthSliderElement, onScaleChange) {
     }
   });
 }
+
