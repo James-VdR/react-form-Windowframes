@@ -25,19 +25,23 @@
         });
         document.getElementById("model-selection").classList.remove("hidden");
       }
+
+      function goToApp(modelId) {
+        window.location.href = `http://localhost:3000/?model=${modelId}`;
+      }
     </script>
 
     <div class="image-background"></div>
 
     <div class="body-container">
       <div id="model-selection" class="container-class">
-        <div class="model-container" onclick="selectModel('modelA')">
+        <div class="model-container" onclick="selectModel('model_1')">
           Model A
         </div>
-        <div class="model-container" onclick="selectModel('modelB')">
+        <div class="model-container" onclick="selectModel('model_2')">
           Model B
         </div>
-        <div class="model-container" onclick="selectModel('modelC')">
+        <div class="model-container" onclick="selectModel('model')">
           Model C
         </div>
         <div class="model-container" onclick="selectModel('modelD')">
@@ -49,8 +53,8 @@
         <h2>Options for Model A</h2>
 
         <div class="options-row">
-          <button>Option 1</button>
-          <button>Option 2</button>
+          <button onclick="goToApp('modelA')">Load Model A</button>
+          <button onclick="goToApp('modelB')">Load Model B</button>
         </div>
 
         <div class="back-row">

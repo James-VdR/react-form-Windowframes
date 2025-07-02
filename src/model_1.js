@@ -53,7 +53,6 @@ export function applyModel1Scaling() {
   glassParts.forEach((mesh) => {
     mesh.scale.z = scaleZ;
   });
-
 }
 
 
