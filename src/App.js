@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import "./App.css";
-import { loadMaterialLibrary, getMaterialColorOptions } from "./MaterialLibrary.js";
+import { loadMaterialLibrary, getMaterialColorOptions,resetMaterials } from "./MaterialLibrary.js";
 import { ColorSelectorGroup } from "./ColorSelectorGroup.js";
 import logo from "./Images/reuzenpandalogo.jpg";
 import {
@@ -95,6 +95,81 @@ function App() {
           />
           <p id="widthScaleValue">width: {(widthScaleValue).toFixed(0)}mm</p>
         </div>
+
+ <button onClick={() => {
+  import('./model_1.js').then(module => {
+    module.applyModel1Scaling();
+    resetMaterials();
+
+    if (heightSliderRef.current) {
+      heightSliderRef.current.value = 1000;
+    }
+    if (widthSliderRef.current) {
+      widthSliderRef.current.value = 500;
+    }
+    setHeightScaleValue(1000);
+    setWidthScaleValue(500);
+  });
+}}>
+  Load Model 1
+</button>
+
+<button onClick={() => {
+  import('./model_2.js').then(module => {
+    module.applyModel2Scaling();
+    resetMaterials();
+
+    if (heightSliderRef.current) {
+      heightSliderRef.current.value = 1000;
+    }
+    if (widthSliderRef.current) {
+      widthSliderRef.current.value = 1000;
+    }
+    setHeightScaleValue(1000);
+    setWidthScaleValue(1000);
+  });
+}}>
+  Load Model 2
+</button>
+
+        <button onClick={() => {
+  import('./model_3.js').then(module => {
+    module.applyModel3Scaling();
+    resetMaterials();
+
+    if (heightSliderRef.current) {
+      heightSliderRef.current.value = 1000;
+    }
+    if (widthSliderRef.current) {
+      widthSliderRef.current.value = 1500;
+    }
+    setHeightScaleValue(1000);
+    setWidthScaleValue(1500);
+  });
+}}>
+  Load Model 3
+
+</button>
+
+<button onClick = {() => {
+  import('./model_4.js').then(module => {
+    module.applyModel4Scaling();
+    resetMaterials();
+
+    if (heightSliderRef.current) {
+      heightSliderRef.current.value = 1000
+    }
+    if (widthSliderRef.current) {
+      widthSliderRef.current.value = 2000;
+    }
+    setHeightScaleValue(1000);
+    setWidthScaleValue(2000);
+  });
+}}> Load Model 4</button>
+ 
+
+
+
 
         {materialsLoaded ? (
           <ColorSelectorGroup

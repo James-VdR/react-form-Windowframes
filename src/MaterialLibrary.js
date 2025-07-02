@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
+import {  glassParts,mainFrameParts,insideFrameParts  } from './Scene';
 const materialLibrary = {};
 /**
  
@@ -74,4 +75,42 @@ export function applyGlassMaterial(mesh) {
   });
 
   mesh.material = glassMaterial;
+}
+
+
+export function resetMaterials() {
+  
+  const defaultMaterial = new THREE.MeshStandardMaterial({
+    color: 0xffffff,
+    metalness: 0,
+    roughness: 1,
+  });
+
+  mainFrameParts.forEach((mesh) => {
+    mesh.material = defaultMaterial.clone();
+  });
+
+  insideFrameParts.forEach((mesh) => {
+    mesh.material = defaultMaterial.clone();
+  });
+
+  glassParts.forEach((mesh) => {
+    mesh.material = new THREE.MeshPhysicalMaterial({
+      color: 0xffffff,
+      metalness: 0,
+      roughness: 0.01,
+      transmission: 1.0,
+      thickness: 0.01,
+      transparent: true,
+      opacity: 1.0,
+      ior: 1.0,
+      envMapIntensity: 0.5,
+      clearcoat: 0.0,
+      reflectivity: 0.1,
+      depthWrite: false,
+      side: THREE.FrontSide,
+    });
+  });
+
+  console.log('Materials reset to default.');
 }
