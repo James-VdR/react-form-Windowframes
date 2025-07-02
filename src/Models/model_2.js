@@ -1,4 +1,4 @@
-import { verticalParts, horizontalParts, glassParts} from './Scene.js';
+import { verticalParts, horizontalParts, glassParts} from '../Scene.js';
 
 
 

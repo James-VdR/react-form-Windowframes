@@ -16,8 +16,7 @@ import {
   applyMaterialsToInsideFrame,
 } from "./Scene";
 import { heightScaling, widthScaling } from "./ScalingLogic";
-import { applyModel1Scaling } from "./model_1.js";
-import { applyModel4Scaling } from "./model_4.js";
+
 
 function App() {
 
@@ -25,8 +24,8 @@ function App() {
   const heightSliderRef = useRef();
   const widthSliderRef = useRef();
 
-  const [heightScaleValue, setHeightScaleValue] = useState(100);
-  const [widthScaleValue, setWidthScaleValue] = useState(50);
+  const [heightScaleValue, setHeightScaleValue] = useState(1);
+  const [widthScaleValue, setWidthScaleValue] = useState(5);
 
   const [materialsLoaded, setMaterialsLoaded] = useState(false);
   const [colorOptions, setColorOptions] = useState([]);
@@ -34,54 +33,7 @@ function App() {
 
   const [selectedModel, setSelectedModel] = useState(null);
 
-   /*useEffect(() => {
-    if (!selectedModel) return;
-
-    switch (selectedModel) {
-      case "model_1":
-        import("./model_1.js").then((module) => {
-          module.applyModel1Scaling();
-          resetMaterials();
-          if (heightSliderRef.current) heightSliderRef.current.value = 1000;
-          if (widthSliderRef.current) widthSliderRef.current.value = 500;
-          setHeightScaleValue(1000);
-          setWidthScaleValue(500);
-        });
-        break;
-      case "model_2":
-        import("./model_2.js").then((module) => {
-          module.applyModel2Scaling();
-          resetMaterials();
-          if (heightSliderRef.current) heightSliderRef.current.value = 1000;
-          if (widthSliderRef.current) widthSliderRef.current.value = 1000;
-          setHeightScaleValue(1000);
-          setWidthScaleValue(1000);
-        });
-        break;
-      case "model_3":
-        import("./model_3.js").then((module) => {
-          module.applyModel3Scaling();
-          resetMaterials();
-          if (heightSliderRef.current) heightSliderRef.current.value = 1000;
-          if (widthSliderRef.current) widthSliderRef.current.value = 1500;
-          setHeightScaleValue(1000);
-          setWidthScaleValue(1500);
-        });
-        break;
-      case "model_4":
-        import("./model_4.js").then((module) => {
-          module.applyModel4Scaling();
-          resetMaterials();
-          if (heightSliderRef.current) heightSliderRef.current.value = 1000;
-          if (widthSliderRef.current) widthSliderRef.current.value = 2000;
-          setHeightScaleValue(1000);
-          setWidthScaleValue(2000);
-        });
-        break;
-      default:
-        break;
-    }
-  }, [selectedModel]); */
+ 
 
   // Load material library ONCE when component mounts
   useEffect(() => {
@@ -92,29 +44,6 @@ function App() {
     });
   }, []);
 
-  // Initialize Three.js scene ONCE when component mounts
-  /*useEffect(() => {
-    if (mountRef.current) {
-      initThree(mountRef.current);
-    }
-
-    registerOnModelReady(() => {
-      if (heightSliderRef.current) {
-        heightScaling(
-          heightSliderRef.current,
-          setHeightScaleValue,
-          verticalParts
-        );
-      }
-      if (widthSliderRef.current) {
-        widthScaling(
-          widthSliderRef.current,
-          setWidthScaleValue,
-          horizontalParts
-        );
-      }
-    });
-  }, []); // Empty dependency array prevents re-runs*/
   
 useEffect(() => {
   if (!selectedModel || !mountRef.current) return;
@@ -124,7 +53,7 @@ useEffect(() => {
   registerOnModelReady(() => {
     switch (selectedModel) {
       case "model_1":
-        import("./model_1.js").then((module) => {
+        import("./Models/model_1.js").then((module) => {
           module.applyModel1Scaling();
           resetMaterials();
           if (heightSliderRef.current) heightSliderRef.current.value = 1000;
@@ -134,7 +63,7 @@ useEffect(() => {
         });
         break;
       case "model_2":
-        import("./model_2.js").then((module) => {
+        import("./Models/model_2.js").then((module) => {
           module.applyModel2Scaling();
           resetMaterials();
           if (heightSliderRef.current) heightSliderRef.current.value = 1000;
@@ -144,7 +73,7 @@ useEffect(() => {
         });
         break;
       case "model_3":
-        import("./model_3.js").then((module) => {
+        import("./Models/model_3.js").then((module) => {
           module.applyModel3Scaling();
           resetMaterials();
           if (heightSliderRef.current) heightSliderRef.current.value = 1000;
@@ -154,7 +83,7 @@ useEffect(() => {
         });
         break;
       case "model_4":
-        import("./model_4.js").then((module) => {
+        import("./Models/model_4.js").then((module) => {
           module.applyModel4Scaling();
           resetMaterials();
           if (heightSliderRef.current) heightSliderRef.current.value = 1000;
@@ -168,19 +97,14 @@ useEffect(() => {
     }
 
     // Hook up sliders
-    if (heightSliderRef.current) {
-      heightScaling(
-        heightSliderRef.current,
-        setHeightScaleValue,
-        verticalParts
-      );
+   if (heightSliderRef.current) {
+      heightScaling(heightSliderRef.current, setHeightScaleValue);
+      // Set initial display value
+      setHeightScaleValue(parseFloat(heightSliderRef.current.value));
     }
     if (widthSliderRef.current) {
-      widthScaling(
-        widthSliderRef.current,
-        setWidthScaleValue,
-        horizontalParts
-      );
+      widthScaling(widthSliderRef.current, setWidthScaleValue);
+      setWidthScaleValue(parseFloat(widthSliderRef.current.value));
     }
   });
 }, [selectedModel]);
@@ -252,87 +176,6 @@ useEffect(() => {
           />
           <p id="widthScaleValue">width: {widthScaleValue.toFixed(0)}mm</p>
         </div>
-
-        <button
-          onClick={() => {
-            import("./model_1.js").then((module) => {
-              module.applyModel1Scaling();
-              resetMaterials();
-
-              if (heightSliderRef.current) {
-                heightSliderRef.current.value = 1000;
-              }
-              if (widthSliderRef.current) {
-                widthSliderRef.current.value = 500;
-              }
-              setHeightScaleValue(1000);
-              setWidthScaleValue(500);
-            });
-          }}
-        >
-          Load Model 1
-        </button>
-
-        <button
-          onClick={() => {
-            import("./model_2.js").then((module) => {
-              module.applyModel2Scaling();
-              resetMaterials();
-
-              if (heightSliderRef.current) {
-                heightSliderRef.current.value = 1000;
-              }
-              if (widthSliderRef.current) {
-                widthSliderRef.current.value = 1000;
-              }
-              setHeightScaleValue(1000);
-              setWidthScaleValue(1000);
-            });
-          }}
-        >
-          Load Model 2
-        </button>
-
-        <button
-          onClick={() => {
-            import("./model_3.js").then((module) => {
-              module.applyModel3Scaling();
-              resetMaterials();
-
-              if (heightSliderRef.current) {
-                heightSliderRef.current.value = 1000;
-              }
-              if (widthSliderRef.current) {
-                widthSliderRef.current.value = 1500;
-              }
-              setHeightScaleValue(1000);
-              setWidthScaleValue(1500);
-            });
-          }}
-        >
-          Load Model 3
-        </button>
-
-        <button
-          onClick={() => {
-            import("./model_4.js").then((module) => {
-              module.applyModel4Scaling();
-              resetMaterials();
-
-              if (heightSliderRef.current) {
-                heightSliderRef.current.value = 1000;
-              }
-              if (widthSliderRef.current) {
-                widthSliderRef.current.value = 2000;
-              }
-              setHeightScaleValue(1000);
-              setWidthScaleValue(2000);
-            });
-          }}
-        >
-          {" "}
-          Load Model 4
-        </button>
 
         {materialsLoaded ? (
           <ColorSelectorGroup

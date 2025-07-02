@@ -50,7 +50,7 @@ export function heightScaling(heightSliderElement, onScaleChange) {
 
 
     if (typeof onScaleChange === "function") {
-      onScaleChange(scaleY);
+      onScaleChange(newHeight);
     }
   });
 }
@@ -86,7 +86,7 @@ export function widthScaling(widthSliderElement, onScaleChange) {
 
 
     if (typeof onScaleChange === "function") {
-      onScaleChange(scaleZ);
+      onScaleChange(newWidth);
     }
   });
 }

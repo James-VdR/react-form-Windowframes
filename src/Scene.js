@@ -36,6 +36,17 @@ export function initThree(container) {
   controls = new OrbitControls(camera, renderer.domElement);
   controls.enableDamping = true;
 
+  // Resize fix 
+  window.addEventListener('resize', () => {
+    const newWidth = container.clientWidth;
+    const newHeight = container.clientHeight;
+
+    camera.aspect = newWidth / newHeight;
+    camera.updateProjectionMatrix();
+
+    renderer.setSize(newWidth, newHeight);
+  });
+
   const light = new THREE.AmbientLight(0xffffff, 1.5);
   scene.add(light);
 
@@ -55,15 +66,16 @@ export function initThree(container) {
 
   loadModel();
 
-renderer.setAnimationLoop(() => {
-  if (boundingBoxHelper && model) {
-    boundingBoxHelper.update();
-  }
-  
-  renderer.render(scene, camera);
-  controls.update();
-});
+  renderer.setAnimationLoop(() => {
+    if (boundingBoxHelper && model) {
+      boundingBoxHelper.update();
+    }
+    
+    renderer.render(scene, camera);
+    controls.update();
+  });
 }
+
 function loadModel() {
   const loader = new GLTFLoader();
 
