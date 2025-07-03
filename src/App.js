@@ -17,6 +17,7 @@ import {
 import { heightScaling, widthScaling } from "./ScalingLogic";
 
 
+
 function App() {
 
   const mountRef = useRef(null);
@@ -30,75 +31,87 @@ function App() {
   const [colorOptions, setColorOptions] = useState([]);
   const [selectedColor, setSelectedColor] = useState(null);
 
-  const [selectedModel, setSelectedModel] = useState(null);
+  const [selectedBaseModel, setSelectedBaseModel] = useState(null);
+  const [selectedModel, setSelectedModel] = useState(null); // Final variant used for loading
 
  
 
   // Load material library ONCE when component mounts
   useEffect(() => {
-    loadMaterialLibrary("/models/Materials.glb", () => {
-      const options = getMaterialColorOptions();
-      setColorOptions(options);
-      setMaterialsLoaded(true);
-    });
-  }, []);
+  loadMaterialLibrary("/models/Materials.glb", () => {
+    const options = getMaterialColorOptions();
+    setColorOptions(options);
+    setMaterialsLoaded(true);
+  });
+}, []);
 
-  
-useEffect(() => {
+   useEffect(() => {
   if (!selectedModel || !mountRef.current) return;
 
   initThree(mountRef.current);
 
   registerOnModelReady(() => {
-    switch (selectedModel) {
-      case "model_1":
-        import("./Models/model_1.js").then((module) => {
+    if (selectedModel.includes("model_1")) {
+      import("./Models/model_1.js").then((module) => {
+        if (selectedModel.endsWith("variant1")) {
           module.applyModel1_1Scaling();
-          resetMaterials();
-          if (heightSliderRef.current) heightSliderRef.current.value = 1000;
-          if (widthSliderRef.current) widthSliderRef.current.value = 500;
-          setHeightScaleValue(1000);
-          setWidthScaleValue(500);
-        });
-        break;
-      case "model_2":
-        import("./Models/model_2.js").then((module) => {
+        } else {
+          module.applyModel1_2Scaling(); // Assume you add this
+        }
+        resetMaterials();
+        if (heightSliderRef.current) heightSliderRef.current.value = 1000;
+        if (widthSliderRef.current) widthSliderRef.current.value = 500;
+        setHeightScaleValue(1000);
+        setWidthScaleValue(500);
+      });
+    }
+     if (selectedModel.includes("model_2")) {
+      import("./Models/model_2.js").then((module) => {
+        if (selectedModel.endsWith("variant1")) {
           module.applyModel2_1Scaling();
-          resetMaterials();
-          if (heightSliderRef.current) heightSliderRef.current.value = 1000;
-          if (widthSliderRef.current) widthSliderRef.current.value = 1000;
-          setHeightScaleValue(1000);
-          setWidthScaleValue(1000);
-        });
-        break;
-      case "model_3":
-        import("./Models/model_3.js").then((module) => {
+        } else {
+          module.applyModel2_2Scaling(); // Assume you add this
+        }
+        resetMaterials();
+        if (heightSliderRef.current) heightSliderRef.current.value = 1000;
+        if (widthSliderRef.current) widthSliderRef.current.value = 1000;
+        setHeightScaleValue(1000);
+        setWidthScaleValue(1000);
+      });
+    }
+    if (selectedModel.includes("model_3")) {
+      import("./Models/model_3.js").then((module) => {
+        if (selectedModel.endsWith("variant1")) {
           module.applyModel3_1Scaling();
-          resetMaterials();
-          if (heightSliderRef.current) heightSliderRef.current.value = 1000;
-          if (widthSliderRef.current) widthSliderRef.current.value = 1500;
-          setHeightScaleValue(1000);
-          setWidthScaleValue(1500);
-        });
-        break;
-      case "model_4":
-        import("./Models/model_4.js").then((module) => {
+        } else {
+          module.applyModel3_2Scaling(); // Assume you add this
+        }
+        resetMaterials();
+        if (heightSliderRef.current) heightSliderRef.current.value = 1000;
+        if (widthSliderRef.current) widthSliderRef.current.value = 1500;
+        setHeightScaleValue(1000);
+        setWidthScaleValue(1500);
+      });
+    }
+    if (selectedModel.includes("model_4")) {
+      import("./Models/model_4.js").then((module) => {
+        if (selectedModel.endsWith("variant1")) {
           module.applyModel4Scaling();
-          //resetMaterials();
-          if (heightSliderRef.current) heightSliderRef.current.value = 1000;
-          if (widthSliderRef.current) widthSliderRef.current.value = 2000;
-          setHeightScaleValue(1000);
-          setWidthScaleValue(2000);
-        });
-        break;
-      default:
-        break;
+        } else {
+          
+        }
+        resetMaterials();
+        if (heightSliderRef.current) heightSliderRef.current.value = 1000;
+        if (widthSliderRef.current) widthSliderRef.current.value = 2000;
+        setHeightScaleValue(1000);
+        setWidthScaleValue(2000);
+      });
     }
 
-    // Hook up sliders
-   if (heightSliderRef.current) {
+    // Repeat for other models...
+
+    if (heightSliderRef.current) {
       heightScaling(heightSliderRef.current, setHeightScaleValue);
-      // Set initial display value
       setHeightScaleValue(parseFloat(heightSliderRef.current.value));
     }
     if (widthSliderRef.current) {
@@ -107,27 +120,42 @@ useEffect(() => {
     }
   });
 }, [selectedModel]);
-
   // Selection page JSX
-  if (!selectedModel) {
-    return (
-      <div className="container-class">
-        <h1>Select a Model</h1>
-        <div className="model-container" onClick={() => setSelectedModel("model_1")}>
-          Model A
-        </div>
-        <div className="model-container" onClick={() => setSelectedModel("model_2")}>
-          Model B
-        </div>
-        <div className="model-container" onClick={() => setSelectedModel("model_3")}>
-          Model C
-        </div>
-        <div className="model-container" onClick={() => setSelectedModel("model_4")}>
-          Model D
-        </div>
+  if (!selectedBaseModel && !selectedModel) {
+  return (
+    <div className="container-class">
+      <h1>Select a Model</h1>
+      <div className="model-container" onClick={() => setSelectedBaseModel("model_1")}>
+        Model A
       </div>
-    );
-  }
+      <div className="model-container" onClick={() => setSelectedBaseModel("model_2")}>
+        Model B
+      </div>
+      <div className="model-container" onClick={() => setSelectedBaseModel("model_3")}>
+        Model C
+      </div>
+      <div className="model-container" onClick={() => setSelectedBaseModel("model_4")}>
+        Model D
+      </div>
+    </div>
+  );
+}
+
+// If base model is selected but variant isn't
+if (selectedBaseModel && !selectedModel) {
+  return (
+    <div className="container-class">
+      <h1>Select a Variant for {selectedBaseModel.replace("_", " ").toUpperCase()}</h1>
+      <div className="model-container" onClick={() => setSelectedModel(`${selectedBaseModel}_variant1`)}>
+        Variant 1
+      </div>
+      <div className="model-container" onClick={() => setSelectedModel(`${selectedBaseModel}_variant2`)}>
+        Variant 2
+      </div>
+      <button onClick={() => setSelectedBaseModel(null)}>Back</button>
+    </div>
+  );
+}
 
   
   function handleMainFrameColorSelect(color) {
@@ -157,7 +185,14 @@ useEffect(() => {
       <div className="sidebar">
         <img src={logo} alt="Logo" className="bottom-image" />
         <h1>{selectedModel.replace("_", " ").toUpperCase()}</h1>
-        <button onClick={() => setSelectedModel(null)}>Back to selection</button>
+        <button
+  onClick={() => {
+    setSelectedModel(null);
+    setSelectedBaseModel(null);
+  }}
+>
+  Back to selection
+</button>
         <div className="heightSlider">
           <p>Height</p>
           <input
