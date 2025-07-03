@@ -13,33 +13,34 @@ import {
   registerOnModelReady,
   applyMaterialsToInsideFrame,
   applyMaterialsToModuleFrame,
+  detectVerticalBeams,
+  getVerticalBeams,
 } from "./Scene";
 import { heightScaling, widthScaling,horizontalBeamPositioning } from "./ScalingLogic";
 
-  const variantsWithHorizontalBeam = new Set([
-            "model_1_variant2",
-            "model_2_variant2",
-            "model_2_variant3",
-            "model_2_variant4",
-            "model_2_variant5",
-            "model_3_variant2",
-            "model_3_variant3",
-            "model_4_variant1",
-            // Add any others that include a beam
-          ]);
+const variantsWithHorizontalBeam = new Set([
+  "model_1_variant2",
+  "model_2_variant2",
+  "model_2_variant3",
+  "model_2_variant4",
+  "model_2_variant5",
+  "model_3_variant2",
+  "model_3_variant3",
+  "model_4_variant1",
+]);
 
-  const variantsWithVerticalBeam = new Set([
-            "model_2_variant1",
-            "model_2_variant2",
-            "model_2_variant3",
-            "model_2_variant4",
-            "model_2_variant5",
-            "model_3_variant1",
-            "model_3_variant2",
-            "model_3_variant3",
-            "model_4_variant1",
-  ])
-          
+const variantsWithVerticalBeam = new Set([
+  "model_2_variant1",
+  "model_2_variant2",
+  "model_2_variant3",
+  "model_2_variant4",
+  "model_2_variant5",
+  "model_3_variant1",
+  "model_3_variant2",
+  "model_3_variant3",
+  "model_4_variant1",
+]);
+
 function App() {
   const mountRef = useRef(null);
   const heightSliderRef = useRef();
@@ -57,7 +58,9 @@ function App() {
   const [selectedBaseModel, setSelectedBaseModel] = useState(null);
   const [selectedModel, setSelectedModel] = useState(null); // Final variant used for loading
 
-  
+  //this has to do with vertical beam
+  const [verticalBeamPositions, setVerticalBeamPositions] = useState([]);
+
   // Load material library ONCE when component mounts
   useEffect(() => {
     loadMaterialLibrary("/models/Materials.glb", () => {
@@ -102,8 +105,6 @@ function App() {
             model_2_variant4: module.applyModel2_4Scaling,
             model_2_variant5: module.applyModel2_5Scaling,
           };
-
-          
 
           const applyVariant = variantMap[selectedModel];
           if (applyVariant) {
@@ -162,6 +163,11 @@ function App() {
         widthScaling(widthSliderRef.current, setWidthScaleValue);
         setWidthScaleValue(parseFloat(widthSliderRef.current.value));
       }
+
+      detectVerticalBeams(window.scene);
+      const beams = getVerticalBeams();
+      const initialPositions = beams.map((beam) => beam.position.x);
+      setVerticalBeamPositions(initialPositions);
     });
   }, [selectedModel]);
   // Selection page JSX

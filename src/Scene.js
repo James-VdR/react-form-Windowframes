@@ -15,6 +15,29 @@ export const glassParts = [];
 let modelReadyCallback = null;
 let boundingBoxHelper = null;
 
+//all things vertical beams --------------------------
+export let verticalBeams = [];
+
+export function detectVerticalBeams(scene) {
+  verticalBeams = [];
+
+  scene.traverse((child) => {
+    if(child.isMesh){
+      const name = child.name.toLowerCase();
+      if (name.includes("mid1") || name.includes("mid2") || name.includes("mid3")) {
+      verticalBeams.push(child);
+    }
+    }
+  });
+
+  // Optional: sort for consistent order
+  verticalBeams.sort((a, b) => a.name.localeCompare(b.name));
+}
+
+export function getVerticalBeams() {
+  return verticalBeams;
+}
+//----------------------------------------------------------
 export function registerOnModelReady(callback) {
   modelReadyCallback = callback;
 }
