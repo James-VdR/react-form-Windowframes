@@ -123,6 +123,17 @@ export function applyModel1_2Scaling() {
     mesh.scale.z = scaleZ;
   });
 
+const horizBeam1 = moduleParts.find((mesh) => {
+  const name = mesh.name.toLowerCase();
+  return name === 'horiz_beam1';
+});
+
+// If found, adjust its Y position
+if (horizBeam1) {
+  horizBeam1.position.y -= 0.5;
+  console.log (horizBeam1.position.y);
+}
+
  const partsToRemove = moduleParts.filter((mesh) => {
     const name = mesh.name.toLowerCase();
     return name === 'top_mid3' || name === 'bottom_mid3' || name === 'top_mid2' || name === 'bottom_mid2' || name === 'top_mid1' || name === 'bottom_mid1' || name === 'horiz_beam4' || name === 'horiz_beam3' || name === 'horiz_beam2';
