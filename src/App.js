@@ -10,10 +10,9 @@ import logo from "./Images/reuzenpandalogo.jpg";
 import {
   initThree,
   applyMaterialToMainFrame,
-  verticalParts,
-  horizontalParts,
   registerOnModelReady,
   applyMaterialsToInsideFrame,
+  applyMaterialsToModuleFrame,
 } from "./Scene";
 import { heightScaling, widthScaling } from "./ScalingLogic";
 
@@ -54,7 +53,7 @@ useEffect(() => {
     switch (selectedModel) {
       case "model_1":
         import("./Models/model_1.js").then((module) => {
-          module.applyModel1Scaling();
+          module.applyModel1_1Scaling();
           resetMaterials();
           if (heightSliderRef.current) heightSliderRef.current.value = 1000;
           if (widthSliderRef.current) widthSliderRef.current.value = 500;
@@ -64,7 +63,7 @@ useEffect(() => {
         break;
       case "model_2":
         import("./Models/model_2.js").then((module) => {
-          module.applyModel2Scaling();
+          module.applyModel2_5Scaling();
           resetMaterials();
           if (heightSliderRef.current) heightSliderRef.current.value = 1000;
           if (widthSliderRef.current) widthSliderRef.current.value = 1000;
@@ -74,7 +73,7 @@ useEffect(() => {
         break;
       case "model_3":
         import("./Models/model_3.js").then((module) => {
-          module.applyModel3Scaling();
+          module.applyModel3_2Scaling();
           resetMaterials();
           if (heightSliderRef.current) heightSliderRef.current.value = 1000;
           if (widthSliderRef.current) widthSliderRef.current.value = 1500;
@@ -85,7 +84,7 @@ useEffect(() => {
       case "model_4":
         import("./Models/model_4.js").then((module) => {
           module.applyModel4Scaling();
-          resetMaterials();
+          //resetMaterials();
           if (heightSliderRef.current) heightSliderRef.current.value = 1000;
           if (widthSliderRef.current) widthSliderRef.current.value = 2000;
           setHeightScaleValue(1000);
@@ -145,6 +144,13 @@ useEffect(() => {
     }
     console.log("Applying material:", color.name);
   }
+ function handleModuleFrameColorSelect(color) {
+    setSelectedColor(color);
+    if (color.material) {
+      applyMaterialsToModuleFrame(color.material);
+    }
+    console.log("Applying material:", color.name);
+  }
 
   return (
     <div className="container">
@@ -194,6 +200,17 @@ useEffect(() => {
             colors={colorOptions}
             selected={selectedColor}
             onSelect={handleInsideFrameColorSelect}
+          />
+        ) : (
+          <p>Loading materials...</p>
+        )}
+
+         {materialsLoaded ? (
+          <ColorSelectorGroup
+            title="insideFrame Color"
+            colors={colorOptions}
+            selected={selectedColor}
+            onSelect={handleModuleFrameColorSelect}
           />
         ) : (
           <p>Loading materials...</p>

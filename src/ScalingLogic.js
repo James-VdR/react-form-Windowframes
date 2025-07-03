@@ -75,7 +75,7 @@ export function widthScaling(widthSliderElement, onScaleChange) {
       // Normalize slider value between 0 and 1
       const normalizedValue = (newWidth - minWidth) / (maxWidth - minWidth);
       // Map to range 0 to 1.5
-      rightFrame.position.x = normalizedValue * 1.5;
+      rightFrame.position.x = normalizedValue * 1.5 ;
 
       console.log(`Right frame X position: ${rightFrame.position.x}`);
     }

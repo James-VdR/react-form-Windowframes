@@ -7,6 +7,7 @@ export let scene, camera, controls, renderer, model;
 
 export const verticalParts = [];
 export const horizontalParts = [];
+export const moduleParts = [];
 export const mainFrameParts = [];
 export const insideFrameParts = [];
 export const glassParts = [];
@@ -87,7 +88,7 @@ function loadModel() {
     mainFrameParts.length = 0;
   }
 
-  loader.load("./models/new_window_frame.glb", (glb) => {
+  loader.load("./models/Tester.glb", (glb) => {
     model = glb.scene;
     scene.add(model);
     
@@ -120,7 +121,9 @@ function groupFrameParts(model) {
       console.log("Found Mesh:", name);
 
 if (name.includes("left_frame") || name.includes("right_frame")) verticalParts.push(child);
-if (name.includes("top_frame") || name.includes("bottom_frame")) horizontalParts.push(child);
+if (name.includes("top_frame") || name.includes("bottom_frame") ) horizontalParts.push(child) ;
+if(name.includes("horiz_beam1")|| name.includes("horiz_beam2") || name.includes("horiz_beam3") || name.includes("horiz_beam4") || name.includes("top_mid1") 
+   || name.includes("bottom_mid1") || name.includes("top_mid2") || name.includes("bottom_mid2") || name.includes("top_mid3") || name.includes("bottom_mid3")) moduleParts.push(child);
 if (name.includes("glass")) glassParts.push(child);
 glassParts.forEach((mesh) => {
   applyGlassMaterial(mesh);
@@ -165,6 +168,12 @@ export function applyMaterialToMainFrame(material) {
 
 export function applyMaterialsToInsideFrame(material){
   insideFrameParts.forEach((mesh) => {
+    mesh.material = material.clone();
+  });
+}
+
+export function applyMaterialsToModuleFrame(material){
+     moduleParts.forEach((mesh) => {
     mesh.material = material.clone();
   });
 }
