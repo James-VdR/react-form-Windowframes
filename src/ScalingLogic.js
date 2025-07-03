@@ -1,4 +1,4 @@
-import { model, horizontalParts, verticalParts,glassParts } from "./Scene.js";
+import { model, horizontalParts, verticalParts,glassParts,moduleParts } from "./Scene.js";
 
 //this is uniform scaling only
 export function Scaling(sliderElement, onScaleChange) {
@@ -91,3 +91,31 @@ export function widthScaling(widthSliderElement, onScaleChange) {
   });
 }
 
+
+export function horizontalBeamPositioning(sliderElement, onPositionChange) {
+  sliderElement.addEventListener("input", (event) => {
+    const sliderValue = parseFloat(event.target.value); // 250 - 1750
+    const minMM = 250;
+    const maxMM = 1750;
+    const minY = -0.5;
+    const maxY = 1.0;
+
+    // Normalize to 0-1
+    const normalized = (sliderValue - minMM) / (maxMM - minMM);
+    // Map to -0.5 to 1.0
+    const positionY = minY + normalized * (maxY - minY);
+
+    const horizBeam = moduleParts.find(
+      (mesh) => mesh.name.toLowerCase() === "horiz_beam1"
+    );
+
+    if (horizBeam) {
+      horizBeam.position.y = positionY;
+      console.log(`Beam Y position: ${positionY}`);
+    }
+
+    if (typeof onPositionChange === "function") {
+      onPositionChange(sliderValue); // Pass raw mm value to update UI
+    }
+  });
+}

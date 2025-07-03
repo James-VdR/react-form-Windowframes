@@ -14,7 +14,7 @@ import {
   applyMaterialsToInsideFrame,
   applyMaterialsToModuleFrame,
 } from "./Scene";
-import { heightScaling, widthScaling } from "./ScalingLogic";
+import { heightScaling, widthScaling,horizontalBeamPositioning } from "./ScalingLogic";
 
   const variantsWithHorizontalBeam = new Set([
             "model_1_variant2",
@@ -44,9 +44,11 @@ function App() {
   const mountRef = useRef(null);
   const heightSliderRef = useRef();
   const widthSliderRef = useRef();
+  const horizontalBeamSliderRef = useRef();
 
   const [heightScaleValue, setHeightScaleValue] = useState(1);
   const [widthScaleValue, setWidthScaleValue] = useState(5);
+  const [horizontalBeamValue, setHorizontalBeamValue] = useState(750);
 
   const [materialsLoaded, setMaterialsLoaded] = useState(false);
   const [colorOptions, setColorOptions] = useState([]);
@@ -84,7 +86,13 @@ function App() {
           setHeightScaleValue(1000);
           setWidthScaleValue(500);
         });
-      }
+        
+        }
+          if (horizontalBeamSliderRef.current) {
+          horizontalBeamPositioning(horizontalBeamSliderRef.current, setHorizontalBeamValue);
+          setHorizontalBeamValue(parseFloat(horizontalBeamSliderRef.current.value));
+        }
+
       if (selectedModel.includes("model_2")) {
         import("./Models/model_2.js").then((module) => {
           const variantMap = {
@@ -287,21 +295,19 @@ function App() {
           <p id="widthScaleValue">width: {widthScaleValue.toFixed(0)}mm</p>
         </div>
 
-      {variantsWithHorizontalBeam.has(selectedModel) && (
-        <div className="horizontalBeamSlider">
-          <p>Beam</p>
-          <input
-            type="range"
-            min="250"
-            max="1750"
-            defaultValue="750"
-            ref={widthSliderRef}
-          />
-          <p id="widthScaleValue">
-            horizontal Beam position: {widthScaleValue.toFixed(0)}mm
-          </p>
-        </div>
-      )}
+{variantsWithHorizontalBeam.has(selectedModel) && (
+  <div className="horizontalBeamSlider">
+    <p>Beam</p>
+    <input
+      type="range"
+      min="250"
+      max="1750"
+      defaultValue="750"
+      ref={horizontalBeamSliderRef}
+    />
+    <p>horizontal Beam position: {horizontalBeamValue.toFixed(0)}mm</p>
+  </div>
+)}
 
       {variantsWithVerticalBeam.has(selectedModel) && (
         <div className="verticalBeamSlider">
@@ -311,12 +317,12 @@ function App() {
             min="0"
             max="1500"
             defaultValue="500"
-            ref={widthSliderRef}
+            
           />
           <p id="widthScaleValue">
-            Vertical Beam position: {widthScaleValue.toFixed(0)}mm
+            Vertical Beam position: {(0)}mm
           </p>
-        </div>
+        </div> 
       )}
         {materialsLoaded ? (
           <ColorSelectorGroup

@@ -130,7 +130,7 @@ const horizBeam1 = moduleParts.find((mesh) => {
 
 // If found, adjust its Y position
 if (horizBeam1) {
-  horizBeam1.position.y -= 0.5;
+  
   console.log (horizBeam1.position.y);
 }
 
