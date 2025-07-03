@@ -13,33 +13,34 @@ import {
   registerOnModelReady,
   applyMaterialsToInsideFrame,
   applyMaterialsToModuleFrame,
+  detectVerticalBeams,
+  getVerticalBeams,
 } from "./Scene";
 import { heightScaling, widthScaling } from "./ScalingLogic";
 
-  const variantsWithHorizontalBeam = new Set([
-            "model_1_variant2",
-            "model_2_variant2",
-            "model_2_variant3",
-            "model_2_variant4",
-            "model_2_variant5",
-            "model_3_variant2",
-            "model_3_variant3",
-            "model_4_variant1",
-            // Add any others that include a beam
-          ]);
+const variantsWithHorizontalBeam = new Set([
+  "model_1_variant2",
+  "model_2_variant2",
+  "model_2_variant3",
+  "model_2_variant4",
+  "model_2_variant5",
+  "model_3_variant2",
+  "model_3_variant3",
+  "model_4_variant1",
+]);
 
-  const variantsWithVerticalBeam = new Set([
-            "model_2_variant1",
-            "model_2_variant2",
-            "model_2_variant3",
-            "model_2_variant4",
-            "model_2_variant5",
-            "model_3_variant1",
-            "model_3_variant2",
-            "model_3_variant3",
-            "model_4_variant1",
-  ])
-          
+const variantsWithVerticalBeam = new Set([
+  "model_2_variant1",
+  "model_2_variant2",
+  "model_2_variant3",
+  "model_2_variant4",
+  "model_2_variant5",
+  "model_3_variant1",
+  "model_3_variant2",
+  "model_3_variant3",
+  "model_4_variant1",
+]);
+
 function App() {
   const mountRef = useRef(null);
   const heightSliderRef = useRef();
@@ -55,7 +56,9 @@ function App() {
   const [selectedBaseModel, setSelectedBaseModel] = useState(null);
   const [selectedModel, setSelectedModel] = useState(null); // Final variant used for loading
 
-  
+  //this has to do with vertical beam
+  const [verticalBeamPositions, setVerticalBeamPositions] = useState([]);
+
   // Load material library ONCE when component mounts
   useEffect(() => {
     loadMaterialLibrary("/models/Materials.glb", () => {
@@ -94,8 +97,6 @@ function App() {
             model_2_variant4: module.applyModel2_4Scaling,
             model_2_variant5: module.applyModel2_5Scaling,
           };
-
-          
 
           const applyVariant = variantMap[selectedModel];
           if (applyVariant) {
@@ -154,6 +155,11 @@ function App() {
         widthScaling(widthSliderRef.current, setWidthScaleValue);
         setWidthScaleValue(parseFloat(widthSliderRef.current.value));
       }
+
+      detectVerticalBeams(window.scene);
+      const beams = getVerticalBeams();
+      const initialPositions = beams.map((beam) => beam.position.x);
+      setVerticalBeamPositions(initialPositions);
     });
   }, [selectedModel]);
   // Selection page JSX
@@ -287,35 +293,39 @@ function App() {
           <p id="widthScaleValue">width: {widthScaleValue.toFixed(0)}mm</p>
         </div>
 
-      {variantsWithHorizontalBeam.has(selectedModel) && (
-        <div className="horizontalBeamSlider">
-          <p>Beam</p>
-          <input
-            type="range"
-            min="250"
-            max="1750"
-            defaultValue="750"
-          />
-          <p id="widthScaleValue">
-            horizontal Beam position: {widthScaleValue.toFixed(0)}mm
-          </p>
-        </div>
-      )}
+        {variantsWithHorizontalBeam.has(selectedModel) && (
+          <div className="horizontalBeamSlider">
+            <p>Beam</p>
+            <input type="range" min="250" max="1750" defaultValue="750" />
+            <p id="widthScaleValue">
+              horizontal Beam position: {widthScaleValue.toFixed(0)}mm
+            </p>
+          </div>
+        )}
 
-      {variantsWithVerticalBeam.has(selectedModel) && (
-        <div className="verticalBeamSlider">
-          <p>Beam</p>
-          <input
-            type="range"
-            min="0"
-            max="1500"
-            defaultValue="500"
-          />
-          <p id="widthScaleValue">
-            Vertical Beam position: {widthScaleValue.toFixed(0)}mm
-          </p>
-        </div>
-      )}
+        {verticalBeamPositions.map((pos, index) => (
+          <div className="beamSlider" key={`beam${index}`}>
+            <p>Beam {index + 1}</p>
+            <input
+              type="range"
+              min="0"
+              max="2000"
+              value={pos}
+              onChange={(e) => {
+                const newPositions = [...verticalBeamPositions];
+                newPositions[index] = parseFloat(e.target.value);
+                setVerticalBeamPositions(newPositions);
+
+                // Apply to mesh
+                const beam = getVerticalBeams()[index];
+                if (beam) {
+                  beam.position.x = newPositions[index]; // or .y/.z depending on your setup
+                }
+              }}
+            />
+            <p>Position: {pos.toFixed(0)}mm</p>
+          </div>
+        ))}
         {materialsLoaded ? (
           <ColorSelectorGroup
             title="Frame Color"
