@@ -63,7 +63,7 @@ useEffect(() => {
         break;
       case "model_2":
         import("./Models/model_2.js").then((module) => {
-          module.applyModel2_5Scaling();
+          module.applyModel2_1Scaling();
           resetMaterials();
           if (heightSliderRef.current) heightSliderRef.current.value = 1000;
           if (widthSliderRef.current) widthSliderRef.current.value = 1000;
@@ -73,7 +73,7 @@ useEffect(() => {
         break;
       case "model_3":
         import("./Models/model_3.js").then((module) => {
-          module.applyModel3_2Scaling();
+          module.applyModel3_1Scaling();
           resetMaterials();
           if (heightSliderRef.current) heightSliderRef.current.value = 1000;
           if (widthSliderRef.current) widthSliderRef.current.value = 1500;
