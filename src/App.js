@@ -66,12 +66,21 @@ function App() {
       });
     }
      if (selectedModel.includes("model_2")) {
-      import("./Models/model_2.js").then((module) => {
-        if (selectedModel.endsWith("variant1")) {
-          module.applyModel2_1Scaling();
-        } else {
-          module.applyModel2_2Scaling(); // Assume you add this
-        }
+  import("./Models/model_2.js").then((module) => {
+    const variantMap = {
+      model_2_variant1: module.applyModel2_1Scaling,
+      model_2_variant2: module.applyModel2_2Scaling,
+      model_2_variant3: module.applyModel2_3Scaling,
+      model_2_variant4: module.applyModel2_4Scaling,
+      model_2_variant5: module.applyModel2_5Scaling,
+    };
+
+    const applyVariant = variantMap[selectedModel];
+    if (applyVariant) {
+      applyVariant();
+    } else {
+      console.warn("Unknown variant:", selectedModel);
+    }
         resetMaterials();
         if (heightSliderRef.current) heightSliderRef.current.value = 1000;
         if (widthSliderRef.current) widthSliderRef.current.value = 1000;
@@ -80,12 +89,19 @@ function App() {
       });
     }
     if (selectedModel.includes("model_3")) {
-      import("./Models/model_3.js").then((module) => {
-        if (selectedModel.endsWith("variant1")) {
-          module.applyModel3_1Scaling();
-        } else {
-          module.applyModel3_2Scaling(); // Assume you add this
-        }
+  import("./Models/model_3.js").then((module) => {
+    const variantMap = {
+      model_3_variant1: module.applyModel3_1Scaling,
+      model_3_variant2: module.applyModel3_2Scaling,
+      model_3_variant3: module.applyModel3_3Scaling
+    };
+
+    const applyVariant = variantMap[selectedModel];
+    if (applyVariant) {
+      applyVariant();
+    } else {
+      console.warn("Unknown variant:", selectedModel);
+    }
         resetMaterials();
         if (heightSliderRef.current) heightSliderRef.current.value = 1000;
         if (widthSliderRef.current) widthSliderRef.current.value = 1500;
@@ -141,17 +157,34 @@ function App() {
   );
 }
 
+const variantCounts = {
+  model_1: 2,
+  model_2: 5,
+  model_3: 3,
+  model_4: 1,
+};
+
 // If base model is selected but variant isn't
 if (selectedBaseModel && !selectedModel) {
+  const variantCount = variantCounts[selectedBaseModel] || 1;
+
   return (
     <div className="container-class">
       <h1>Select a Variant for {selectedBaseModel.replace("_", " ").toUpperCase()}</h1>
-      <div className="model-container" onClick={() => setSelectedModel(`${selectedBaseModel}_variant1`)}>
-        Variant 1
-      </div>
-      <div className="model-container" onClick={() => setSelectedModel(`${selectedBaseModel}_variant2`)}>
-        Variant 2
-      </div>
+
+      {[...Array(variantCount)].map((_, i) => {
+        const variantNumber = i + 1;
+        return (
+          <div
+            key={variantNumber}
+            className="model-container"
+            onClick={() => setSelectedModel(`${selectedBaseModel}_variant${variantNumber}`)}
+          >
+            Variant {variantNumber}
+          </div>
+        );
+      })}
+
       <button onClick={() => setSelectedBaseModel(null)}>Back</button>
     </div>
   );
@@ -216,6 +249,18 @@ if (selectedBaseModel && !selectedModel) {
             ref={widthSliderRef}
           />
           <p id="widthScaleValue">width: {widthScaleValue.toFixed(0)}mm</p>
+        </div>
+
+        <div className="beamSlider">
+          <p>Beam</p>
+          <input
+            type="range"
+            min="250"
+            max="1750"
+            defaultValue="750"
+            ref={widthSliderRef}
+          />
+          <p id="widthScaleValue">Beam position: {widthScaleValue.toFixed(0)}mm</p>
         </div>
 
         {materialsLoaded ? (
