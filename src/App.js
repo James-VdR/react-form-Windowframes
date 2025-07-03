@@ -16,7 +16,7 @@ import {
 } from "./Scene";
 import { heightScaling, widthScaling } from "./ScalingLogic";
 
-  const variantsWithBeam = new Set([
+  const variantsWithHorizontalBeam = new Set([
             "model_1_variant2",
             "model_2_variant2",
             "model_2_variant3",
@@ -27,6 +27,18 @@ import { heightScaling, widthScaling } from "./ScalingLogic";
             "model_4_variant1",
             // Add any others that include a beam
           ]);
+
+  const variantsWithVerticalBeam = new Set([
+            "model_2_variant1",
+            "model_2_variant2",
+            "model_2_variant3",
+            "model_2_variant4",
+            "model_2_variant5",
+            "model_3_variant1",
+            "model_3_variant2",
+            "model_3_variant3",
+            "model_4_variant1",
+  ])
           
 function App() {
   const mountRef = useRef(null);
@@ -275,8 +287,8 @@ function App() {
           <p id="widthScaleValue">width: {widthScaleValue.toFixed(0)}mm</p>
         </div>
 
-      {variantsWithBeam.has(selectedModel) && (
-        <div className="beamSlider">
+      {variantsWithHorizontalBeam.has(selectedModel) && (
+        <div className="horizontalBeamSlider">
           <p>Beam</p>
           <input
             type="range"
@@ -286,7 +298,23 @@ function App() {
             ref={widthSliderRef}
           />
           <p id="widthScaleValue">
-            Beam position: {widthScaleValue.toFixed(0)}mm
+            horizontal Beam position: {widthScaleValue.toFixed(0)}mm
+          </p>
+        </div>
+      )}
+
+      {variantsWithVerticalBeam.has(selectedModel) && (
+        <div className="verticalBeamSlider">
+          <p>Beam</p>
+          <input
+            type="range"
+            min="0"
+            max="1500"
+            defaultValue="500"
+            ref={widthSliderRef}
+          />
+          <p id="widthScaleValue">
+            Vertical Beam position: {widthScaleValue.toFixed(0)}mm
           </p>
         </div>
       )}
