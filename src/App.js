@@ -295,7 +295,6 @@ function App() {
             min="250"
             max="1750"
             defaultValue="750"
-            ref={widthSliderRef}
           />
           <p id="widthScaleValue">
             horizontal Beam position: {widthScaleValue.toFixed(0)}mm
@@ -311,7 +310,6 @@ function App() {
             min="0"
             max="1500"
             defaultValue="500"
-            ref={widthSliderRef}
           />
           <p id="widthScaleValue">
             Vertical Beam position: {widthScaleValue.toFixed(0)}mm
