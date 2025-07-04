@@ -16,7 +16,7 @@ import {
   detectVerticalBeams,
   getVerticalBeams,
 } from "./Scene";
-import { heightScaling, widthScaling,horizontalBeamPositioning,horizontalBeamPositioningManual,model4VerticalBeamPositioning,model4VerticalBeamPositioningManual } from "./ScalingLogic";
+import { heightScaling, widthScaling,horizontalBeamPositioning,horizontalBeamPositioningManual,model4VerticalBeamPositioning,model4VerticalBeamPositioningManual,modelVerticalBeamPositioning,modelVerticalBeamPositioningManual } from "./ScalingLogic";
 
 const variantsWithHorizontalBeam = new Set([
   "model_1_variant2",
@@ -42,10 +42,16 @@ const variantsWithVerticalBeam = new Set([
 ]);
 
 const verticalBeamPositioningFunctions = {
-  model_4_variant1: model4VerticalBeamPositioningManual,
-  // In the future, add more models here:
-  // model_2_variant1: model2VerticalBeamPositioningManual,
-  // model_3_variant2: model3VerticalBeamPositioningManual,
+
+model_2_variant1:modelVerticalBeamPositioningManual,
+model_2_variant2:modelVerticalBeamPositioningManual,
+model_2_variant3:modelVerticalBeamPositioningManual,
+model_2_variant4:modelVerticalBeamPositioningManual,
+model_2_variant5:modelVerticalBeamPositioningManual,
+model_3_variant1:modelVerticalBeamPositioningManual,
+model_3_variant2:modelVerticalBeamPositioningManual,
+model_3_variant3:modelVerticalBeamPositioningManual,
+model_4_variant1: model4VerticalBeamPositioningManual,
 };
 
 

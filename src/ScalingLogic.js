@@ -225,3 +225,79 @@ export function model4VerticalBeamPositioningManual(sliderValue) {
 
   console.log(`Mid parts moved to X: ${mappedX} & ${-mappedX}`);
 }
+
+
+export function modelVerticalBeamPositioning(sliderElement, onPositionChange) {
+  sliderElement.addEventListener("input", (event) => {
+    const sliderValue = parseFloat(event.target.value); // 250 - 750
+    const minMM = 250;
+    const maxMM = 750;
+    const minX = -0.25;
+    const maxX = 0.25;
+
+    const normalized = (sliderValue - minMM) / (maxMM - minMM);
+    const mappedX = minX + normalized * (maxX - minX);
+
+    // Handle mirrored parts
+    const mid1Parts = moduleParts.filter((mesh) => {
+      const name = mesh.name.toLowerCase();
+      return (
+        name === "top_mid1" ||
+        name === "bottom_mid1" 
+      );
+    });
+
+    const mid3Parts = moduleParts.filter((mesh) => {
+    const name = mesh.name.toLowerCase();
+    return name === "top_mid2" || name === "bottom_mid2";
+    });
+
+    mid1Parts.forEach((part) => {
+      part.position.x = mappedX;
+    });
+
+    mid3Parts.forEach((part) => {
+    part.position.x = -mappedX;
+    });
+
+    if (typeof onPositionChange === "function") {
+      onPositionChange(sliderValue);
+    }
+
+    console.log(`Mid parts moved to X: ${mappedX} & ${-mappedX}`);
+  });
+}
+
+export function modelVerticalBeamPositioningManual(sliderValue) {
+  const minMM = 250;
+  const maxMM = 750;
+  const minX = -0.10;
+  const maxX = 0.10;
+
+  const normalized = (sliderValue - minMM) / (maxMM - minMM);
+  const mappedX = minX + normalized * (maxX - minX);
+
+  const mid1Parts = moduleParts.filter((mesh) => {
+    const name = mesh.name.toLowerCase();
+    return (
+      name === "top_mid1" ||
+      name === "bottom_mid1"
+      
+    );
+  });
+
+  const mid3Parts = moduleParts.filter((mesh) => {
+    const name = mesh.name.toLowerCase();
+    return name === "top_mid2" || name === "bottom_mid2";
+  });
+
+  mid1Parts.forEach((part) => {
+    part.position.x = mappedX;
+  });
+
+  mid3Parts.forEach((part) => {
+    part.position.x = -mappedX;
+  });
+
+  console.log(`Mid parts moved to X: ${mappedX} & ${-mappedX}`);
+}
