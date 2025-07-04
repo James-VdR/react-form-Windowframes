@@ -203,11 +203,7 @@ export function model2VerticalBeamPositioningManual(sliderValue) {
 
   const mid1Parts = moduleParts.filter((mesh) => {
     const name = mesh.name.toLowerCase();
-    return (
-      name === "top_mid1" ||
-      name === "bottom_mid1"
-      
-    );
+    return name === "top_mid1" || name === "bottom_mid1";
   });
 
   const mid2Parts = moduleParts.filter((mesh) => {
@@ -223,8 +219,20 @@ export function model2VerticalBeamPositioningManual(sliderValue) {
     part.position.x = -mappedX;
   });
 
+  
+  const horizBar1 = moduleParts.find((mesh) => mesh.name.toLowerCase() === "horiz_beam1");
+
+  if (horizBar1) {
+    const baseScaleX = 1.0; // You can adjust this base scale if needed
+    const dynamicScaleX = baseScaleX + mappedX * 2; // Multiply to make the effect more noticeable if needed
+    horizBar1.scale.z = dynamicScaleX;
+
+    console.log(`horiz_bar1 scale.x updated to: ${dynamicScaleX}`);
+  }
+
   console.log(`Mid parts moved to X: ${mappedX} & ${-mappedX}`);
 }
+
 
 
 export function model4VerticalBeamPositioning(sliderElement, onPositionChange) {

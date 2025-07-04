@@ -66,7 +66,7 @@ function App() {
   const [horizontalBeamValue, setHorizontalBeamValue] = useState(750);
   const [horizontalBeamMax, setHorizontalBeamMax] = useState(750);
   const [verticalBeamSliderValue, setVerticalBeamSliderValue] = useState(500); // default 500
-
+  const [verticalBeamMax, setVerticalBeamMax] = useState(600); // 600 is initial max for 1000MM width
 
   const [materialsLoaded, setMaterialsLoaded] = useState(false);
   const [colorOptions, setColorOptions] = useState([]);
@@ -194,11 +194,28 @@ function App() {
 }
 
 
+widthScaling(widthSliderRef.current, (newWidth) => {
+  setWidthScaleValue(newWidth);
 
-      if (widthSliderRef.current) {
-        widthScaling(widthSliderRef.current, setWidthScaleValue);
-        setWidthScaleValue(parseFloat(widthSliderRef.current.value));
-      }
+  // Generic dynamic vertical max adjustment, applies to all models
+  const minWidth = 500;
+  const baseVerticalMax = 600; // Max at 1000 width
+  const dynamicVerticalMax = baseVerticalMax + (newWidth - 1000); 
+
+  setVerticalBeamMax(dynamicVerticalMax);
+
+  setVerticalBeamSliderValue((prevValue) => {
+    const clamped = Math.min(prevValue, dynamicVerticalMax);
+
+    // Use the correct positioning function if available
+    if (verticalBeamPositioningFunctions[selectedModel]) {
+      verticalBeamPositioningFunctions[selectedModel](clamped);
+    }
+
+    return clamped;
+  });
+});
+
 
       detectVerticalBeams(window.scene);
       const beams = getVerticalBeams();
@@ -363,7 +380,7 @@ function App() {
     <input
       type="range"
       min="400"
-      max="600"
+      max={verticalBeamMax}
       value={verticalBeamSliderValue}
       onInput={(e) => {
         const newValue = parseFloat(e.target.value);
@@ -371,9 +388,10 @@ function App() {
         verticalBeamPositioningFunctions[selectedModel](newValue);
       }}
     />
-    <p>Vertical Beam position: {(verticalBeamSliderValue)}mm</p>
+    <p>Vertical Beam position: {verticalBeamSliderValue}mm</p>
   </div>
 )}
+
 
 
 
