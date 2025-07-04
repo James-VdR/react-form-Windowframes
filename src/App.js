@@ -16,7 +16,7 @@ import {
   detectVerticalBeams,
   getVerticalBeams,
 } from "./Scene";
-import { heightScaling, widthScaling,horizontalBeamPositioning,horizontalBeamPositioningManual } from "./ScalingLogic";
+import { heightScaling, widthScaling,horizontalBeamPositioning,horizontalBeamPositioningManual,model4VerticalBeamPositioning,model4VerticalBeamPositioningManual } from "./ScalingLogic";
 
 const variantsWithHorizontalBeam = new Set([
   "model_1_variant2",
@@ -40,6 +40,14 @@ const variantsWithVerticalBeam = new Set([
   "model_3_variant3",
   "model_4_variant1",
 ]);
+
+const verticalBeamPositioningFunctions = {
+  model_4_variant1: model4VerticalBeamPositioningManual,
+  // In the future, add more models here:
+  // model_2_variant1: model2VerticalBeamPositioningManual,
+  // model_3_variant2: model3VerticalBeamPositioningManual,
+};
+
 
 function App() {
   const mountRef = useRef(null);
@@ -341,21 +349,24 @@ function App() {
 )}
 
 
-      {variantsWithVerticalBeam.has(selectedModel) && (
-        <div className="verticalBeamSlider">
-          <p>Beam</p>
-          <input
-            type="range"
-            min="0"
-            max="1500"
-            defaultValue="500"
-            
-          />
-          <p id="widthScaleValue">
-            Vertical Beam position: {(0)}mm
-          </p>
-        </div> 
-      )}
+{verticalBeamPositioningFunctions[selectedModel] && (
+  <div className="verticalBeamSlider">
+    <p>Vertical Beam</p>
+    <input
+      type="range"
+      min="250"
+      max="750"
+      defaultValue="500"
+      onInput={(e) => {
+        const newValue = parseFloat(e.target.value);
+        verticalBeamPositioningFunctions[selectedModel](newValue);
+      }}
+    />
+    <p>Vertical Beam position:</p>
+  </div>
+)}
+
+
         {materialsLoaded ? (
           <ColorSelectorGroup
             title="Frame Color"

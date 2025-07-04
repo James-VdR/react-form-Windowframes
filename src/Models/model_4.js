@@ -1,7 +1,6 @@
 import { verticalParts, horizontalParts, glassParts, moduleParts} from "../Scene";
 
 
-
 export function applyModel4Scaling() {
 
     const targetHeight = 1000;
@@ -38,31 +37,32 @@ export function applyModel4Scaling() {
 
     const rightFrame = verticalParts.find(
     (mesh) => mesh.name.toLowerCase() === 'right_frame'
-);
+    );
 
-if (rightFrame){
-    const minWidth = 500;
-    const maxWidth = 2000;
-    const normalizedValue = (targetWidth - minWidth) / (maxWidth - minWidth);
-    rightFrame.position.x = normalizedValue * 1.5;
-}
-
-  glassParts.forEach((mesh) => {
-    mesh.scale.z = scaleZ;
-  });
-}
-
- const partsToRemove = moduleParts.filter((mesh) => {
-    const name = mesh.name.toLowerCase();
-    return   name === 'horiz_beam4' || name === 'horiz_beam3' || name === 'horiz_beam2' || name === 'horiz_beam1';
-  });
-
-  partsToRemove.forEach((mesh) => {
-    if (mesh.parent) {
-      mesh.parent.remove(mesh);
+    if (rightFrame){
+        const minWidth = 500;
+        const maxWidth = 2000;
+        const normalizedValue = (targetWidth - minWidth) / (maxWidth - minWidth);
+        rightFrame.position.x = normalizedValue * 1.5;
     }
-    const index = moduleParts.indexOf(mesh);
-    if (index > -1) {
-      moduleParts.splice(index, 1);
-    }
-});
+
+    glassParts.forEach((mesh) => {
+        mesh.scale.z = scaleZ;
+    });
+
+    
+    const partsToRemove = moduleParts.filter((mesh) => {
+      const name = mesh.name.toLowerCase();
+      return   name === 'horiz_beam4' || name === 'horiz_beam3' || name === 'horiz_beam2' || name === 'horiz_beam1';
+    });
+
+    partsToRemove.forEach((mesh) => {
+      if (mesh.parent) {
+        mesh.parent.remove(mesh);
+      }
+      const index = moduleParts.indexOf(mesh);
+      if (index > -1) {
+        moduleParts.splice(index, 1);
+      }
+    });
+}
