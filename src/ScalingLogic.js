@@ -44,6 +44,16 @@ export function heightScaling(heightSliderElement, onScaleChange, onBeamMaxChang
       mesh.position.y = (-0.15 * scaleY) / 2;
     });
 
+    //Dynamically scale top_mid1, top_mid2, top_mid3 if they exist
+    const dynamicMidParts = moduleParts.filter((mesh) => {
+      const name = mesh.name.toLowerCase();
+      return name === "bottom_mid1" || name === "bottom_mid2" || name === "bottom_mid3";
+    });
+
+    dynamicMidParts.forEach((part) => {
+      part.scale.y = scaleY * 2;
+    });
+
     if (typeof onScaleChange === "function") {
       onScaleChange(newHeight);
     }
@@ -54,6 +64,7 @@ export function heightScaling(heightSliderElement, onScaleChange, onBeamMaxChang
     }
   });
 }
+
 
 
 export function widthScaling(widthSliderElement, onScaleChange) {
