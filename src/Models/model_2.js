@@ -126,6 +126,13 @@ export function applyModel2_2Scaling() {
     mesh.scale.z = scaleZ;
   });
 
+const midPart = moduleParts.find((mesh) =>{
+  const name = mesh.name.toLowerCase();
+  return name === 'bottom_mid1'
+});
+if(midPart){
+midPart.scale.y += 0.5;
+}
 
 const partsToRemove = moduleParts.filter((mesh) => {
     const name = mesh.name.toLowerCase();

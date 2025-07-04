@@ -192,7 +192,7 @@ export function applyModel3_3Scaling(){
   });
   const partsToRemove = moduleParts.filter((mesh) => {
     const name = mesh.name.toLowerCase();
-    return name === 'rtm' || name === 'rbm' || name === 'horiz_beam4';
+    return name === 'top_mid3' || name === 'bottom_mid3' || name === 'horiz_beam4';
   });
 
   partsToRemove.forEach((mesh) => {

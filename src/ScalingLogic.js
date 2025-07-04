@@ -19,13 +19,13 @@ export function Scaling(sliderElement, onScaleChange) {
 
 
 
-export function heightScaling(heightSliderElement, onScaleChange) {
+export function heightScaling(heightSliderElement, onScaleChange, onBeamMaxChange) {
   heightSliderElement.addEventListener("input", (event) => {
     const newHeight = parseFloat(event.target.value);
     const minHeight = 1000;
-    const maxHeight = 2000;
     const baseHeight = 2000;
-    
+    const baseBeamMax = 750;
+
     const scaleY = newHeight / baseHeight;
 
     verticalParts.forEach((mesh) => (mesh.scale.y = scaleY));
@@ -33,24 +33,24 @@ export function heightScaling(heightSliderElement, onScaleChange) {
     const topFrame = horizontalParts.find(
       (mesh) => mesh.name.toLowerCase() === "top_frame"
     );
-    
-    if (topFrame) {
-      // Normalize slider value between 0 and 1
-      const normalizedValue = (newHeight - minHeight) / (maxHeight - minHeight);
-      topFrame.position.y = normalizedValue;
 
-      console.log(`Top frame Y position: ${topFrame.position.y}`);
+    if (topFrame) {
+      const normalizedValue = (newHeight - minHeight) / (baseHeight - minHeight);
+      topFrame.position.y = normalizedValue;
     }
 
     glassParts.forEach((mesh) => {
-  mesh.scale.y = scaleY * 1.1;
-  mesh.position.y = (-0.15 * scaleY) / 2; // Adjust "1.0" to your actual model's glass height
-});
-
-
+      mesh.scale.y = scaleY * 1.1;
+      mesh.position.y = (-0.15 * scaleY) / 2;
+    });
 
     if (typeof onScaleChange === "function") {
       onScaleChange(newHeight);
+    }
+
+    if (typeof onBeamMaxChange === "function") {
+      const dynamicBeamMax = baseBeamMax + (newHeight - minHeight);
+      onBeamMaxChange(dynamicBeamMax);
     }
   });
 }
@@ -100,22 +100,53 @@ export function horizontalBeamPositioning(sliderElement, onPositionChange) {
     const minY = -0.5;
     const maxY = 1.0;
 
-    // Normalize to 0-1
     const normalized = (sliderValue - minMM) / (maxMM - minMM);
-    // Map to -0.5 to 1.0
     const positionY = minY + normalized * (maxY - minY);
 
-    const horizBeam = moduleParts.find(
-      (mesh) => mesh.name.toLowerCase() === "horiz_beam1"
-    );
+    const horizBeams = moduleParts.filter((mesh) => {
+      const name = mesh.name.toLowerCase();
+      return (
+        name === "horiz_beam1" ||
+        name === "horiz_beam2" ||
+        name === "horiz_beam3" ||
+        name === "horiz_beam4"
+      );
+    });
 
-    if (horizBeam) {
-      horizBeam.position.y = positionY;
-      console.log(`Beam Y position: ${positionY}`);
-    }
+    horizBeams.forEach((beam) => {
+      beam.position.y = positionY;
+    });
+
+    console.log(`Beam(s) Y position updated to: ${positionY}`);
 
     if (typeof onPositionChange === "function") {
-      onPositionChange(sliderValue); // Pass raw mm value to update UI
+      onPositionChange(sliderValue);
     }
   });
+}
+
+export function horizontalBeamPositioningManual(sliderValue) {
+  const minMM = 250;
+  const maxMM = 1750;
+  const minY = -0.5;
+  const maxY = 1.0;
+
+  const normalized = (sliderValue - minMM) / (maxMM - minMM);
+  const positionY = minY + normalized * (maxY - minY);
+
+  const horizBeams = moduleParts.filter((mesh) => {
+    const name = mesh.name.toLowerCase();
+    return (
+      name === "horiz_beam1" ||
+      name === "horiz_beam2" ||
+      name === "horiz_beam3" ||
+      name === "horiz_beam4"
+    );
+  });
+
+  horizBeams.forEach((beam) => {
+    beam.position.y = positionY;
+  });
+
+  console.log(`Beam(s) Y position updated to: ${positionY}`);
 }

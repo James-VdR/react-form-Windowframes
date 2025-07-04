@@ -1,4 +1,4 @@
-import { verticalParts, horizontalParts, glassParts, } from "../Scene";
+import { verticalParts, horizontalParts, glassParts, moduleParts} from "../Scene";
 
 
 
@@ -51,3 +51,18 @@ if (rightFrame){
     mesh.scale.z = scaleZ;
   });
 }
+
+ const partsToRemove = moduleParts.filter((mesh) => {
+    const name = mesh.name.toLowerCase();
+    return   name === 'horiz_beam4' || name === 'horiz_beam3' || name === 'horiz_beam2' || name === 'horiz_beam1';
+  });
+
+  partsToRemove.forEach((mesh) => {
+    if (mesh.parent) {
+      mesh.parent.remove(mesh);
+    }
+    const index = moduleParts.indexOf(mesh);
+    if (index > -1) {
+      moduleParts.splice(index, 1);
+    }
+});

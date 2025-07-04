@@ -6,7 +6,7 @@ import {
   resetMaterials,
 } from "./MaterialLibrary.js";
 import { ColorSelectorGroup } from "./ColorSelectorGroup.js";
-import logo from "./Images/reuzenpandalogo.jpg";
+
 import {
   initThree,
   applyMaterialToMainFrame,
@@ -16,7 +16,7 @@ import {
   detectVerticalBeams,
   getVerticalBeams,
 } from "./Scene";
-import { heightScaling, widthScaling,horizontalBeamPositioning } from "./ScalingLogic";
+import { heightScaling, widthScaling,horizontalBeamPositioning,horizontalBeamPositioningManual } from "./ScalingLogic";
 
 const variantsWithHorizontalBeam = new Set([
   "model_1_variant2",
@@ -50,6 +50,7 @@ function App() {
   const [heightScaleValue, setHeightScaleValue] = useState(1);
   const [widthScaleValue, setWidthScaleValue] = useState(5);
   const [horizontalBeamValue, setHorizontalBeamValue] = useState(750);
+  const [horizontalBeamMax, setHorizontalBeamMax] = useState(750);
 
   const [materialsLoaded, setMaterialsLoaded] = useState(false);
   const [colorOptions, setColorOptions] = useState([]);
@@ -59,7 +60,7 @@ function App() {
   const [selectedModel, setSelectedModel] = useState(null); // Final variant used for loading
 
   //this has to do with vertical beam
-  const [verticalBeamPositions, setVerticalBeamPositions] = useState([]);
+  const [,setVerticalBeamPositions] = useState([]);
 
   // Load material library ONCE when component mounts
   useEffect(() => {
@@ -155,10 +156,29 @@ function App() {
       }
 
       // Repeat for other models...
-      if (heightSliderRef.current) {
-        heightScaling(heightSliderRef.current, setHeightScaleValue);
-        setHeightScaleValue(parseFloat(heightSliderRef.current.value));
-      }
+  if (heightSliderRef.current) {
+  heightScaling(
+    heightSliderRef.current,
+    setHeightScaleValue,
+    (dynamicBeamMax) => {
+      setHorizontalBeamMax(dynamicBeamMax);
+
+      setHorizontalBeamValue((prevValue) => {
+        const newValue = prevValue > dynamicBeamMax ? dynamicBeamMax : prevValue;
+
+        // Update actual beam position to reflect the clamped value
+        horizontalBeamPositioningManual(newValue);
+
+        return newValue;
+      });
+    }
+  );
+
+  setHeightScaleValue(parseFloat(heightSliderRef.current.value));
+}
+
+
+
       if (widthSliderRef.current) {
         widthScaling(widthSliderRef.current, setWidthScaleValue);
         setWidthScaleValue(parseFloat(widthSliderRef.current.value));
@@ -266,7 +286,7 @@ function App() {
   return (
     <div className="container">
       <div className="sidebar">
-        <img src={logo} alt="Logo" className="bottom-image" />
+      
         <h1>{selectedModel.replace("_", " ").toUpperCase()}</h1>
         <button
           onClick={() => {
@@ -307,13 +327,19 @@ function App() {
     <input
       type="range"
       min="250"
-      max="1750"
-      defaultValue="750"
+      max={horizontalBeamMax}
+      value={horizontalBeamValue}
+      onChange={(e) => {
+        const newValue = parseFloat(e.target.value);
+        setHorizontalBeamValue(newValue);
+        // Optionally call your positioning logic here
+      }}
       ref={horizontalBeamSliderRef}
     />
     <p>horizontal Beam position: {horizontalBeamValue.toFixed(0)}mm</p>
   </div>
 )}
+
 
       {variantsWithVerticalBeam.has(selectedModel) && (
         <div className="verticalBeamSlider">
