@@ -151,6 +151,82 @@ export function horizontalBeamPositioningManual(sliderValue) {
   console.log(`Beam(s) Y position updated to: ${positionY}`);
 }
 
+export function model2VerticalBeamPositioning(sliderElement, onPositionChange) {
+  sliderElement.addEventListener("input", (event) => {
+    const sliderValue = parseFloat(event.target.value); // 250 - 750
+    const minMM = 250;
+    const maxMM = 750;
+    const minX = -0.25;
+    const maxX = 0.25;
+
+    const normalized = (sliderValue - minMM) / (maxMM - minMM);
+    const mappedX = minX + normalized * (maxX - minX);
+
+    // Handle mirrored parts
+    const mid1Parts = moduleParts.filter((mesh) => {
+      const name = mesh.name.toLowerCase();
+      return (
+        name === "top_mid1" ||
+        name === "bottom_mid1" 
+      );
+    });
+
+    const mid2Parts = moduleParts.filter((mesh) => {
+    const name = mesh.name.toLowerCase();
+    return name === "top_mid2" || name === "bottom_mid2";
+    });
+
+    mid1Parts.forEach((part) => {
+      part.position.x = mappedX;
+    });
+
+    mid2Parts.forEach((part) => {
+    part.position.x = -mappedX;
+    });
+
+    if (typeof onPositionChange === "function") {
+      onPositionChange(sliderValue);
+    }
+
+    console.log(`Mid parts moved to X: ${mappedX} & ${-mappedX}`);
+  });
+}
+
+export function model2VerticalBeamPositioningManual(sliderValue) {
+  const minMM = 400;
+  const maxMM = 600;
+  const minX = -0.10;
+  const maxX = 0.10;
+
+  const normalized = (sliderValue - minMM) / (maxMM - minMM);
+  const mappedX = minX + normalized * (maxX - minX);
+
+  const mid1Parts = moduleParts.filter((mesh) => {
+    const name = mesh.name.toLowerCase();
+    return (
+      name === "top_mid1" ||
+      name === "bottom_mid1"
+      
+    );
+  });
+
+  const mid2Parts = moduleParts.filter((mesh) => {
+    const name = mesh.name.toLowerCase();
+    return name === "top_mid2" || name === "bottom_mid2";
+  });
+
+  mid1Parts.forEach((part) => {
+    part.position.x = mappedX;
+  });
+
+  mid2Parts.forEach((part) => {
+    part.position.x = -mappedX;
+  });
+
+  console.log(`Mid parts moved to X: ${mappedX} & ${-mappedX}`);
+}
+
+
 export function model4VerticalBeamPositioning(sliderElement, onPositionChange) {
   sliderElement.addEventListener("input", (event) => {
     const sliderValue = parseFloat(event.target.value); // 250 - 750
@@ -247,7 +323,7 @@ export function modelVerticalBeamPositioning(sliderElement, onPositionChange) {
       );
     });
 
-    const mid3Parts = moduleParts.filter((mesh) => {
+    const mid2Parts = moduleParts.filter((mesh) => {
     const name = mesh.name.toLowerCase();
     return name === "top_mid2" || name === "bottom_mid2";
     });
@@ -256,7 +332,7 @@ export function modelVerticalBeamPositioning(sliderElement, onPositionChange) {
       part.position.x = mappedX;
     });
 
-    mid3Parts.forEach((part) => {
+    mid2Parts.forEach((part) => {
     part.position.x = -mappedX;
     });
 
@@ -286,7 +362,7 @@ export function modelVerticalBeamPositioningManual(sliderValue) {
     );
   });
 
-  const mid3Parts = moduleParts.filter((mesh) => {
+  const mid2Parts = moduleParts.filter((mesh) => {
     const name = mesh.name.toLowerCase();
     return name === "top_mid2" || name === "bottom_mid2";
   });
@@ -295,9 +371,10 @@ export function modelVerticalBeamPositioningManual(sliderValue) {
     part.position.x = mappedX;
   });
 
-  mid3Parts.forEach((part) => {
+  mid2Parts.forEach((part) => {
     part.position.x = -mappedX;
   });
 
   console.log(`Mid parts moved to X: ${mappedX} & ${-mappedX}`);
 }
+

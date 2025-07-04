@@ -16,7 +16,17 @@ import {
   detectVerticalBeams,
   getVerticalBeams,
 } from "./Scene";
-import { heightScaling, widthScaling,horizontalBeamPositioning,horizontalBeamPositioningManual,model4VerticalBeamPositioning,model4VerticalBeamPositioningManual,modelVerticalBeamPositioning,modelVerticalBeamPositioningManual } from "./ScalingLogic";
+import { 
+  heightScaling, 
+  widthScaling,
+  horizontalBeamPositioning,
+  horizontalBeamPositioningManual,
+  modelVerticalBeamPositioning,
+  modelVerticalBeamPositioningManual,
+  model2VerticalBeamPositioningManual,
+  model2VerticalBeamPositioning,
+  model4VerticalBeamPositioning,
+  model4VerticalBeamPositioningManual, } from "./ScalingLogic";
 
 const variantsWithHorizontalBeam = new Set([
   "model_1_variant2",
@@ -29,25 +39,15 @@ const variantsWithHorizontalBeam = new Set([
   "model_4_variant1",
 ]);
 
-const variantsWithVerticalBeam = new Set([
-  "model_2_variant1",
-  "model_2_variant2",
-  "model_2_variant3",
-  "model_2_variant4",
-  "model_2_variant5",
-  "model_3_variant1",
-  "model_3_variant2",
-  "model_3_variant3",
-  "model_4_variant1",
-]);
+
 
 const verticalBeamPositioningFunctions = {
 
-model_2_variant1:modelVerticalBeamPositioningManual,
-model_2_variant2:modelVerticalBeamPositioningManual,
-model_2_variant3:modelVerticalBeamPositioningManual,
-model_2_variant4:modelVerticalBeamPositioningManual,
-model_2_variant5:modelVerticalBeamPositioningManual,
+model_2_variant1:model2VerticalBeamPositioningManual,
+model_2_variant2:model2VerticalBeamPositioningManual,
+model_2_variant3:model2VerticalBeamPositioningManual,
+model_2_variant4:model2VerticalBeamPositioningManual,
+model_2_variant5:model2VerticalBeamPositioningManual,
 model_3_variant1:modelVerticalBeamPositioningManual,
 model_3_variant2:modelVerticalBeamPositioningManual,
 model_3_variant3:modelVerticalBeamPositioningManual,
@@ -65,6 +65,8 @@ function App() {
   const [widthScaleValue, setWidthScaleValue] = useState(5);
   const [horizontalBeamValue, setHorizontalBeamValue] = useState(750);
   const [horizontalBeamMax, setHorizontalBeamMax] = useState(750);
+  const [verticalBeamSliderValue, setVerticalBeamSliderValue] = useState(500); // default 500
+
 
   const [materialsLoaded, setMaterialsLoaded] = useState(false);
   const [colorOptions, setColorOptions] = useState([]);
@@ -360,17 +362,19 @@ function App() {
     <p>Vertical Beam</p>
     <input
       type="range"
-      min="250"
-      max="750"
-      defaultValue="500"
+      min="400"
+      max="600"
+      value={verticalBeamSliderValue}
       onInput={(e) => {
         const newValue = parseFloat(e.target.value);
+        setVerticalBeamSliderValue(newValue);
         verticalBeamPositioningFunctions[selectedModel](newValue);
       }}
     />
-    <p>Vertical Beam position:</p>
+    <p>Vertical Beam position: {(verticalBeamSliderValue)}mm</p>
   </div>
 )}
+
 
 
         {materialsLoaded ? (
