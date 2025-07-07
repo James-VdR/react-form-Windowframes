@@ -87,15 +87,21 @@ function App() {
 
   setVerticalBeamMax(dynamicVerticalMax);
 
-  setVerticalBeamSliderValue((prevValue) => {
-    const clamped = Math.min(prevValue, dynamicVerticalMax);
+setVerticalBeamSliderValue((prevValue) => {
+  const clamped = Math.min(prevValue, dynamicVerticalMax);
 
-    if (verticalBeamPositioningFunctions[selectedModel]) {
+  if (verticalBeamPositioningFunctions[selectedModel]) {
+    // Pass current width for models that require it
+    if (selectedModel.startsWith("model_2")) {
+      verticalBeamPositioningFunctions[selectedModel](clamped, newWidth);
+    } else {
       verticalBeamPositioningFunctions[selectedModel](clamped);
     }
+  }
 
-    return clamped;
-  });
+  return clamped;
+});
+
 };
 
 
@@ -230,16 +236,21 @@ widthScaling(widthSliderRef.current, (newWidth) => {
 
   setVerticalBeamMax(dynamicVerticalMax);
 
-  setVerticalBeamSliderValue((prevValue) => {
-    const clamped = Math.min(prevValue, dynamicVerticalMax);
+setVerticalBeamSliderValue((prevValue) => {
+  const clamped = Math.min(prevValue, dynamicVerticalMax);
 
-    // Use the correct positioning function if available
-    if (verticalBeamPositioningFunctions[selectedModel]) {
+  if (verticalBeamPositioningFunctions[selectedModel]) {
+    // Pass current width for models that require it
+    if (selectedModel.startsWith("model_2")) {
+      verticalBeamPositioningFunctions[selectedModel](clamped, newWidth);
+    } else {
       verticalBeamPositioningFunctions[selectedModel](clamped);
     }
+  }
 
-    return clamped;
-  });
+  return clamped;
+});
+
 });
 
 
@@ -403,17 +414,25 @@ widthScaling(widthSliderRef.current, (newWidth) => {
 {verticalBeamPositioningFunctions[selectedModel] && (
   <div className="verticalBeamSlider">
     <p>Vertical Beam</p>
-    <input
-      type="range"
-      min="400"
-      max={verticalBeamMax}
-      value={verticalBeamSliderValue}
-      onInput={(e) => {
-        const newValue = parseFloat(e.target.value);
-        setVerticalBeamSliderValue(newValue);
+<input
+  type="range"
+  min="400"
+  max={verticalBeamMax}
+  value={verticalBeamSliderValue}
+  onInput={(e) => {
+    const newValue = parseFloat(e.target.value);
+    setVerticalBeamSliderValue(newValue);
+
+    if (verticalBeamPositioningFunctions[selectedModel]) {
+      if (selectedModel.startsWith("model_2")) {
+        verticalBeamPositioningFunctions[selectedModel](newValue, widthScaleValue);
+      } else {
         verticalBeamPositioningFunctions[selectedModel](newValue);
-      }}
-    />
+      }
+    }
+  }}
+/>
+
     <p>Vertical Beam position: {verticalBeamSliderValue}mm</p>
   </div>
 )}

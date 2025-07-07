@@ -1,5 +1,8 @@
 import { model, horizontalParts, verticalParts,glassParts,moduleParts } from "./Scene.js";
 
+let previousVerticalSliderValue = 500; // Default starting point, same as slider default
+
+
 //this is uniform scaling only
 export function Scaling(sliderElement, onScaleChange) {
   sliderElement.addEventListener("input", (event) => {
@@ -203,7 +206,7 @@ export function model2VerticalBeamPositioning(sliderElement, onPositionChange) {
   });
 }
 
-export function model2VerticalBeamPositioningManual(sliderValue) {
+export function model2VerticalBeamPositioningManual(sliderValue, currentWidthMM = 1000) {
   const minMM = 400;
   const maxMM = 600;
   const minX = -0.10;
@@ -230,15 +233,26 @@ export function model2VerticalBeamPositioningManual(sliderValue) {
     part.position.x = -mappedX;
   });
 
-  
+  // Existing horiz_beam1 logic
   const horizBar1 = moduleParts.find((mesh) => mesh.name.toLowerCase() === "horiz_beam1");
 
   if (horizBar1) {
-    const baseScaleX = 1.0; // You can adjust this base scale if needed
-    const dynamicScaleX = baseScaleX + mappedX * 2; // Multiply to make the effect more noticeable if needed
+    const baseScaleX = 1.0;
+    const dynamicScaleX = baseScaleX + mappedX * 2;
     horizBar1.scale.z = dynamicScaleX;
 
-    console.log(`horiz_bar1 scale.x updated to: ${dynamicScaleX}`);
+    console.log(`horiz_bar1 scale.z updated to: ${dynamicScaleX}`);
+  }
+
+  // New horiz_beam2 logic (assuming horiz_beam2 is correct)
+  const horizBeam2 = moduleParts.find((mesh) => mesh.name.toLowerCase() === "horiz_beam2");
+
+  if (horizBeam2) {
+    const widthGain = currentWidthMM - 1000; // MM gained or lost relative to 1000 base
+    horizBeam2.scale.z = 1.0 + (widthGain * 0.002);
+    horizBeam2.position.x = 0 - (widthGain * 0.001);
+
+    console.log(`horiz_beam2 scale.z updated to: ${horizBeam2.scale.z}, position.x: ${horizBeam2.position.x}`);
   }
 
   console.log(`Mid parts moved to X: ${mappedX} & ${-mappedX}`);
