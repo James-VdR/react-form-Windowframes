@@ -397,3 +397,47 @@ export function modelVerticalBeamPositioningManual(sliderValue) {
   console.log(`Mid parts moved to X: ${mappedX} & ${-mappedX}`);
 }
 
+export function model_1_variant2WidthScaling(widthSliderElement, applyBeamScaling, onScaleChange) {
+  widthSliderElement.addEventListener("input", (event) => {
+    const newWidth = parseFloat(event.target.value);
+    const minWidth = 500;
+    const maxWidth = 2000;
+    const baseWidth = 2000;
+    
+    const scaleZ = newWidth / baseWidth;
+
+    horizontalParts.forEach((mesh) => (mesh.scale.z = scaleZ));
+
+    const rightFrame = verticalParts.find(
+      (mesh) => mesh.name.toLowerCase() === "right_frame"
+    );
+
+    if (rightFrame) {
+      const normalizedValue = (newWidth - minWidth) / (maxWidth - minWidth);
+      rightFrame.position.x = normalizedValue * 1.5;
+    }
+
+    glassParts.forEach((mesh) => {
+      mesh.scale.z = scaleZ;
+    });
+
+    if (applyBeamScaling) {
+      const horizBeam1 = moduleParts.find(
+        (mesh) => mesh.name.toLowerCase() === "horiz_beam1"
+      );
+
+      if (horizBeam1) {
+        const minScale = 1.0;
+        const maxScale = 4.0;
+        const normalizedValue = (newWidth - minWidth) / (maxWidth - minWidth);
+        horizBeam1.scale.z = minScale + normalizedValue * (maxScale - minScale);
+
+        console.log(`horiz_beam1 Z scale: ${horizBeam1.scale.z}`);
+      }
+    }
+
+    if (typeof onScaleChange === "function") {
+      onScaleChange(newWidth);
+    }
+  });
+}
