@@ -6,7 +6,7 @@ import {
   resetMaterials,
 } from "./MaterialLibrary.js";
 import { ColorSelectorGroup } from "./ColorSelectorGroup.js";
-import logo from "./Images/reuzenpandalogo.jpg";
+
 import {
   initThree,
   applyMaterialToMainFrame,
@@ -81,11 +81,23 @@ function App() {
           if (selectedModel.endsWith("variant1")) {
             module.applyModel1_1Scaling();
           } else {
-            module.applyModel1_2Scaling(); // Assume you add this
+           const widthValue = parseFloat(widthSliderRef.current?.value || 500);
+           const heightValue = parseFloat(heightSliderRef.current?.value || 1000);
+           module.applyModel1_2Scaling(widthValue, heightValue);
+
+
           }
           resetMaterials();
           if (heightSliderRef.current) heightSliderRef.current.value = 1000;
-          if (widthSliderRef.current) widthSliderRef.current.value = 500;
+          if (widthSliderRef.current) {
+ widthSliderRef.current.addEventListener("input", () => {
+  const updatedWidth = parseFloat(widthSliderRef.current.value);
+  const currentHeight = parseFloat(heightSliderRef.current?.value || 1000);
+  module.applyModel1_2Scaling(updatedWidth, currentHeight);
+  setWidthScaleValue(updatedWidth);
+});
+}
+
           setHeightScaleValue(1000);
           setWidthScaleValue(500);
         });
@@ -266,7 +278,7 @@ function App() {
   return (
     <div className="container">
       <div className="sidebar">
-        <img src={logo} alt="Logo" className="bottom-image" />
+      
         <h1>{selectedModel.replace("_", " ").toUpperCase()}</h1>
         <button
           onClick={() => {
