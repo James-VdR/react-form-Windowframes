@@ -245,15 +245,25 @@ export function model2VerticalBeamPositioningManual(sliderValue, currentWidthMM 
   }
 
   // New horiz_beam2 logic (assuming horiz_beam2 is correct)
-  const horizBeam2 = moduleParts.find((mesh) => mesh.name.toLowerCase() === "horiz_beam2");
+ const horizBeam2 = moduleParts.find((mesh) => mesh.name.toLowerCase() === "horiz_beam2");
 
-  if (horizBeam2) {
-    const widthGain = currentWidthMM - 1000; // MM gained or lost relative to 1000 base
-    horizBeam2.scale.z = 1.0 + (widthGain * 0.002);
-    horizBeam2.position.x = 0 - (widthGain * 0.001);
+if (horizBeam2) {
+  const widthGain = currentWidthMM - 1000; // width-based effect (keep this)
+  const widthScale = 1.0 + (widthGain * 0.002);
+  const widthOffset = 0 - (widthGain * 0.001);
 
-    console.log(`horiz_beam2 scale.z updated to: ${horizBeam2.scale.z}, position.x: ${horizBeam2.position.x}`);
-  }
+  // NEW: vertical beam influence
+  const verticalBeamOffsetMM = sliderValue - 500; // relative to center
+  const verticalOffset = verticalBeamOffsetMM * 0.002; // position shift
+  const verticalScaleReduction = verticalBeamOffsetMM * 0.002; // scale reduction
+
+  // Final values
+  horizBeam2.scale.z = widthScale - verticalScaleReduction;
+  horizBeam2.position.x = widthOffset + verticalOffset;
+
+  console.log(`horiz_beam2 scale.z = ${horizBeam2.scale.z}, position.x = ${horizBeam2.position.x}`);
+}
+
 
   console.log(`Mid parts moved to X: ${mappedX} & ${-mappedX}`);
 }
@@ -435,6 +445,7 @@ export function model_1_variant2WidthScaling(widthSliderElement, applyBeamScalin
       mesh.scale.z = scaleZ;
     });
 
+
     if (applyBeamScaling) {
       const horizBeam1 = moduleParts.find(
         (mesh) => mesh.name.toLowerCase() === "horiz_beam1"
@@ -445,7 +456,6 @@ export function model_1_variant2WidthScaling(widthSliderElement, applyBeamScalin
         const maxScale = 4.0;
         const normalizedValue = (newWidth - minWidth) / (maxWidth - minWidth);
         horizBeam1.scale.z = minScale + normalizedValue * (maxScale - minScale);
-
         console.log(`horiz_beam1 Z scale: ${horizBeam1.scale.z}`);
       }
     }
