@@ -20,7 +20,8 @@ import {
   heightScaling, 
   widthScaling,
   horizontalBeamPositioning,
-  horizontalBeamPositioningManual,
+  defaultHorizontalBeamPositioningManual,
+  model_2_variant2BeamPositioningManual,
   modelVerticalBeamPositioning,
   model3_1VerticalBeamPositioningManual,
   model3_2VerticalBeamPositioningManual,
@@ -223,7 +224,12 @@ setVerticalBeamSliderValue((prevValue) => {
         const newValue = prevValue > dynamicBeamMax ? dynamicBeamMax : prevValue;
 
         // Update actual beam position to reflect the clamped value
-        horizontalBeamPositioningManual(newValue);
+    if (selectedModel === "model_2_variant2") {
+  model_2_variant2BeamPositioningManual(newValue);
+} else {
+  defaultHorizontalBeamPositioningManual(newValue);
+}
+
 
         return newValue;
       });
@@ -412,10 +418,12 @@ setVerticalBeamSliderValue((prevValue) => {
         const newValue = parseFloat(e.target.value);
         setHorizontalBeamValue(newValue);
         
-        // ✅ Pass newValue directly — it's your current slider value
-        if (typeof horizontalBeamPositioningManual === "function") {
-          horizontalBeamPositioningManual(newValue);
-        }
+       if (selectedModel === "model_2_variant2") {
+  model_2_variant2BeamPositioningManual(newValue);
+} else {
+  defaultHorizontalBeamPositioningManual(newValue);
+}
+
       }}
       ref={horizontalBeamSliderRef}
     />
