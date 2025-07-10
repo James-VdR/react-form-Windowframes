@@ -429,7 +429,7 @@ export function modelVerticalBeamPositioning(sliderElement, onPositionChange) {
   });
 }
 
-export function modelVerticalBeamPositioningManual(sliderValue) {
+export function model3_1VerticalBeamPositioningManual(sliderValue) {
   const minMM = 250;
   const maxMM = 750;
   const minX = -0.10;
@@ -440,11 +440,7 @@ export function modelVerticalBeamPositioningManual(sliderValue) {
 
   const mid1Parts = moduleParts.filter((mesh) => {
     const name = mesh.name.toLowerCase();
-    return (
-      name === "top_mid1" ||
-      name === "bottom_mid1"
-      
-    );
+    return name === "top_mid1" || name === "bottom_mid1";
   });
 
   const mid2Parts = moduleParts.filter((mesh) => {
@@ -457,10 +453,193 @@ export function modelVerticalBeamPositioningManual(sliderValue) {
   });
 
   mid2Parts.forEach((part) => {
-    part.position.x = -mappedX;
+    if (part.name.toLowerCase() === "top_mid2") {
+      part.position.x = -mappedX;
+    } else if (part.name.toLowerCase() === "bottom_mid2") {
+      // Custom logic: shift based on width
+      const currentWidth = window?.currentModelWidth || 1500;
+      const widthOffset = (currentWidth - 1500) * 0.001;
+
+      // If you want to keep it additive to mappedX:
+      part.position.x = -mappedX + widthOffset;
+
+      console.log(`bottom_mid2 X: -mappedX (${(-mappedX).toFixed(3)}) + widthOffset (${widthOffset.toFixed(3)}) = ${part.position.x.toFixed(3)}`);
+    }
   });
 
-  console.log(`Mid parts moved to X: ${mappedX} & ${-mappedX}`);
+  console.log(`Mid parts moved: top_mid2 = ${-mappedX}, bottom_mid2 = adjusted`);
+}
+
+export function model3_2VerticalBeamPositioningManual(sliderValue , currentWidthMM = 1000) {
+  const minMM = 250;
+  const maxMM = 750;
+  const minX = -0.10;
+  const maxX = 0.10;
+
+  const normalized = (sliderValue - minMM) / (maxMM - minMM);
+  const mappedX = minX + normalized * (maxX - minX);
+
+  const currentWidth = window?.currentModelWidth || 1500;
+  const widthOffset = (currentWidth - 1500) * 0.001;
+
+  // Move mid1 parts normally
+  const mid1Parts = moduleParts.filter((mesh) => {
+    const name = mesh.name.toLowerCase();
+    return name === "top_mid1" || name === "bottom_mid1";
+  });
+
+  mid1Parts.forEach((part) => {
+    part.position.x = mappedX;
+  });
+
+  // Move mid2 parts — apply custom logic for bottom_mid2
+  const mid2Parts = moduleParts.filter((mesh) => {
+    const name = mesh.name.toLowerCase();
+    return name === "top_mid2" || name === "bottom_mid2";
+  });
+
+  mid2Parts.forEach((part) => {
+    const name = part.name.toLowerCase();
+    if (name === "top_mid2") {
+      part.position.x = -mappedX;
+    } else if (name === "bottom_mid2") {
+      part.position.x = -mappedX + widthOffset;
+      console.log(`bottom_mid2 X: -mappedX (${(-mappedX).toFixed(3)}) + widthOffset (${widthOffset.toFixed(3)}) = ${part.position.x.toFixed(3)}`);
+    }
+  });
+
+  const horizBar1 = moduleParts.find((mesh) => mesh.name.toLowerCase() === "horiz_beam1");
+
+  if (horizBar1) {
+    const baseScaleX = 1.0;
+    const dynamicScaleX = baseScaleX + mappedX * 2;
+    horizBar1.scale.z = dynamicScaleX;
+
+    console.log(`horiz_bar1 scale.z updated to: ${dynamicScaleX}`);
+  }
+
+const horizBeam3 = moduleParts.find((mesh) => mesh.name.toLowerCase() === "horiz_beam3");
+
+if (horizBeam3) {
+  const widthGain = currentWidth - 1500;
+  const widthOffset = widthGain * 0.001; // keep width-based shift
+
+  const verticalBeamOffsetMM = sliderValue - 500;
+
+  //  Reverse both scale and position direction
+  const verticalScaleGain = verticalBeamOffsetMM * 0.0008;
+  const verticalPositionOffset = -verticalBeamOffsetMM * 0.0012;
+
+  const baseScale = 1.0;
+  horizBeam3.scale.z = baseScale + verticalScaleGain; // grows as slider ↑
+  horizBeam3.position.x = widthOffset + verticalPositionOffset; // moves left as slider ↑
+
+  console.log(
+    `horiz_beam3 scale.z = ${horizBeam3.scale.z.toFixed(3)}, position.x = ${horizBeam3.position.x.toFixed(3)}`
+  );
+}
+
+
+
+
+
+  console.log(`Mid parts moved: mappedX = ${mappedX.toFixed(3)}, -mappedX = ${(-mappedX).toFixed(3)}`);
+}
+
+
+
+export function model3_3VerticalBeamPositioningManual(sliderValue, currentWidthMM = 1000) {
+ const minMM = 250;
+  const maxMM = 750;
+  const minX = -0.10;
+  const maxX = 0.10;
+
+  const normalized = (sliderValue - minMM) / (maxMM - minMM);
+  const mappedX = minX + normalized * (maxX - minX);
+
+  const currentWidth = window?.currentModelWidth || 1500;
+  const widthOffset = (currentWidth - 1500) * 0.001;
+
+  // Move mid1 parts normally
+  const mid1Parts = moduleParts.filter((mesh) => {
+    const name = mesh.name.toLowerCase();
+    return name === "top_mid1" || name === "bottom_mid1";
+  });
+
+  mid1Parts.forEach((part) => {
+    part.position.x = mappedX;
+  });
+
+  // Move mid2 parts — apply custom logic for bottom_mid2
+  const mid2Parts = moduleParts.filter((mesh) => {
+    const name = mesh.name.toLowerCase();
+    return name === "top_mid2" || name === "bottom_mid2";
+  });
+
+  mid2Parts.forEach((part) => {
+    const name = part.name.toLowerCase();
+    if (name === "top_mid2") {
+      part.position.x = -mappedX;
+    } else if (name === "bottom_mid2") {
+      part.position.x = -mappedX + widthOffset;
+      console.log(`bottom_mid2 X: -mappedX (${(-mappedX).toFixed(3)}) + widthOffset (${widthOffset.toFixed(3)}) = ${part.position.x.toFixed(3)}`);
+    }
+  });
+
+  const horizBar1 = moduleParts.find((mesh) => mesh.name.toLowerCase() === "horiz_beam1");
+
+  if (horizBar1) {
+    const baseScaleX = 1.0;
+    const dynamicScaleX = baseScaleX + mappedX * 2;
+    horizBar1.scale.z = dynamicScaleX;
+
+    console.log(`horiz_bar1 scale.z updated to: ${dynamicScaleX}`);
+  }
+const horizBeam2 = moduleParts.find((mesh) => mesh.name.toLowerCase() === "horiz_beam2");
+
+if (horizBeam2) {
+  const widthGain = currentWidth - 1500;
+  const widthScale = 1.0 + (widthGain * 0.002);
+
+  // To cancel center-origin scaling visually, shift position in opposite direction
+  const positionOffset = -widthGain * 0.001; // shift left when width increases, right when decreases
+
+  horizBeam2.scale.z = widthScale;
+  horizBeam2.position.x = positionOffset;
+
+  console.log(
+    `horiz_beam2 scale.z = ${horizBeam2.scale.z.toFixed(3)}, position.x = ${horizBeam2.position.x.toFixed(3)}`
+  );
+}
+
+
+
+const horizBeam3 = moduleParts.find((mesh) => mesh.name.toLowerCase() === "horiz_beam3");
+
+if (horizBeam3) {
+  const widthGain = currentWidth - 1500;
+  const widthOffset = widthGain * 0.001; // keep width-based shift
+
+  const verticalBeamOffsetMM = sliderValue - 500;
+
+  //  Reverse both scale and position direction
+  const verticalScaleGain = verticalBeamOffsetMM * 0.0008;
+  const verticalPositionOffset = -verticalBeamOffsetMM * 0.0012;
+
+  const baseScale = 1.0;
+  horizBeam3.scale.z = baseScale + verticalScaleGain; // grows as slider ↑
+  horizBeam3.position.x = widthOffset + verticalPositionOffset; // moves left as slider ↑
+
+  console.log(
+    `horiz_beam3 scale.z = ${horizBeam3.scale.z.toFixed(3)}, position.x = ${horizBeam3.position.x.toFixed(3)}`
+  );
+}
+
+
+
+
+
+  console.log(`Mid parts moved: mappedX = ${mappedX.toFixed(3)}, -mappedX = ${(-mappedX).toFixed(3)}`);
 }
 
 export function model_1_variant2WidthScaling(widthSliderElement, applyBeamScaling, onScaleChange) {
