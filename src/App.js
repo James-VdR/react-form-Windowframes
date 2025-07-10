@@ -22,7 +22,9 @@ import {
   horizontalBeamPositioning,
   horizontalBeamPositioningManual,
   modelVerticalBeamPositioning,
-  modelVerticalBeamPositioningManual,
+  model3_1VerticalBeamPositioningManual,
+  model3_2VerticalBeamPositioningManual,
+  model3_3VerticalBeamPositioningManual,
   model_1_variant2WidthScaling,
   model2VerticalBeamPositioningManual,
   model2VerticalBeamPositioning,
@@ -48,9 +50,9 @@ model_2_variant2:model2VerticalBeamPositioningManual,
 model_2_variant3:model2VerticalBeamPositioningManual,
 model_2_variant4:model2VerticalBeamPositioningManual,
 model_2_variant5:model2VerticalBeamPositioningManual,
-model_3_variant1:modelVerticalBeamPositioningManual,
-model_3_variant2:modelVerticalBeamPositioningManual,
-model_3_variant3:modelVerticalBeamPositioningManual,
+model_3_variant1:model3_1VerticalBeamPositioningManual,
+model_3_variant2:model3_2VerticalBeamPositioningManual,
+model_3_variant3:model3_3VerticalBeamPositioningManual,
 model_4_variant1: model4VerticalBeamPositioningManual,
 };
 
@@ -80,6 +82,7 @@ function App() {
 
   const handleWidthChange = (newWidth) => {
   setWidthScaleValue(newWidth);
+  window.currentModelWidth = newWidth;
 
   const minWidth = 500;
   const baseVerticalMax = 600;
@@ -228,6 +231,7 @@ setVerticalBeamSliderValue((prevValue) => {
 
 widthScaling(widthSliderRef.current, (newWidth) => {
   setWidthScaleValue(newWidth);
+  window.currentModelWidth = newWidth;
 
   // Generic dynamic vertical max adjustment, applies to all models
   const minWidth = 500;
