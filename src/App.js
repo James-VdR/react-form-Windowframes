@@ -115,6 +115,11 @@ setVerticalBeamSliderValue((prevValue) => {
   }, []);
 
   useEffect(() => {
+  if (!selectedModel) return;
+  window.selectedModel = selectedModel; // ✅ Make it globally accessible
+}, [selectedModel]);
+
+  useEffect(() => {
     if (!selectedModel || !mountRef.current) return;
 
     initThree(mountRef.current);
@@ -402,7 +407,11 @@ setVerticalBeamSliderValue((prevValue) => {
       onChange={(e) => {
         const newValue = parseFloat(e.target.value);
         setHorizontalBeamValue(newValue);
-        // Optionally call your positioning logic here
+        
+        // ✅ Pass newValue directly — it's your current slider value
+        if (typeof horizontalBeamPositioningManual === "function") {
+          horizontalBeamPositioningManual(newValue);
+        }
       }}
       ref={horizontalBeamSliderRef}
     />

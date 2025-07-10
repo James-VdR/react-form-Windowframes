@@ -1,4 +1,5 @@
 import { model, horizontalParts, verticalParts,glassParts,moduleParts } from "./Scene.js";
+import * as THREE from 'three';
 
 let previousVerticalSliderValue = 500; // Default starting point, same as slider default
 
@@ -47,15 +48,16 @@ export function heightScaling(heightSliderElement, onScaleChange, onBeamMaxChang
       mesh.position.y = (-0.15 * scaleY) / 2;
     });
 
-    //Dynamically scale top_mid1, top_mid2, top_mid3 if they exist
-    const dynamicMidParts = moduleParts.filter((mesh) => {
-      const name = mesh.name.toLowerCase();
-      return name === "bottom_mid1" || name === "bottom_mid2" || name === "bottom_mid3";
-    });
+// Dynamically scale top_mid1, top_mid2, top_mid3 if they exist
+  const dynamicMidParts = moduleParts.filter(mesh => {
+    const name = mesh.name.toLowerCase();
+    return name === "bottom_mid2" || name === "bottom_mid3";
+  });
 
-    dynamicMidParts.forEach((part) => {
-      part.scale.y = scaleY * 2;
-    });
+  dynamicMidParts.forEach(part => {
+    part.scale.y = scaleY * 2;
+  });
+
 
     if (typeof onScaleChange === "function") {
       onScaleChange(newHeight);
@@ -137,6 +139,22 @@ export function horizontalBeamPositioning(sliderElement, onPositionChange) {
       onPositionChange(sliderValue);
     }
   });
+
+  
+}
+
+function updateVerticalBeamHeight(newTopY, bottomY, geometryHeight, verticalBeam) {
+  const minScaleY = 0.25;
+  const maxScaleY = 1.5;
+
+  const desiredHeight = newTopY - bottomY;
+
+  let newScaleY = desiredHeight / geometryHeight;
+  newScaleY = THREE.MathUtils.clamp(newScaleY, minScaleY, maxScaleY);
+
+  verticalBeam.scale.y = newScaleY;
+
+  verticalBeam.position.y = bottomY + (geometryHeight * newScaleY) / 2;
 }
 
 export function horizontalBeamPositioningManual(sliderValue) {
@@ -162,7 +180,31 @@ export function horizontalBeamPositioningManual(sliderValue) {
     beam.position.y = positionY;
   });
 
-  console.log(`Beam(s) Y position updated to: ${positionY}`);
+  const verticalBeam = moduleParts.find(mesh => mesh.name.toLowerCase() === 'bottom_mid1');
+if (!verticalBeam) return;
+
+const horizontalBeam = moduleParts.find(mesh => mesh.name.toLowerCase() === 'horiz_beam1');
+if (!horizontalBeam) return;
+
+// Hardcoded bottom Y of vertical beam in world/local space (adjust as needed)
+const fixedBottomY =   -0.75;
+
+// Get original (unscaled) geometry height
+const geometryHeight = 1.5; // Replace with your model's actual raw height in Y at scale.y = 1
+// Calculate distance from bottom to horizontal beam
+const targetHeight = horizontalBeam.position.y - fixedBottomY;
+
+// Calculate new scale
+const newScaleY = THREE.MathUtils.clamp(targetHeight / geometryHeight, 0.01, 10);
+
+// Apply new scale
+verticalBeam.scale.y = (geometryHeight * newScaleY);
+
+// Move position.y so the base stays at fixedBottomY
+  console.log('horizontalY:', positionY);
+  console.log('geometryHeight:', geometryHeight);
+  console.log('new scale.y:', verticalBeam.scale.y);
+  console.log('new position.y:', verticalBeam.position.y);
 }
 
 export function model2VerticalBeamPositioning(sliderElement, onPositionChange) {

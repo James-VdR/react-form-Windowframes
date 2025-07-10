@@ -1,4 +1,5 @@
 import { verticalParts, horizontalParts, glassParts, moduleParts} from '../Scene.js';
+import * as THREE from 'three';
 
 
 
@@ -131,7 +132,36 @@ const midPart = moduleParts.find((mesh) =>{
   return name === 'bottom_mid1'
 });
 if(midPart){
-midPart.scale.y += 0.5;
+midPart.scale.y -= 0.25;
+}
+
+// Adjust bottom_mid1 to dynamically stretch to the horizontal beam
+const horizBeams = moduleParts.filter(mesh => {
+  const name = mesh.name.toLowerCase();
+  return name === 'horizbeam1' || name === 'horizbeam2';
+});
+
+const verticalBeam = moduleParts.find(mesh => mesh.name.toLowerCase() === 'bottom_mid1');
+
+if (horizBeams.length > 0 && verticalBeam) {
+  // Average Y position of both horizontal beam parts
+  const avgY = horizBeams.reduce((sum, beam) => sum + beam.position.y, 0) / horizBeams.length;
+
+  // Assume the bottom of the frame is at y = 0
+  const targetHeight = avgY;
+
+  // Set scale.y based on how long it needs to be
+  const baseBeamHeight = 1.0; // Original Y-scale when beam height was matching 2000
+  const minY = -0.75;
+  const maxY = 0.75;
+  const startY = -0.25;
+
+  // Map targetHeight to scale.y within known constraints
+  const scaleY = THREE.MathUtils.clamp((targetHeight - minY) / (maxY - minY), 0, 1.5);
+  verticalBeam.scale.y = scaleY;
+
+  // Position it so it's centered between bottom and horizontal bar
+  verticalBeam.position.y = targetHeight / 2;
 }
 
 const partsToRemove = moduleParts.filter((mesh) => {
