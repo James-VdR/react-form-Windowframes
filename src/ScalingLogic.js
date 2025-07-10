@@ -51,7 +51,7 @@ export function heightScaling(heightSliderElement, onScaleChange, onBeamMaxChang
 // Dynamically scale top_mid1, top_mid2, top_mid3 if they exist
   const dynamicMidParts = moduleParts.filter(mesh => {
     const name = mesh.name.toLowerCase();
-    return name === "bottom_mid2" || name === "bottom_mid3";
+    return name === "bottom_mid1" || name === "bottom_mid2" || name === "bottom_mid3";
   });
 
   dynamicMidParts.forEach(part => {
