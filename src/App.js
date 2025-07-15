@@ -271,7 +271,7 @@ setVerticalBeamSliderValue((prevValue) => {
 });
 // 🔽 Add this just before detectVerticalBeams()
 if (selectedModel === "model_1_variant1" || selectedModel === "model_1_variant2") {
-  spawnWindowAddon({ x: -1.022, y: -0.50, z: 0 }); // adjust position to fit your frame
+  spawnWindowAddon({ x: -1.022, y: -0.50, z: 0 }); // adjust position to fit frame, and find the reguired variables.
 }
 
 
