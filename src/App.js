@@ -13,8 +13,10 @@ import {
   registerOnModelReady,
   applyMaterialsToInsideFrame,
   applyMaterialsToModuleFrame,
+  applyMaterialsToHatchFrame,
   detectVerticalBeams,
   getVerticalBeams,
+  spawnWindowAddon
 } from "./Scene";
 import { 
   heightScaling, 
@@ -267,6 +269,10 @@ setVerticalBeamSliderValue((prevValue) => {
 });
 
 });
+// 🔽 Add this just before detectVerticalBeams()
+if (selectedModel === "model_1_variant1" || selectedModel === "model_1_variant2") {
+  spawnWindowAddon({ x: -1.022, y: -0.50, z: 0 }); // adjust position to fit your frame
+}
 
 
       detectVerticalBeams(window.scene);
@@ -364,6 +370,14 @@ setVerticalBeamSliderValue((prevValue) => {
     setSelectedColor(color);
     if (color.material) {
       applyMaterialsToModuleFrame(color.material);
+    }
+    console.log("Applying material:", color.name);
+  }
+
+   function handleHatchFrameColorSelect(color) {
+    setSelectedColor(color);
+    if (color.material) {
+      applyMaterialsToHatchFrame(color.material);
     }
     console.log("Applying material:", color.name);
   }
@@ -485,10 +499,21 @@ setVerticalBeamSliderValue((prevValue) => {
 
         {materialsLoaded ? (
           <ColorSelectorGroup
-            title="insideFrame Color"
+            title="ModuleFrame Color"
             colors={colorOptions}
             selected={selectedColor}
             onSelect={handleModuleFrameColorSelect}
+          />
+        ) : (
+          <p>Loading materials...</p>
+        )}
+
+            {materialsLoaded ? (
+          <ColorSelectorGroup
+            title="HatchFrame Color"
+            colors={colorOptions}
+            selected={selectedColor}
+            onSelect={handleHatchFrameColorSelect}
           />
         ) : (
           <p>Loading materials...</p>

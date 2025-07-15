@@ -10,8 +10,9 @@ export const horizontalParts = [];
 export const moduleParts = [];
 export const mainFrameParts = [];
 export const insideFrameParts = [];
+export const hatchFrameParts = [];
 export const glassParts = [];
-
+export const hatchParts = [];
 let modelReadyCallback = null;
 let boundingBoxHelper = null;
 
@@ -33,6 +34,31 @@ export function detectVerticalBeams(scene) {
   // Optional: sort for consistent order
   verticalBeams.sort((a, b) => a.name.localeCompare(b.name));
 }
+
+export function spawnWindowAddon(position = { x: 0, y: 0, z: 0 }) {
+  const loader = new GLTFLoader();
+
+  loader.load('/models/hatch.glb', (gltf) => {
+    const windowModel = gltf.scene;
+
+    windowModel.scale.set(1, 1, 1);
+    windowModel.position.set(position.x, position.y, position.z);
+    scene.add(windowModel);
+
+    // check for parts and push into the hatchframeparts array
+    windowModel.traverse((child) => {
+      if (child.isMesh) {
+        const name = child.name.toLowerCase();
+        if (name.includes("hatch")) {
+          hatchFrameParts.push(child);
+        }
+      }
+    });
+
+    console.log(" Add-on window spawned at", position);
+  });
+}
+
 
 export function getVerticalBeams() {
   return verticalBeams;
@@ -137,7 +163,8 @@ function groupFrameParts(model) {
   verticalParts.length = 0;
   horizontalParts.length = 0;
   mainFrameParts.length = 0;
-  insideFrameParts.lenght = 0;
+  insideFrameParts.length = 0;
+  hatchFrameParts.length = 0;
   model.traverse((child) => {
     if (child.isMesh) {
       const name = child.name.toLowerCase();
@@ -147,6 +174,7 @@ if (name.includes("left_frame") || name.includes("right_frame")) verticalParts.p
 if (name.includes("top_frame") || name.includes("bottom_frame") ) horizontalParts.push(child) ;
 if(name.includes("horiz_beam1")|| name.includes("horiz_beam2") || name.includes("horiz_beam3") || name.includes("horiz_beam4") || name.includes("top_mid1") 
    || name.includes("bottom_mid1") || name.includes("top_mid2") || name.includes("bottom_mid2") || name.includes("top_mid3") || name.includes("bottom_mid3")) moduleParts.push(child);
+  if(name.includes("top_hatch") || name.includes("bottom_hatch") || name.includes("right_hatch") || name.includes("left_hatch")) hatchParts.push(child);
 if (name.includes("glass")) glassParts.push(child);
 glassParts.forEach((mesh) => {
   applyGlassMaterial(mesh);
@@ -159,6 +187,11 @@ if (["left_frame", "right_frame", "top_frame", "bottom_frame"].some(part => name
 if (["left_inside", "right_inside", "top_inside", "bottom_inside"].some(part => name.includes(part))) {
   insideFrameParts.push(child);
 }
+if(["top_hatch", "right_hatch","left_hatch","bottom_hatch"].some(part => name.includes(part))){
+  hatchFrameParts.push(child);
+}
+console.log("🔎 Hatch Frame Parts:", hatchFrameParts.map(h => h.name));
+
 
     }
   });
@@ -200,3 +233,10 @@ export function applyMaterialsToModuleFrame(material){
     mesh.material = material.clone();
   });
 }
+
+export function applyMaterialsToHatchFrame(material){
+     hatchFrameParts.forEach((mesh) => {
+    mesh.material = material.clone();
+  });
+}
+
