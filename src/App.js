@@ -6,6 +6,8 @@ import {
   resetMaterials,
 } from "./MaterialLibrary.js";
 import { ColorSelectorGroup } from "./ColorSelectorGroup.js";
+import { importGeoNodesGLB } from "./importGeoNodesGLB";
+import { geoNodeMesh } from "./importGeoNodesGLB";
 
 import {
   initThree,
@@ -16,7 +18,8 @@ import {
   applyMaterialsToHatchFrame,
   detectVerticalBeams,
   getVerticalBeams,
-  spawnWindowAddon
+  spawnWindowAddon,
+  spawnGeoBar,
 } from "./Scene";
 import { 
   heightScaling, 
@@ -138,9 +141,12 @@ setVerticalBeamSliderValue((prevValue) => {
     widthScaling(widthSliderRef.current, handleWidthChange);
   } 
   else if (selectedModel === "model_1_variant2") {
-    module.applyModel1_2Scaling();
-    model_1_variant2WidthScaling(widthSliderRef.current, true, handleWidthChange);
+    //module.applyModel1_2Scaling();
+    //model_1_variant2WidthScaling(widthSliderRef.current, true, handleWidthChange);
+    importGeoNodesGLB({ x: 0, y: 0, z: 0 });
   }
+  // Load geonodes.glb test model with metadata
+
 
   resetMaterials();
 
@@ -272,6 +278,7 @@ setVerticalBeamSliderValue((prevValue) => {
 // 🔽 Add this just before detectVerticalBeams()
 if (selectedModel === "model_1_variant1" || selectedModel === "model_1_variant2") {
   spawnWindowAddon({ x: -1.022, y: -0.50, z: 0 }); // adjust position to fit frame, and find the reguired variables.
+  spawnGeoBar({ x: 0, y: 0, z: 0 });
 }
 
 
@@ -446,6 +453,32 @@ if (selectedModel === "model_1_variant1" || selectedModel === "model_1_variant2"
 )}
 
 
+{variantsWithHorizontalBeam.has(selectedModel) && (
+  <div className="geometryScaleSlider">
+    <p>Horizontal Beam Height</p>
+    <input
+      type="range"
+      min="1"
+      max="3"
+      step="0.01"
+      defaultValue="1.5"
+      onInput={(e) => {
+        const scaleX = parseFloat(e.target.value);
+        if (window.spawnedHorizontalBeam) {
+          window.spawnedHorizontalBeam.scale.x = scaleX;
+        }
+      }}
+    />
+    <p>
+      Scale Y:{" "}
+      {window.spawnedHorizontalBeam?.scale.x
+        ? window.spawnedHorizontalBeam.scale.x.toFixed(2)
+        : "N/A"}
+    </p>
+  </div>
+)}
+
+
 {verticalBeamPositioningFunctions[selectedModel] && (
   <div className="verticalBeamSlider">
     <p>Vertical Beam</p>
@@ -468,10 +501,51 @@ if (selectedModel === "model_1_variant1" || selectedModel === "model_1_variant2"
   }}
 />
 
+
+
     <p>Vertical Beam position: {verticalBeamSliderValue}mm</p>
   </div>
 )}
 
+{geoNodeMesh && (
+  <div className="geometrySlider">
+    <p>Custom Geo Width</p>
+    <input
+      type="range"
+      min="0"
+      max="10"
+      step="0.1"
+      defaultValue="1"
+      onInput={(e) => {
+        const newWidth = parseFloat(e.target.value);
+        if (geoNodeMesh.userData) {
+          geoNodeMesh.userData.Width = newWidth;
+          geoNodeMesh.geometry.attributes.position.needsUpdate = true;
+        }
+        geoNodeMesh.scale.set(newWidth, geoNodeMesh.scale.x, geoNodeMesh.scale.z);
+      }}
+    />
+    <p>Custom Width: {geoNodeMesh?.userData?.Width?.toFixed(2) || "?"}</p>
+
+    <p>Custom Geo Height</p>
+    <input
+      type="range"
+      min="0"
+      max="10"
+      step="0.1"
+      defaultValue="1"
+      onInput={(e) => {
+        const newHeight = parseFloat(e.target.value);
+        if (geoNodeMesh.userData) {
+          geoNodeMesh.userData.Height = newHeight;
+          geoNodeMesh.geometry.attributes.position.needsUpdate = true;
+        }
+        geoNodeMesh.scale.set(geoNodeMesh.scale.y, newHeight, geoNodeMesh.scale.y);
+      }}
+    />
+    <p>Custom Height: {geoNodeMesh?.userData?.Height?.toFixed(2) || "?"}</p>
+  </div>
+)}
 
 
 

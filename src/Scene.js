@@ -34,7 +34,31 @@ export function detectVerticalBeams(scene) {
   // Optional: sort for consistent order
   verticalBeams.sort((a, b) => a.name.localeCompare(b.name));
 }
+export function spawnGeoBar(position = { x: 0, y: 0, z: 0 }) {
+  const loader = new GLTFLoader();
 
+  loader.load('/models/geonodes.glb', (gltf) => {
+    const geoBar = gltf.scene;
+
+    geoBar.position.set(position.x, position.y, position.z);
+    geoBar.scale.set(1, 1, 1);
+    geoBar.name = "GeoBar";
+
+    // Add to scene
+    scene.add(geoBar); // use the actual scene variable
+
+
+    // Make globally available for scaling
+    window.spawnedHorizontalBeam = geoBar;
+
+    // OR just the part inside it:
+    // gltf.scene.traverse((child) => {
+    //   if (child.isMesh && child.name === "bar_mesh") {
+    //     window.spawnedHorizontalBeam = child;
+    //   }
+    // });
+  });
+}
 export function spawnWindowAddon(position = { x: 0, y: 0, z: 0 }) {
   const loader = new GLTFLoader();
 
