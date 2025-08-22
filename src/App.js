@@ -16,7 +16,8 @@ import {
   applyMaterialsToHatchFrame,
   detectVerticalBeams,
   getVerticalBeams,
-  spawnWindowAddon
+  spawnWindowAddon,
+  hatchFrameParts
 } from "./Scene";
 import { 
   heightScaling, 
@@ -32,7 +33,10 @@ import {
   model2VerticalBeamPositioningManual,
   model2VerticalBeamPositioning,
   model4VerticalBeamPositioning,
-  model4VerticalBeamPositioningManual, } from "./ScalingLogic";
+  model4VerticalBeamPositioningManual,
+  widthScaling_mod_1_1,
+  heightScaling_mod_1_1,
+} from "./ScalingLogic";
 
 const variantsWithHorizontalBeam = new Set([
   "model_1_variant2",
@@ -66,6 +70,10 @@ function App() {
   const widthSliderRef = useRef();
   const horizontalBeamSliderRef = useRef();
 
+  const [hatchVisible, setHatchVisible] = useState(false);
+
+  const [selectedOption, setSelectedOption] = useState("");
+  const[dimensionsLocked, setDimensionsLocked] = useState(false);
   const [heightScaleValue, setHeightScaleValue] = useState(1);
   const [widthScaleValue, setWidthScaleValue] = useState(5);
   const [horizontalBeamValue, setHorizontalBeamValue] = useState(750);
@@ -110,6 +118,9 @@ setVerticalBeamSliderValue((prevValue) => {
 
 };
 
+hatchFrameParts.forEach((mesh) => {
+  mesh.visible = false;
+});
 
   // Load material library ONCE when component mounts
   useEffect(() => {
@@ -120,10 +131,31 @@ setVerticalBeamSliderValue((prevValue) => {
     });
   }, []);
 
+
+
   useEffect(() => {
   if (!selectedModel) return;
   window.selectedModel = selectedModel; // ✅ Make it globally accessible
-}, [selectedModel]);
+}, [selectedModel]);    
+
+ useEffect(() => {
+  if (!dimensionsLocked) return;
+
+  const hatchShouldBeVisible =
+    selectedOption === "onder"
+
+  setHatchVisible(hatchShouldBeVisible);
+}, [selectedOption, dimensionsLocked]);
+
+
+
+useEffect(() => {
+  if (window.scene && window.scene.children) {
+    hatchFrameParts.forEach((mesh) => {
+      mesh.visible = hatchVisible;
+    });
+  }
+}, [hatchVisible]);
 
   useEffect(() => {
     if (!selectedModel || !mountRef.current) return;
@@ -136,6 +168,8 @@ setVerticalBeamSliderValue((prevValue) => {
   if (selectedModel === "model_1_variant1") {
     module.applyModel1_1Scaling();
     widthScaling(widthSliderRef.current, handleWidthChange);
+    widthScaling_mod_1_1(widthSliderRef.current, handleWidthChange);
+    heightScaling_mod_1_1(heightSliderRef.current, setHeightScaleValue, (beamMax) => setHorizontalBeamMax(beamMax));
   } 
   else if (selectedModel === "model_1_variant2") {
     module.applyModel1_2Scaling();
@@ -403,6 +437,7 @@ if (selectedModel === "model_1_variant1" || selectedModel === "model_1_variant2"
             max="2000"
             defaultValue="1000"
             ref={heightSliderRef}
+            disabled={dimensionsLocked}
           />
 
           <p id="heightScaleValue">height: {heightScaleValue.toFixed(0)}mm</p>
@@ -416,9 +451,11 @@ if (selectedModel === "model_1_variant1" || selectedModel === "model_1_variant2"
             max="2000"
             defaultValue="500"
             ref={widthSliderRef}
+            disabled={dimensionsLocked}
           />
           <p id="widthScaleValue">width: {widthScaleValue.toFixed(0)}mm</p>
         </div>
+       
 
 {variantsWithHorizontalBeam.has(selectedModel) && (
   <div className="horizontalBeamSlider">
@@ -428,6 +465,7 @@ if (selectedModel === "model_1_variant1" || selectedModel === "model_1_variant2"
       min="250"
       max={horizontalBeamMax}
       value={horizontalBeamValue}
+      disabled={dimensionsLocked}
       onChange={(e) => {
         const newValue = parseFloat(e.target.value);
         setHorizontalBeamValue(newValue);
@@ -454,6 +492,7 @@ if (selectedModel === "model_1_variant1" || selectedModel === "model_1_variant2"
   min="400"
   max={verticalBeamMax}
   value={verticalBeamSliderValue}
+  disabled={dimensionsLocked}
   onInput={(e) => {
     const newValue = parseFloat(e.target.value);
     setVerticalBeamSliderValue(newValue);
@@ -471,6 +510,48 @@ if (selectedModel === "model_1_variant1" || selectedModel === "model_1_variant2"
     <p>Vertical Beam position: {verticalBeamSliderValue}mm</p>
   </div>
 )}
+<button
+  style={{
+    backgroundColor: dimensionsLocked ? "#4CAF50" : "#2196F3",
+    color: "white",
+    padding: "8px 16px",
+    border: "none",
+    borderRadius: "4px",
+    marginTop: "10px",
+    cursor: "pointer",
+  }}
+  onClick={() => {
+  setDimensionsLocked(true);
+
+  
+}}
+
+>
+  {dimensionsLocked ? "✅ Confirmed" : "Confirm Selection"}
+</button>
+
+<div style={{ marginTop: "20px" }}>
+  <label htmlFor="actionDropdown">Draai Kiepraam Selectie .1:</label>
+  <select
+    id="actionDropdown"
+    disabled={!dimensionsLocked}
+    value={selectedOption}
+    onChange={(e) => setSelectedOption(e.target.value)}
+    style={{
+      marginLeft: "10px",
+      padding: "5px",
+      borderRadius: "4px",
+      border: "1px solid #ccc",
+      backgroundColor: dimensionsLocked ? "white" : "#f0f0f0",
+      color: dimensionsLocked ? "black" : "#999",
+    }}
+  >
+    <option value="">Vast raam</option>
+    <option value="onder">Kiepraam, scharnier onder</option>
+    <option value="links">Draai-kiep raam, scharnier links-onder</option>
+    <option value="rechts">Draai-kiep raam, scharnier rechts-onder</option>
+  </select>
+</div>
 
 
 
