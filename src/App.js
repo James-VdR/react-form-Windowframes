@@ -118,9 +118,8 @@ setVerticalBeamSliderValue((prevValue) => {
 
 };
 
-hatchFrameParts.forEach((mesh) => {
-  mesh.visible = false;
-});
+
+
 
   // Load material library ONCE when component mounts
   useEffect(() => {
@@ -138,38 +137,43 @@ hatchFrameParts.forEach((mesh) => {
   window.selectedModel = selectedModel; // ✅ Make it globally accessible
 }, [selectedModel]);    
 
- useEffect(() => {
+useEffect(() => {
   if (!dimensionsLocked) return;
 
-  const hatchShouldBeVisible =
-    selectedOption === "onder"
-
+  const hatchShouldBeVisible = selectedOption === "onder";
   setHatchVisible(hatchShouldBeVisible);
+
+  hatchFrameParts.forEach((mesh) => {
+    mesh.visible = hatchShouldBeVisible;
+  });
 }, [selectedOption, dimensionsLocked]);
 
 
-
-useEffect(() => {
-  if (window.scene && window.scene.children) {
-    hatchFrameParts.forEach((mesh) => {
-      mesh.visible = hatchVisible;
-    });
-  }
-}, [hatchVisible]);
 
   useEffect(() => {
     if (!selectedModel || !mountRef.current) return;
 
     initThree(mountRef.current);
 
-    registerOnModelReady(() => {
+registerOnModelReady(() => {
+  const hatchShouldBeVisible = selectedOption === "onder" && dimensionsLocked;
+
+  // Set state and apply visibility correctly at model load
+  setHatchVisible(hatchShouldBeVisible);
+  hatchFrameParts.forEach((mesh) => {
+    mesh.visible = hatchShouldBeVisible;
+  });
+
       if (selectedModel.includes("model_1")) {
     import("./Models/model_1.js").then((module) => {
+ 
   if (selectedModel === "model_1_variant1") {
     module.applyModel1_1Scaling();
+     
     widthScaling(widthSliderRef.current, handleWidthChange);
     widthScaling_mod_1_1(widthSliderRef.current, handleWidthChange);
     heightScaling_mod_1_1(heightSliderRef.current, setHeightScaleValue, (beamMax) => setHorizontalBeamMax(beamMax));
+    
   } 
   else if (selectedModel === "model_1_variant2") {
     module.applyModel1_2Scaling();

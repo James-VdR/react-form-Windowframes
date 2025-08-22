@@ -50,6 +50,7 @@ export function spawnWindowAddon(position = { x: 0, y: 0, z: 0 }) {
       if (child.isMesh) {
         const name = child.name.toLowerCase();
         if (name.includes("hatch")) {
+          child.visible = false;
           hatchFrameParts.push(child);
         }
       }
