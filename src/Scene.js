@@ -50,7 +50,6 @@ export function spawnWindowAddon(position = { x: 0, y: 0, z: 0 }) {
       if (child.isMesh) {
         const name = child.name.toLowerCase();
         if (name.includes("hatch")) {
-          child.visible = false;
           hatchFrameParts.push(child);
         }
       }
@@ -173,9 +172,9 @@ function groupFrameParts(model) {
 
 if (name.includes("left_frame") || name.includes("right_frame")) verticalParts.push(child);
 if (name.includes("top_frame") || name.includes("bottom_frame") ) horizontalParts.push(child) ;
-if(name.includes("top_hatch") || name.includes("bottom_hatch") || name.includes("left_hatch")|| name.includes("right_hatch"))hatchFrameParts.push(child);
 if(name.includes("horiz_beam1")|| name.includes("horiz_beam2") || name.includes("horiz_beam3") || name.includes("horiz_beam4") || name.includes("top_mid1") 
    || name.includes("bottom_mid1") || name.includes("top_mid2") || name.includes("bottom_mid2") || name.includes("top_mid3") || name.includes("bottom_mid3")) moduleParts.push(child);
+  if(name.includes("top_hatch") || name.includes("bottom_hatch") || name.includes("right_hatch") || name.includes("left_hatch")) hatchParts.push(child);
 if (name.includes("glass")) glassParts.push(child);
 glassParts.forEach((mesh) => {
   applyGlassMaterial(mesh);
@@ -240,4 +239,3 @@ export function applyMaterialsToHatchFrame(material){
     mesh.material = material.clone();
   });
 }
-

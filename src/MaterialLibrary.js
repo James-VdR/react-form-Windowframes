@@ -2,7 +2,11 @@ import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import {  glassParts,mainFrameParts,insideFrameParts  } from './Scene';
 const materialLibrary = {};
+
+//---------------------------
 /**
+ * 
+ * 
  
 Loads materials from a specified GLB file and stores them in the materialLibrary.
 @param {string} glbPath - Path to the GLB file containing materials.
@@ -28,6 +32,9 @@ export function loadMaterialLibrary(glbPath = '/models/Materials.glb', onComplet
         if (onComplete) onComplete();
     });
 }
+
+
+
 
 const MATERIAL_NAME_MAP = {
   'White': 'White',
@@ -56,25 +63,47 @@ export function getMaterialColorOptions() {
   }));
 }
 
+//---glas---//
+export function applyGlassMaterial(mesh, textureIndex = 0, thick = false) {
+  if (!mesh) return;
 
-export function applyGlassMaterial(mesh) {
+  const loader = new THREE.TextureLoader(); // <-- NEW loader for textures
+  const glassTextures = [
+    loader.load("/textures/placeholder_glass.png"), // Default
+    loader.load("/textures/placeholder_glass2.png"), // Pattern 1
+    loader.load("/textures/placeholder_glass3.png"), // Pattern 2
+  ];
+
+  glassTextures.forEach((tex) => {
+    tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+  });
+
   const glassMaterial = new THREE.MeshPhysicalMaterial({
+    map: glassTextures[textureIndex] || glassTextures[0],
     color: 0xffffff,
     metalness: 0,
     roughness: 0.01,
     transmission: 1.0,
-    thickness: 0.01,
+    thickness: thick ? 0.06 : 0.01,
     transparent: true,
-    opacity: 1.0,
+    opacity: thick ? 0.9 : 1.0,
     ior: 1.0,
-    envMapIntensity: 0.5,
+    envMapIntensity: thick ? 1.0 : 0.5,
     clearcoat: 0.0,
     reflectivity: 0.1,
     depthWrite: false,
-    side: THREE.FrontSide
+    side: THREE.FrontSide,
   });
 
   mesh.material = glassMaterial;
+
+  // Optional dynamic thickness
+  mesh.setGlassThickness = (t) => {
+    glassMaterial.thickness = t;
+    const tintFactor = Math.min(t / 0.1, 1);
+    glassMaterial.color.setRGB(1 - 0.3 * tintFactor, 1 - 0.3 * tintFactor, 1);
+    glassMaterial.envMapIntensity = 0.5 + tintFactor * 0.5;
+  };
 }
 
 
