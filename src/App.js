@@ -4,6 +4,7 @@ import {
   loadMaterialLibrary,
   getMaterialColorOptions,
   resetMaterials,
+  applyGlassMaterial,
 } from "./MaterialLibrary.js";
 import { ColorSelectorGroup } from "./ColorSelectorGroup.js";
 
@@ -17,7 +18,8 @@ import {
   detectVerticalBeams,
   getVerticalBeams,
   spawnWindowAddon,
-  hatchFrameParts
+  hatchFrameParts,
+  glassParts,
 } from "./Scene";
 import { 
   heightScaling, 
@@ -420,6 +422,20 @@ if (selectedModel === "model_1_variant1" || selectedModel === "model_1_variant2"
     console.log("Applying material:", color.name);
   }
 
+//GLASS GLASS GLASS GLASS GLASS
+  function applyGlassMaterialToScene(index) {
+  glassParts.forEach(mesh => applyGlassMaterial(mesh, index));
+}
+
+// Set the glass thickness for all glass meshes
+function setGlassThicknessToScene(value) {
+  glassParts.forEach(mesh => {
+    if (mesh.setGlassThickness) {
+      mesh.setGlassThickness(value);
+    }
+  });
+}
+
   return (
     <div className="container">
       <div className="sidebar">
@@ -557,6 +573,17 @@ if (selectedModel === "model_1_variant1" || selectedModel === "model_1_variant2"
   </select>
 </div>
 
+{materialsLoaded && (
+  <div className="glassControls">
+    <p>Glass Texture</p>
+    <button onClick={() => applyGlassMaterialToScene(0)}>Default</button>
+    <button onClick={() => applyGlassMaterialToScene(1)}>Patterned</button>
+
+    <p>Glass Thickness</p>
+    <button onClick={() => setGlassThicknessToScene(0.01)}>Thin</button>
+    <button onClick={() => setGlassThicknessToScene(0.05)}>Thick</button>
+  </div>
+)}
 
 
 
