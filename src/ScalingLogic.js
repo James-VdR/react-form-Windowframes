@@ -116,7 +116,7 @@ export function widthScaling_mod_1_1(widthSliderElement, onScaleChange) {
 
     const scaleX = newWidth / baseWidth;
 
-    // 🔄 Scale top and bottom hatches
+    //  Scale top and bottom hatches
     hatchFrameParts.forEach((mesh) => {
       const name = mesh.name.toLowerCase();
       if (name === "top_hatch" || name === "bottom_hatch") {
@@ -124,14 +124,14 @@ export function widthScaling_mod_1_1(widthSliderElement, onScaleChange) {
       }
     });
 
-    // 🔄 Move right_hatch
+    //  Move right_hatch
     const rightHatch = hatchFrameParts.find(
       (mesh) => mesh.name.toLowerCase() === "right_hatch"
     );
 
     if (rightHatch) {
       const normalizedValue = (newWidth - minWidth) / (maxWidth - minWidth);
-      rightHatch.position.x = normalizedValue * 1.5;
+      rightHatch.position.x = normalizedValue * 1.48;
     }
 
     if (typeof onScaleChange === "function") {
@@ -150,7 +150,7 @@ export function heightScaling_mod_1_1(heightSliderElement, onScaleChange, onBeam
 
     const scaleY = newHeight / baseHeight;
 
-    // 🔄 Scale right and left hatches
+    //  Scale right and left hatches
     hatchFrameParts.forEach((mesh) => {
       const name = mesh.name.toLowerCase();
       if (name === "right_hatch" || name === "left_hatch") {
@@ -158,7 +158,7 @@ export function heightScaling_mod_1_1(heightSliderElement, onScaleChange, onBeam
       }
     });
 
-    // 🔄 Move top_hatch
+    //  Move top_hatch
     const topHatch = hatchFrameParts.find(
       (mesh) => mesh.name.toLowerCase() === "top_hatch"
     );
@@ -179,7 +179,92 @@ export function heightScaling_mod_1_1(heightSliderElement, onScaleChange, onBeam
   });
 }
 
+export function heightScaling_mod_1_2(heightSliderElement, onScaleChange, onBeamMaxChange, getHorizontalBeamValue) {
+  heightSliderElement.addEventListener("input", (event) => {
+    const newHeight = parseFloat(event.target.value);
+    const minHeight = 1000;
+    const baseHeight = 2000;
+    const baseBeamMax = 1000;
 
+    const scaleY = newHeight / baseHeight;
+
+    //  Scale right and left hatches
+    hatchFrameParts.forEach((mesh) => {
+      const name = mesh.name.toLowerCase();
+      if (name === "right_hatch" || name === "left_hatch") {
+        mesh.scale.y = scaleY * 1.192;
+      }
+    });
+
+    //  Move top_hatch
+    const topHatch = hatchFrameParts.find(
+      (mesh) => mesh.name.toLowerCase() === "top_hatch"
+    );
+
+    if (topHatch) {
+      const normalizedValue = (newHeight - minHeight) / (baseHeight - minHeight);
+      topHatch.position.y = normalizedValue;
+    }
+
+    //  Resize bottom_hatch based on beam
+    const horizontalBeamValue = typeof getHorizontalBeamValue === "function"
+      ? getHorizontalBeamValue()
+      : 0;
+
+    const bottomHatch = hatchFrameParts.find(
+      (mesh) => mesh.name.toLowerCase() === "bottom_hatch"
+    );
+
+    if (bottomHatch) {
+      // Example logic: hatch fills space between beam and bottom
+      const hatchHeight = horizontalBeamValue - 50; // Subtract 50mm buffer/padding if needed
+      const hatchScaleY = hatchHeight / 1000; // Assuming original height is 1000mm
+      bottomHatch.scale.y = Math.max(hatchScaleY, 0.1); // Avoid too small
+    }
+
+    // Notify parent with updated height
+    if (typeof onScaleChange === "function") {
+      onScaleChange(newHeight);
+    }
+
+    if (typeof onBeamMaxChange === "function") {
+      const dynamicBeamMax = baseBeamMax + (newHeight - minHeight);
+      onBeamMaxChange(dynamicBeamMax);
+    }
+  });
+}
+export function widthScaling_mod_1_2(widthSliderElement, onScaleChange) {
+ widthSliderElement.addEventListener("input", (event) => {
+    const newWidth = parseFloat(event.target.value);
+    const minWidth = 500;
+    const maxWidth = 2000;
+    const baseWidth = 2000;
+
+    const scaleX = newWidth / baseWidth;
+
+    //  Scale top and bottom hatches
+    hatchFrameParts.forEach((mesh) => {
+      const name = mesh.name.toLowerCase();
+      if (name === "top_hatch" || name === "bottom_hatch") {
+        mesh.scale.x = scaleX * 2.2;
+      }
+    });
+
+    //  Move right_hatch
+    const rightHatch = hatchFrameParts.find(
+      (mesh) => mesh.name.toLowerCase() === "right_hatch"
+    );
+
+    if (rightHatch) {
+      const normalizedValue = (newWidth - minWidth) / (maxWidth - minWidth);
+      rightHatch.position.x = normalizedValue * 1.48;
+    }
+
+    if (typeof onScaleChange === "function") {
+      onScaleChange(newWidth);
+    }
+  });
+}
 
 export function horizontalBeamPositioning(sliderElement, onPositionChange) {
   sliderElement.addEventListener("input", (event) => {

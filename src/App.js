@@ -38,6 +38,8 @@ import {
   model4VerticalBeamPositioningManual,
   widthScaling_mod_1_1,
   heightScaling_mod_1_1,
+  heightScaling_mod_1_2,
+  widthScaling_mod_1_2,
 } from "./ScalingLogic";
 
 const variantsWithHorizontalBeam = new Set([
