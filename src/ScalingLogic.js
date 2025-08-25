@@ -188,7 +188,7 @@ export function heightScaling_mod_1_2(heightSliderElement, onScaleChange, onBeam
 
     const scaleY = newHeight / baseHeight;
 
-    //  Scale right and left hatches
+    // Scale side hatches
     hatchFrameParts.forEach((mesh) => {
       const name = mesh.name.toLowerCase();
       if (name === "right_hatch" || name === "left_hatch") {
@@ -196,33 +196,22 @@ export function heightScaling_mod_1_2(heightSliderElement, onScaleChange, onBeam
       }
     });
 
-    //  Move top_hatch
-    const topHatch = hatchFrameParts.find(
-      (mesh) => mesh.name.toLowerCase() === "top_hatch"
-    );
-
+    // Move top hatch
+    const topHatch = hatchFrameParts.find(mesh => mesh.name.toLowerCase() === "top_hatch");
     if (topHatch) {
       const normalizedValue = (newHeight - minHeight) / (baseHeight - minHeight);
       topHatch.position.y = normalizedValue;
     }
 
-    //  Resize bottom_hatch based on beam
-    const horizontalBeamValue = typeof getHorizontalBeamValue === "function"
-      ? getHorizontalBeamValue()
-      : 0;
-
-    const bottomHatch = hatchFrameParts.find(
-      (mesh) => mesh.name.toLowerCase() === "bottom_hatch"
-    );
-
-    if (bottomHatch) {
-      // Example logic: hatch fills space between beam and bottom
-      const hatchHeight = horizontalBeamValue - 50; // Subtract 50mm buffer/padding if needed
-      const hatchScaleY = hatchHeight / 1000; // Assuming original height is 1000mm
-      bottomHatch.scale.y = Math.max(hatchScaleY, 0.1); // Avoid too small
+    // Scale bottom hatch based on beam
+    const bottomHatch = hatchFrameParts.find(mesh => mesh.name.toLowerCase() === "bottom_hatch");
+    if (bottomHatch && typeof getHorizontalBeamValue === "function") {
+      const beamY = getHorizontalBeamValue();
+      const hatchHeight = beamY - 50; // subtract padding if needed
+      const hatchScaleY = hatchHeight / 1000;
+      bottomHatch.scale.y = Math.max(hatchScaleY, 0.1);
     }
 
-    // Notify parent with updated height
     if (typeof onScaleChange === "function") {
       onScaleChange(newHeight);
     }
@@ -233,6 +222,8 @@ export function heightScaling_mod_1_2(heightSliderElement, onScaleChange, onBeam
     }
   });
 }
+
+
 export function widthScaling_mod_1_2(widthSliderElement, onScaleChange) {
  widthSliderElement.addEventListener("input", (event) => {
     const newWidth = parseFloat(event.target.value);

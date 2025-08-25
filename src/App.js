@@ -179,11 +179,20 @@ registerOnModelReady(() => {
     heightScaling_mod_1_1(heightSliderRef.current, setHeightScaleValue, (beamMax) => setHorizontalBeamMax(beamMax));
     
   } 
-  else if (selectedModel === "model_1_variant2") {
-    module.applyModel1_2Scaling();
-    model_1_variant2WidthScaling(widthSliderRef.current, true, handleWidthChange);
-  }
+ else if (selectedModel === "model_1_variant2") {
+  module.applyModel1_2Scaling();
+  model_1_variant2WidthScaling(widthSliderRef.current, true, handleWidthChange);
 
+  //  Hook in the new logic
+  heightScaling_mod_1_2(
+    heightSliderRef.current,
+    setHeightScaleValue,
+    (beamMax) => setHorizontalBeamMax(beamMax),
+    () => horizontalBeamValue  // <- Pass current beam position
+  );
+}
+
+  
   resetMaterials();
 
   if (heightSliderRef.current) heightSliderRef.current.value = 1000;
@@ -485,7 +494,7 @@ function setGlassThicknessToScene(value) {
     <input
       type="range"
       min="250"
-      max={horizontalBeamMax}
+      max={1750}
       value={horizontalBeamValue}
       disabled={dimensionsLocked}
       onChange={(e) => {
@@ -498,9 +507,21 @@ function setGlassThicknessToScene(value) {
   defaultHorizontalBeamPositioningManual(newValue);
 }
 
-      }}
-      ref={horizontalBeamSliderRef}
-    />
+       // 🔽 ✅ ADD THIS BLOCK HERE
+    if (selectedModel === "model_1_variant2") {
+      const bottomHatch = hatchFrameParts.find(
+        (mesh) => mesh.name.toLowerCase() === "bottom_hatch"
+      );
+      if (bottomHatch) {
+        const beamY = newValue;
+        const hatchHeight = beamY - 50; // adjust this offset if needed
+        bottomHatch.scale.y = Math.max(hatchHeight / 1000, 0.1);
+      }
+    }
+
+  }}
+  ref={horizontalBeamSliderRef}
+/>
     <p>horizontal Beam position: {horizontalBeamValue.toFixed(0)}mm</p>
   </div>
 )}
