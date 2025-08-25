@@ -36,6 +36,8 @@ import {
   model4VerticalBeamPositioningManual,
   widthScaling_mod_1_1,
   heightScaling_mod_1_1,
+  heightScaling_mod_1_2,
+  widthScaling_mod_1_2
 } from "./ScalingLogic";
 
 const variantsWithHorizontalBeam = new Set([
@@ -178,8 +180,15 @@ registerOnModelReady(() => {
   else if (selectedModel === "model_1_variant2") {
     module.applyModel1_2Scaling();
     model_1_variant2WidthScaling(widthSliderRef.current, true, handleWidthChange);
-  }
-
+  
+     heightScaling_mod_1_2(
+        heightSliderRef.current,
+        setHeightScaleValue,
+        (beamMax) => setHorizontalBeamMax(beamMax),
+        () => horizontalBeamValue // <- pass getter for current beam value
+      );
+    }
+    
   resetMaterials();
 
   if (heightSliderRef.current) heightSliderRef.current.value = 1000;
