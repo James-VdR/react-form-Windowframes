@@ -69,8 +69,8 @@ export function applyGlassMaterial(mesh, textureIndex = 0, thick = false) {
 
   const loader = new THREE.TextureLoader(); // <-- NEW loader for textures
   const glassTextures = [
-    loader.load("/textures/placeholder_glass.png"), // Default
-    loader.load("/textures/placeholder_glass2.png"), // Pattern 1
+    loader.load("/textures/texture_test1.png"), // Default
+    loader.load("/textures/texture_test2.png"), // Pattern 1
     loader.load("/textures/placeholder_glass3.png"), // Pattern 2
   ];
 
