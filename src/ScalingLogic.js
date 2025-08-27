@@ -179,60 +179,54 @@ export function heightScaling_mod_1_1(heightSliderElement, onScaleChange, onBeam
   });
 }
 
-export function heightScaling_mod_1_2(heightSliderElement, onScaleChange, onBeamMaxChange, getHorizontalBeamValue) {
+export function heightScaling_mod_1_2(heightSliderElement, onScaleChange, onBeamMaxChange) {
+  const baseHeight = 2000;
+  const baseBeamMax = 1000;
+
+  // Sides calibration (your v2 that kept sides flush)
+  const minHeightSides = 250;
+  const extraAtMaxSides = 0.175;
+
+  // Top calibration (your v1 that kept top hatch correct)
+  const minHeightTop = 1000;
+
   heightSliderElement.addEventListener("input", (event) => {
     const newHeight = parseFloat(event.target.value);
-    const minHeight = 1000;
-    const baseHeight = 2000;
-    const baseBeamMax = 1000;
-
     const scaleY = newHeight / baseHeight;
 
-    //  Scale right and left hatches
+    // --- Left/Right hatches (keep your "working for sides" behavior) ---
+    const tSides = THREE.MathUtils.clamp(
+      (newHeight - minHeightSides) / (baseHeight - minHeightSides),
+      0, 1
+    );
+    const compensationSides = THREE.MathUtils.lerp(0, extraAtMaxSides, tSides);
+
     hatchFrameParts.forEach((mesh) => {
-      const name = mesh.name.toLowerCase();
-      if (name === "right_hatch" || name === "left_hatch") {
-        mesh.scale.y = scaleY * 1.192;
+      const n = mesh.name.toLowerCase();
+      if (n === "left_hatch" || n === "right_hatch") {
+        mesh.scale.y = scaleY + compensationSides; // sides stay flush across range
       }
     });
 
-    //  Move top_hatch
-    const topHatch = hatchFrameParts.find(
-      (mesh) => mesh.name.toLowerCase() === "top_hatch"
-    );
-
+    // --- Top hatch (keep your "working for top" behavior) ---
+    const topHatch = hatchFrameParts.find(m => m.name.toLowerCase() === "top_hatch");
     if (topHatch) {
-      const normalizedValue = (newHeight - minHeight) / (baseHeight - minHeight);
-      topHatch.position.y = normalizedValue;
+      const tTop = (newHeight - minHeightTop) / (baseHeight - minHeightTop);
+      topHatch.position.y = tTop; // top hatch stays correct per your first snippet
     }
 
-    //  Resize bottom_hatch based on beam
-    const horizontalBeamValue = typeof getHorizontalBeamValue === "function"
-      ? getHorizontalBeamValue()
-      : 0;
-
-    const bottomHatch = hatchFrameParts.find(
-      (mesh) => mesh.name.toLowerCase() === "bottom_hatch"
-    );
-
-    if (bottomHatch) {
-      // Example logic: hatch fills space between beam and bottom
-      const hatchHeight = horizontalBeamValue - 50; // Subtract 50mm buffer/padding if needed
-      const hatchScaleY = hatchHeight / 1000; // Assuming original height is 1000mm
-      bottomHatch.scale.y = Math.max(hatchScaleY, 0.1); // Avoid too small
-    }
-
-    // Notify parent with updated height
-    if (typeof onScaleChange === "function") {
-      onScaleChange(newHeight);
-    }
-
+    if (typeof onScaleChange === "function") onScaleChange(newHeight);
     if (typeof onBeamMaxChange === "function") {
-      const dynamicBeamMax = baseBeamMax + (newHeight - minHeight);
-      onBeamMaxChange(dynamicBeamMax);
+      // Use the sides' min since that's your actual slider floor in the combined setup
+      onBeamMaxChange(baseBeamMax + (newHeight - minHeightSides));
     }
   });
 }
+
+
+
+
+
 export function widthScaling_mod_1_2(widthSliderElement, onScaleChange) {
  widthSliderElement.addEventListener("input", (event) => {
     const newWidth = parseFloat(event.target.value);

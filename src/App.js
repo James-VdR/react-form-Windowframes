@@ -182,6 +182,8 @@ registerOnModelReady(() => {
   else if (selectedModel === "model_1_variant2") {
     module.applyModel1_2Scaling();
     model_1_variant2WidthScaling(widthSliderRef.current, true, handleWidthChange);
+    widthScaling_mod_1_2(widthSliderRef.current, handleWidthChange);
+    heightScaling_mod_1_2(horizontalBeamSliderRef.current, );
   }
 
   resetMaterials();
