@@ -63,49 +63,139 @@ export function getMaterialColorOptions() {
   }));
 }
 
-//---glas---//
-export function applyGlassMaterial(mesh, textureIndex = 0, thick = false) {
-  if (!mesh) return;
+const glassMaterials = [];
 
-  const loader = new THREE.TextureLoader(); // <-- NEW loader for textures
-  const glassTextures = [
-    loader.load("/textures/texture_test1.png"), // Default
-    loader.load("/textures/texture_test2.png"), // Pattern 1
-    loader.load("/textures/placeholder_glass3.png"), // Pattern 2
-  ];
-
-  glassTextures.forEach((tex) => {
-    tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
-  });
-
-  const glassMaterial = new THREE.MeshPhysicalMaterial({
-    map: glassTextures[textureIndex] || glassTextures[0],
+// Default glass (no pattern)
+glassMaterials.push(new THREE.MeshPhysicalMaterial({
     color: 0xffffff,
     metalness: 0,
     roughness: 0.01,
     transmission: 1.0,
-    thickness: thick ? 0.06 : 0.01,
+    thickness: 0.01,
     transparent: true,
-    opacity: thick ? 0.9 : 1.0,
+    opacity: 1.0,
     ior: 1.0,
-    envMapIntensity: thick ? 1.0 : 0.5,
+    envMapIntensity: 0.5,
     clearcoat: 0.0,
     reflectivity: 0.1,
     depthWrite: false,
     side: THREE.FrontSide,
-  });
+}));
 
-  mesh.material = glassMaterial;
+// Pattern 1
+const pattern1Texture = createDiagonalLineTexture('#5f8193ff', 5, 1000, 60, '#bc3e3eff');
+glassMaterials.push(new THREE.MeshPhysicalMaterial({
+    map: pattern1Texture,
+    color: 0xffffff,
+    metalness: 0,
+    roughness: 0.01,
+    transmission: 1.0,
+    thickness: 0.01,
+    transparent: true,
+    opacity: 1.0,
+    ior: 1.0,
+    envMapIntensity: 0.5,
+    clearcoat: 0.0,
+    reflectivity: 0.1,
+    depthWrite: false,
+    side: THREE.FrontSide,
+}));
 
-  // Optional dynamic thickness
-  mesh.setGlassThickness = (t) => {
-    glassMaterial.thickness = t;
-    const tintFactor = Math.min(t / 0.1, 1);
-    glassMaterial.color.setRGB(1 - 0.3 * tintFactor, 1 - 0.3 * tintFactor, 1);
-    glassMaterial.envMapIntensity = 0.5 + tintFactor * 0.5;
-  };
+// Pattern 2
+const pattern2Texture = createCrissCrossTexture('#5f8193ff', 10, 1000, 40, '#a0c4ff');
+glassMaterials.push(new THREE.MeshPhysicalMaterial({
+    map: pattern2Texture,
+    color: 0xffffff,
+    metalness: 0,
+    roughness: 0.01,
+    transmission: 1.0,
+    thickness: 0.01,
+    transparent: true,
+    opacity: 1.0,
+    ior: 1.0,
+    envMapIntensity: 0.5,
+    clearcoat: 0.0,
+    reflectivity: 0.1,
+    depthWrite: false,
+    side: THREE.FrontSide,
+}));
+//---glas---//
+
+function createDiagonalLineTexture(lineColor = '#5f8193ff', lineThickness = 2, size = 1024) {
+    const canvas = document.createElement('canvas');
+    canvas.width = canvas.height = size;
+    const ctx = canvas.getContext('2d');
+
+    ctx.fillStyle = 'rgba(147, 212, 222, 0.46)'; // Transparent background
+    ctx.fillRect(0, 0, size, size);
+
+    ctx.strokeStyle = lineColor;
+    ctx.lineWidth = lineThickness;
+
+    // Draw diagonal lines across the square
+    for (let i = -size; i < size; i += 20) { // spacing between lines
+        ctx.beginPath();
+        ctx.moveTo(i, 0);
+        ctx.lineTo(i + size, size);
+        ctx.stroke();
+    }
+
+    const texture = new THREE.CanvasTexture(canvas);
+    texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
+    texture.repeat.set(4, 4); // Can adjust repetition
+    return texture;
 }
 
+function createCrissCrossTexture(lineColor = '#5f8193ff', lineThickness = 5, size = 1000, spacing = 20, backgroundColor = '#ffffff') {
+    const canvas = document.createElement('canvas');
+    canvas.width = canvas.height = size;
+    const ctx = canvas.getContext('2d');
+
+    // Fill background
+    ctx.fillStyle = backgroundColor;
+    ctx.fillRect(0, 0, size, size);
+
+    ctx.strokeStyle = lineColor;
+    ctx.lineWidth = lineThickness;
+
+    // Draw first set of diagonal lines (\)
+    for (let i = -size; i < size; i += spacing) {
+        ctx.beginPath();
+        ctx.moveTo(i, 0);
+        ctx.lineTo(i + size, size);
+        ctx.stroke();
+    }
+
+    // Draw second set of diagonal lines (/)
+    for (let i = 0; i < 2 * size; i += spacing) {
+        ctx.beginPath();
+        ctx.moveTo(i, 0);
+        ctx.lineTo(i - size, size);
+        ctx.stroke();
+    }
+
+    const texture = new THREE.CanvasTexture(canvas);
+    texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
+    texture.repeat.set(4, 4);
+    texture.minFilter = THREE.LinearFilter;
+    texture.magFilter = THREE.LinearFilter;
+    texture.generateMipmaps = false;
+
+    return texture;
+}
+
+// Updated glass material function
+export function applyGlassMaterial(index = 0) {
+    if (!glassParts || glassParts.length === 0) return;
+
+    // Get the material from the array, fallback to default
+    const material = glassMaterials[index] || glassMaterials[0];
+
+    glassParts.forEach((mesh) => {
+        mesh.material = material;
+        mesh.material.needsUpdate = true; // make sure Three.js refreshes the material
+    });
+}
 
 export function resetMaterials() {
   

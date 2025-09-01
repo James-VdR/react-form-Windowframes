@@ -579,9 +579,10 @@ function setGlassThicknessToScene(value) {
 
 {materialsLoaded && (
   <div className="glassControls">
-    <p>Glass Texture</p>
-    <button onClick={() => applyGlassMaterialToScene(0)}>Default</button>
-    <button onClick={() => applyGlassMaterialToScene(1)}>Patterned</button>
+    <p>Glass Type</p>
+    <button id="glassOptions" onClick={() => applyGlassMaterial(0)}>Standaard glas</button>
+    <button id="glassOptions" onClick={() => applyGlassMaterial(1)}>Dubbelzijdig gelaagd</button>
+    <button id="glassOptions" onClick={() => applyGlassMaterial(2)}>Binnenzijde gelaagd</button>
 
     <p>Glass Thickness</p>
     <button onClick={() => setGlassThicknessToScene(0.01)}>Thin</button>

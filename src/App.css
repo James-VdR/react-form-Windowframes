@@ -64,3 +64,19 @@ body, html, #root {
 #value-field{
   width: 50px;
 }
+
+#glassOptions{
+  background-color: rgb(255, 255, 255);
+  border-radius: 10px;
+  border: 2px solid rgb(94, 194, 89);
+  margin: 5px;
+  padding: 2px;
+}
+
+#glassOptions:hover{
+  color: red;
+}
+
+#glassOptions:visited{
+  color: blue;
+}
