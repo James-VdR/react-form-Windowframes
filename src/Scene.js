@@ -36,30 +36,27 @@ export function detectVerticalBeams(scene) {
   verticalBeams.sort((a, b) => a.name.localeCompare(b.name));
 }
 
-export function spawnWindowAddon(position = { x: 0, y: 0, z: 0 }) {
+export function spawnWindowAddon(position = { x: 0, y: 0, z: 0 }, onLoaded) {
   const loader = new GLTFLoader();
-
-  loader.load('/models/hatch.glb', (gltf) => {
+  loader.load("/models/hatch.glb", (gltf) => {
     const windowModel = gltf.scene;
-
     windowModel.scale.set(1, 1, 1);
     windowModel.position.set(position.x, position.y, position.z);
     scene.add(windowModel);
 
-    // check for parts and push into the hatchframeparts array
     windowModel.traverse((child) => {
       if (child.isMesh) {
         const name = child.name.toLowerCase();
         if (name.includes("hatch")) {
-          //child.visible = false;
           hatchFrameParts.push(child);
         }
       }
     });
 
-    console.log(" Add-on window spawned at", position);
+    if (typeof onLoaded === "function") onLoaded();
   });
 }
+
 
 
 export function getVerticalBeams() {
