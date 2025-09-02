@@ -15,6 +15,7 @@ export const glassParts = [];
 export const hatchParts = [];
 let modelReadyCallback = null;
 let boundingBoxHelper = null;
+let currentHDRI = "Background.hdr";
 
 //all things vertical beams --------------------------
 export let verticalBeams = [];
@@ -106,6 +107,8 @@ export function initThree(container) {
   ground.receiveShadow = true;
   scene.add(ground);
 
+  loadHDRI(currentHDRI); // Loads default HDRI
+  /*
   new RGBELoader().setPath("/models/").load("Background.hdr", (texture) => {
     const pmrem = new THREE.PMREMGenerator(renderer);
     const envMap = pmrem.fromEquirectangular(texture).texture;
@@ -113,7 +116,7 @@ export function initThree(container) {
     scene.background = envMap;
     texture.dispose();
     pmrem.dispose();
-  });
+  }); */
 
   loadModel();
 
@@ -158,6 +161,21 @@ function loadModel() {
   boundingBoxHelper = new THREE.BoxHelper(model, 0xff0000); // Red bounding box
   scene.add(boundingBoxHelper);
   });
+}
+
+export function loadHDRI(hdriName) {
+  const pmrem = new THREE.PMREMGenerator(renderer);
+  new RGBELoader()
+    .setPath("/models/")
+    .load(hdriName, (texture) => {
+      const envMap = pmrem.fromEquirectangular(texture).texture;
+      scene.environment = envMap;
+      scene.background = envMap;
+      texture.dispose();
+      pmrem.dispose();
+      currentHDRI = hdriName;
+      console.log(`🌄 HDRI switched to: ${hdriName}`);
+    });
 }
 
 function groupFrameParts(model) {

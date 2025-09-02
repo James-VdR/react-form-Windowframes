@@ -10,6 +10,7 @@ import { ColorSelectorGroup } from "./ColorSelectorGroup.js";
 
 import {
   initThree,
+  loadHDRI,
   applyMaterialToMainFrame,
   registerOnModelReady,
   applyMaterialsToInsideFrame,
@@ -21,8 +22,8 @@ import {
   hatchFrameParts,
   glassParts,
 } from "./Scene";
-import { 
-  heightScaling, 
+import {
+  heightScaling,
   widthScaling,
   horizontalBeamPositioning,
   defaultHorizontalBeamPositioningManual,
@@ -53,20 +54,17 @@ const variantsWithHorizontalBeam = new Set([
   "model_4_variant1",
 ]);
 
-
-
 const verticalBeamPositioningFunctions = {
-model_2_variant1:model2VerticalBeamPositioningManual,
-model_2_variant2:model2VerticalBeamPositioningManual,
-model_2_variant3:model2VerticalBeamPositioningManual,
-model_2_variant4:model2VerticalBeamPositioningManual,
-model_2_variant5:model2VerticalBeamPositioningManual,
-model_3_variant1:model3_1VerticalBeamPositioningManual,
-model_3_variant2:model3_2VerticalBeamPositioningManual,
-model_3_variant3:model3_3VerticalBeamPositioningManual,
-model_4_variant1: model4VerticalBeamPositioningManual,
+  model_2_variant1: model2VerticalBeamPositioningManual,
+  model_2_variant2: model2VerticalBeamPositioningManual,
+  model_2_variant3: model2VerticalBeamPositioningManual,
+  model_2_variant4: model2VerticalBeamPositioningManual,
+  model_2_variant5: model2VerticalBeamPositioningManual,
+  model_3_variant1: model3_1VerticalBeamPositioningManual,
+  model_3_variant2: model3_2VerticalBeamPositioningManual,
+  model_3_variant3: model3_3VerticalBeamPositioningManual,
+  model_4_variant1: model4VerticalBeamPositioningManual,
 };
-
 
 function App() {
   const mountRef = useRef(null);
@@ -77,7 +75,7 @@ function App() {
   const [hatchVisible, setHatchVisible] = useState(false);
 
   const [selectedOption, setSelectedOption] = useState("");
-  const[dimensionsLocked, setDimensionsLocked] = useState(false);
+  const [dimensionsLocked, setDimensionsLocked] = useState(false);
   const [heightScaleValue, setHeightScaleValue] = useState(1);
   const [widthScaleValue, setWidthScaleValue] = useState(5);
   const [horizontalBeamValue, setHorizontalBeamValue] = useState(750);
@@ -93,37 +91,33 @@ function App() {
   const [selectedModel, setSelectedModel] = useState(null); // Final variant used for loading
 
   //this has to do with vertical beam
-  const [,setVerticalBeamPositions] = useState([]);
+  const [, setVerticalBeamPositions] = useState([]);
 
   const handleWidthChange = (newWidth) => {
-  setWidthScaleValue(newWidth);
-  window.currentModelWidth = newWidth;
+    setWidthScaleValue(newWidth);
+    window.currentModelWidth = newWidth;
 
-  const minWidth = 500;
-  const baseVerticalMax = 600;
-  const dynamicVerticalMax = baseVerticalMax + (newWidth - 1000);
+    const minWidth = 500;
+    const baseVerticalMax = 600;
+    const dynamicVerticalMax = baseVerticalMax + (newWidth - 1000);
 
-  setVerticalBeamMax(dynamicVerticalMax);
+    setVerticalBeamMax(dynamicVerticalMax);
 
-setVerticalBeamSliderValue((prevValue) => {
-  const clamped = Math.min(prevValue, dynamicVerticalMax);
+    setVerticalBeamSliderValue((prevValue) => {
+      const clamped = Math.min(prevValue, dynamicVerticalMax);
 
-  if (verticalBeamPositioningFunctions[selectedModel]) {
-    // Pass current width for models that require it
-    if (selectedModel.startsWith("model_2")) {
-      verticalBeamPositioningFunctions[selectedModel](clamped, newWidth);
-    } else {
-      verticalBeamPositioningFunctions[selectedModel](clamped);
-    }
-  }
+      if (verticalBeamPositioningFunctions[selectedModel]) {
+        // Pass current width for models that require it
+        if (selectedModel.startsWith("model_2")) {
+          verticalBeamPositioningFunctions[selectedModel](clamped, newWidth);
+        } else {
+          verticalBeamPositioningFunctions[selectedModel](clamped);
+        }
+      }
 
-  return clamped;
-});
-
-};
-
-
-
+      return clamped;
+    });
+  };
 
   // Load material library ONCE when component mounts
   useEffect(() => {
@@ -134,71 +128,73 @@ setVerticalBeamSliderValue((prevValue) => {
     });
   }, []);
 
-
+  useEffect(() => {
+    if (!selectedModel) return;
+    window.selectedModel = selectedModel; // ✅ Make it globally accessible
+  }, [selectedModel]);
 
   useEffect(() => {
-  if (!selectedModel) return;
-  window.selectedModel = selectedModel; // ✅ Make it globally accessible
-}, [selectedModel]);    
+    if (!dimensionsLocked) return;
 
-useEffect(() => {
-  if (!dimensionsLocked) return;
+    const hatchShouldBeVisible = selectedOption === "onder";
+    setHatchVisible(hatchShouldBeVisible);
 
-  const hatchShouldBeVisible = selectedOption === "onder";
-  setHatchVisible(hatchShouldBeVisible);
-
-  hatchFrameParts.forEach((mesh) => {
-    mesh.visible = hatchShouldBeVisible;
-  });
-}, [selectedOption, dimensionsLocked]);
-
-
+    hatchFrameParts.forEach((mesh) => {
+      mesh.visible = hatchShouldBeVisible;
+    });
+  }, [selectedOption, dimensionsLocked]);
 
   useEffect(() => {
     if (!selectedModel || !mountRef.current) return;
 
     initThree(mountRef.current);
 
-registerOnModelReady(() => {
-  const hatchShouldBeVisible = selectedOption === "onder" && dimensionsLocked;
+    registerOnModelReady(() => {
+      const hatchShouldBeVisible =
+        selectedOption === "onder" && dimensionsLocked;
 
-  // Set state and apply visibility correctly at model load
-  setHatchVisible(hatchShouldBeVisible);
-  hatchFrameParts.forEach((mesh) => {
-    mesh.visible = hatchShouldBeVisible;
-  });
+      // Set state and apply visibility correctly at model load
+      setHatchVisible(hatchShouldBeVisible);
+      hatchFrameParts.forEach((mesh) => {
+        mesh.visible = hatchShouldBeVisible;
+      });
 
       if (selectedModel.includes("model_1")) {
-    import("./Models/model_1.js").then((module) => {
- 
-  if (selectedModel === "model_1_variant1") {
-    module.applyModel1_1Scaling();
-     
-    widthScaling(widthSliderRef.current, handleWidthChange);
-    widthScaling_mod_1_1(widthSliderRef.current, handleWidthChange);
-    heightScaling_mod_1_1(heightSliderRef.current, setHeightScaleValue, (beamMax) => setHorizontalBeamMax(beamMax));
-    
-  } 
-  else if (selectedModel === "model_1_variant2") {
-    module.applyModel1_2Scaling();
-    model_1_variant2WidthScaling(widthSliderRef.current, true, );
-    widthScaling_mod_1_1(widthSliderRef.current);
-    heightScaling_mod_1_1(horizontalBeamSliderRef.current, );
-  }
+        import("./Models/model_1.js").then((module) => {
+          if (selectedModel === "model_1_variant1") {
+            module.applyModel1_1Scaling();
 
-  resetMaterials();
+            widthScaling(widthSliderRef.current, handleWidthChange);
+            widthScaling_mod_1_1(widthSliderRef.current, handleWidthChange);
+            heightScaling_mod_1_1(
+              heightSliderRef.current,
+              setHeightScaleValue,
+              (beamMax) => setHorizontalBeamMax(beamMax)
+            );
+          } else if (selectedModel === "model_1_variant2") {
+            module.applyModel1_2Scaling();
+            model_1_variant2WidthScaling(widthSliderRef.current, true);
+            widthScaling_mod_1_1(widthSliderRef.current);
+            heightScaling_mod_1_1(horizontalBeamSliderRef.current);
+          }
 
-  if (heightSliderRef.current) heightSliderRef.current.value = 1000;
-  if (widthSliderRef.current) widthSliderRef.current.value = 500;
-  setHeightScaleValue(1000);
-  setWidthScaleValue(500);
+          resetMaterials();
+
+          if (heightSliderRef.current) heightSliderRef.current.value = 1000;
+          if (widthSliderRef.current) widthSliderRef.current.value = 500;
+          setHeightScaleValue(1000);
+          setWidthScaleValue(500);
         });
-        
-        }
-          if (horizontalBeamSliderRef.current) {
-          horizontalBeamPositioning(horizontalBeamSliderRef.current, setHorizontalBeamValue);
-          setHorizontalBeamValue(parseFloat(horizontalBeamSliderRef.current.value));
-        }
+      }
+      if (horizontalBeamSliderRef.current) {
+        horizontalBeamPositioning(
+          horizontalBeamSliderRef.current,
+          setHorizontalBeamValue
+        );
+        setHorizontalBeamValue(
+          parseFloat(horizontalBeamSliderRef.current.value)
+        );
+      }
 
       if (selectedModel.includes("model_2")) {
         import("./Models/model_2.js").then((module) => {
@@ -259,65 +255,68 @@ registerOnModelReady(() => {
       }
 
       // Repeat for other models...
-  if (heightSliderRef.current) {
-  heightScaling(
-    heightSliderRef.current,
-    setHeightScaleValue,
-    (dynamicBeamMax) => {
-      setHorizontalBeamMax(dynamicBeamMax);
+      if (heightSliderRef.current) {
+        heightScaling(
+          heightSliderRef.current,
+          setHeightScaleValue,
+          (dynamicBeamMax) => {
+            setHorizontalBeamMax(dynamicBeamMax);
 
-      setHorizontalBeamValue((prevValue) => {
-        const newValue = prevValue > dynamicBeamMax ? dynamicBeamMax : prevValue;
+            setHorizontalBeamValue((prevValue) => {
+              const newValue =
+                prevValue > dynamicBeamMax ? dynamicBeamMax : prevValue;
 
-        // Update actual beam position to reflect the clamped value
-    if (selectedModel === "model_2_variant2") {
-  model_2_variant2BeamPositioningManual(newValue);
-} else {
-  defaultHorizontalBeamPositioningManual(newValue);
-}
+              // Update actual beam position to reflect the clamped value
+              if (selectedModel === "model_2_variant2") {
+                model_2_variant2BeamPositioningManual(newValue);
+              } else {
+                defaultHorizontalBeamPositioningManual(newValue);
+              }
 
+              return newValue;
+            });
+          }
+        );
 
-        return newValue;
+        setHeightScaleValue(parseFloat(heightSliderRef.current.value));
+      }
+
+      widthScaling(widthSliderRef.current, (newWidth) => {
+        setWidthScaleValue(newWidth);
+        window.currentModelWidth = newWidth;
+
+        // Generic dynamic vertical max adjustment, applies to all models
+        const minWidth = 500;
+        const baseVerticalMax = 600; // Max at 1000 width
+        const dynamicVerticalMax = baseVerticalMax + (newWidth - 1000);
+
+        setVerticalBeamMax(dynamicVerticalMax);
+
+        setVerticalBeamSliderValue((prevValue) => {
+          const clamped = Math.min(prevValue, dynamicVerticalMax);
+
+          if (verticalBeamPositioningFunctions[selectedModel]) {
+            // Pass current width for models that require it
+            if (selectedModel.startsWith("model_2")) {
+              verticalBeamPositioningFunctions[selectedModel](
+                clamped,
+                newWidth
+              );
+            } else {
+              verticalBeamPositioningFunctions[selectedModel](clamped);
+            }
+          }
+
+          return clamped;
+        });
       });
-    }
-  );
-
-  setHeightScaleValue(parseFloat(heightSliderRef.current.value));
-}
-
-
-widthScaling(widthSliderRef.current, (newWidth) => {
-  setWidthScaleValue(newWidth);
-  window.currentModelWidth = newWidth;
-
-  // Generic dynamic vertical max adjustment, applies to all models
-  const minWidth = 500;
-  const baseVerticalMax = 600; // Max at 1000 width
-  const dynamicVerticalMax = baseVerticalMax + (newWidth - 1000); 
-
-  setVerticalBeamMax(dynamicVerticalMax);
-
-setVerticalBeamSliderValue((prevValue) => {
-  const clamped = Math.min(prevValue, dynamicVerticalMax);
-
-  if (verticalBeamPositioningFunctions[selectedModel]) {
-    // Pass current width for models that require it
-    if (selectedModel.startsWith("model_2")) {
-      verticalBeamPositioningFunctions[selectedModel](clamped, newWidth);
-    } else {
-      verticalBeamPositioningFunctions[selectedModel](clamped);
-    }
-  }
-
-  return clamped;
-});
-
-});
-// 🔽 Add this just before detectVerticalBeams()
-if (selectedModel === "model_1_variant1" || selectedModel === "model_1_variant2") {
-  spawnWindowAddon({ x: -1.022, y: -0.50, z: 0 }); // adjust position to fit frame, and find the reguired variables.
-}
-
+      // 🔽 Add this just before detectVerticalBeams()
+      if (
+        selectedModel === "model_1_variant1" ||
+        selectedModel === "model_1_variant2"
+      ) {
+        spawnWindowAddon({ x: -1.022, y: -0.5, z: 0 }); // adjust position to fit frame, and find the reguired variables.
+      }
 
       detectVerticalBeams(window.scene);
       const beams = getVerticalBeams();
@@ -418,7 +417,7 @@ if (selectedModel === "model_1_variant1" || selectedModel === "model_1_variant2"
     console.log("Applying material:", color.name);
   }
 
-   function handleHatchFrameColorSelect(color) {
+  function handleHatchFrameColorSelect(color) {
     setSelectedColor(color);
     if (color.material) {
       applyMaterialsToHatchFrame(color.material);
@@ -426,24 +425,23 @@ if (selectedModel === "model_1_variant1" || selectedModel === "model_1_variant2"
     console.log("Applying material:", color.name);
   }
 
-//GLASS GLASS GLASS GLASS GLASS
+  //GLASS GLASS GLASS GLASS GLASS
   function applyGlassMaterialToScene(index) {
-  glassParts.forEach(mesh => applyGlassMaterial(mesh, index));
-}
+    glassParts.forEach((mesh) => applyGlassMaterial(mesh, index));
+  }
 
-// Set the glass thickness for all glass meshes
-function setGlassThicknessToScene(value) {
-  glassParts.forEach(mesh => {
-    if (mesh.setGlassThickness) {
-      mesh.setGlassThickness(value);
-    }
-  });
-}
+  // Set the glass thickness for all glass meshes
+  function setGlassThicknessToScene(value) {
+    glassParts.forEach((mesh) => {
+      if (mesh.setGlassThickness) {
+        mesh.setGlassThickness(value);
+      }
+    });
+  }
 
   return (
     <div className="container">
       <div className="sidebar">
-      
         <h1>{selectedModel.replace("_", " ").toUpperCase()}</h1>
         <button
           onClick={() => {
@@ -453,6 +451,17 @@ function setGlassThicknessToScene(value) {
         >
           Back to selection
         </button>
+
+             <select
+  id="hdriSelect"
+  onChange={(e) => loadHDRI(e.target.value)}
+  defaultValue="Background.hdr"
+>
+  <option value="Background.hdr">Default</option>
+  <option value="qwantani_noon_puresky_4K.hdr">Pure Sky</option>
+  <option value="lakeside_sunrise_4K.hdr">Sunrise</option>
+  <option value="satara_night_4K.hdr">Night</option>
+</select>
         <div className="heightSlider">
           <p>Height</p>
           <input
@@ -479,118 +488,129 @@ function setGlassThicknessToScene(value) {
           />
           <p id="widthScaleValue">width: {widthScaleValue.toFixed(0)}mm</p>
         </div>
-       
 
-{variantsWithHorizontalBeam.has(selectedModel) && (
-  <div className="horizontalBeamSlider">
-    <p>Beam</p>
-    <input
-      type="range"
-      min="250"
-      max={horizontalBeamMax}
-      value={horizontalBeamValue}
-      disabled={dimensionsLocked}
-      onChange={(e) => {
-        const newValue = parseFloat(e.target.value);
-        setHorizontalBeamValue(newValue);
+        {variantsWithHorizontalBeam.has(selectedModel) && (
+          <div className="horizontalBeamSlider">
+            <p>Beam</p>
+            <input
+              type="range"
+              min="250"
+              max={horizontalBeamMax}
+              value={horizontalBeamValue}
+              disabled={dimensionsLocked}
+              onChange={(e) => {
+                const newValue = parseFloat(e.target.value);
+                setHorizontalBeamValue(newValue);
+
+                if (selectedModel === "model_2_variant2") {
+                  model_2_variant2BeamPositioningManual(newValue);
+                } else {
+                  defaultHorizontalBeamPositioningManual(newValue);
+                }
+              }}
+              ref={horizontalBeamSliderRef}
+            />
+            <p>horizontal Beam position: {horizontalBeamValue.toFixed(0)}mm</p>
+          </div>
+        )}
+
+        {verticalBeamPositioningFunctions[selectedModel] && (
+          <div className="verticalBeamSlider">
+            <p>Vertical Beam</p>
+            <input
+              type="range"
+              min="400"
+              max={verticalBeamMax}
+              value={verticalBeamSliderValue}
+              disabled={dimensionsLocked}
+              onInput={(e) => {
+                const newValue = parseFloat(e.target.value);
+                setVerticalBeamSliderValue(newValue);
+
+                if (verticalBeamPositioningFunctions[selectedModel]) {
+                  if (selectedModel.startsWith("model_2")) {
+                    verticalBeamPositioningFunctions[selectedModel](
+                      newValue,
+                      widthScaleValue
+                    );
+                  } else {
+                    verticalBeamPositioningFunctions[selectedModel](newValue);
+                  }
+                }
+              }}
+            />
+
+            <p>Vertical Beam position: {verticalBeamSliderValue}mm</p>
+          </div>
+        )}
+        <button
+          style={{
+            backgroundColor: dimensionsLocked ? "#4CAF50" : "#2196F3",
+            color: "white",
+            padding: "8px 16px",
+            border: "none",
+            borderRadius: "4px",
+            marginTop: "10px",
+            cursor: "pointer",
+          }}
+          onClick={() => {
+            setDimensionsLocked(true);
+          }}
+        >
+          {dimensionsLocked ? "✅ Confirmed" : "Confirm Selection"}
+        </button>
+
         
-       if (selectedModel === "model_2_variant2") {
-  model_2_variant2BeamPositioningManual(newValue);
-} else {
-  defaultHorizontalBeamPositioningManual(newValue);
-}
 
-      }}
-      ref={horizontalBeamSliderRef}
-    />
-    <p>horizontal Beam position: {horizontalBeamValue.toFixed(0)}mm</p>
-  </div>
-)}
+        <div style={{ marginTop: "20px" }}>
+          <label htmlFor="actionDropdown">Draai Kiepraam Selectie .1:</label>
+          <select
+            id="actionDropdown"
+            disabled={!dimensionsLocked}
+            value={selectedOption}
+            onChange={(e) => setSelectedOption(e.target.value)}
+            style={{
+              marginLeft: "10px",
+              padding: "5px",
+              borderRadius: "4px",
+              border: "1px solid #ccc",
+              backgroundColor: dimensionsLocked ? "white" : "#f0f0f0",
+              color: dimensionsLocked ? "black" : "#999",
+            }}
+          >
+            <option value="">Vast raam</option>
+            <option value="onder">Kiepraam, scharnier onder</option>
+            <option value="links">
+              Draai-kiep raam, scharnier links-onder
+            </option>
+            <option value="rechts">
+              Draai-kiep raam, scharnier rechts-onder
+            </option>
+          </select>
+        </div>
 
+        {materialsLoaded && (
+          <div className="glassControls">
+            <p>Glass Type</p>
+            <button id="glassOptions" onClick={() => applyGlassMaterial(0)}>
+              Standaard glas
+            </button>
+            <button id="glassOptions" onClick={() => applyGlassMaterial(1)}>
+              Dubbelzijdig gelaagd
+            </button>
+            <button id="glassOptions" onClick={() => applyGlassMaterial(2)}>
+              Binnenzijde gelaagd
+            </button>
 
-{verticalBeamPositioningFunctions[selectedModel] && (
-  <div className="verticalBeamSlider">
-    <p>Vertical Beam</p>
-<input
-  type="range"
-  min="400"
-  max={verticalBeamMax}
-  value={verticalBeamSliderValue}
-  disabled={dimensionsLocked}
-  onInput={(e) => {
-    const newValue = parseFloat(e.target.value);
-    setVerticalBeamSliderValue(newValue);
-
-    if (verticalBeamPositioningFunctions[selectedModel]) {
-      if (selectedModel.startsWith("model_2")) {
-        verticalBeamPositioningFunctions[selectedModel](newValue, widthScaleValue);
-      } else {
-        verticalBeamPositioningFunctions[selectedModel](newValue);
-      }
-    }
-  }}
-/>
-
-    <p>Vertical Beam position: {verticalBeamSliderValue}mm</p>
-  </div>
-)}
-<button
-  style={{
-    backgroundColor: dimensionsLocked ? "#4CAF50" : "#2196F3",
-    color: "white",
-    padding: "8px 16px",
-    border: "none",
-    borderRadius: "4px",
-    marginTop: "10px",
-    cursor: "pointer",
-  }}
-  onClick={() => {
-  setDimensionsLocked(true);
-
-  
-}}
-
->
-  {dimensionsLocked ? "✅ Confirmed" : "Confirm Selection"}
-</button>
-
-<div style={{ marginTop: "20px" }}>
-  <label htmlFor="actionDropdown">Draai Kiepraam Selectie .1:</label>
-  <select
-    id="actionDropdown"
-    disabled={!dimensionsLocked}
-    value={selectedOption}
-    onChange={(e) => setSelectedOption(e.target.value)}
-    style={{
-      marginLeft: "10px",
-      padding: "5px",
-      borderRadius: "4px",
-      border: "1px solid #ccc",
-      backgroundColor: dimensionsLocked ? "white" : "#f0f0f0",
-      color: dimensionsLocked ? "black" : "#999",
-    }}
-  >
-    <option value="">Vast raam</option>
-    <option value="onder">Kiepraam, scharnier onder</option>
-    <option value="links">Draai-kiep raam, scharnier links-onder</option>
-    <option value="rechts">Draai-kiep raam, scharnier rechts-onder</option>
-  </select>
-</div>
-
-{materialsLoaded && (
-  <div className="glassControls">
-    <p>Glass Type</p>
-    <button id="glassOptions" onClick={() => applyGlassMaterial(0)}>Standaard glas</button>
-    <button id="glassOptions" onClick={() => applyGlassMaterial(1)}>Dubbelzijdig gelaagd</button>
-    <button id="glassOptions" onClick={() => applyGlassMaterial(2)}>Binnenzijde gelaagd</button>
-
-    <p>type combinatie glass</p>
-    <button id="glassOptions" onClick={() => ("Thin Glass")}>HR++</button>
-<button id="glassOptions" onClick={() => ("Thick Glass")}>HR+++</button>
-  </div>
-)}
-
-
+            <p>type combinatie glass</p>
+            <button id="glassOptions" onClick={() => "Thin Glass"}>
+              HR++
+            </button>
+            <button id="glassOptions" onClick={() => "Thick Glass"}>
+              HR+++
+            </button>
+          </div>
+        )}
 
         {materialsLoaded ? (
           <ColorSelectorGroup
@@ -625,7 +645,7 @@ function setGlassThicknessToScene(value) {
           <p>Loading materials...</p>
         )}
 
-            {materialsLoaded ? (
+        {materialsLoaded ? (
           <ColorSelectorGroup
             title="HatchFrame Color"
             colors={colorOptions}
