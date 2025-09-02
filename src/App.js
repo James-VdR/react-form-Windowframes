@@ -195,13 +195,13 @@ if (selectedModel.includes("model_1")) {
       );
     }
 
-    // spawn the hatch and fire once when it's actually in the scene
+    // spawn the hatch and fire once when it's actually in the scene, the following code just makes it so if sliders left untouched the frame spawns in propper
     if (
       selectedModel === "model_1_variant1" ||
       selectedModel === "model_1_variant2"
     ) {
-      spawnWindowAddon({  }, () => {
-        // keep visibility consistent with your state (optional)
+      spawnWindowAddon({ }, () => {
+      
        
 
         // run the hatch sizing once now that meshes exist
