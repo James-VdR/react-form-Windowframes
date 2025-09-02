@@ -158,43 +158,64 @@ function App() {
       hatchFrameParts.forEach((mesh) => {
         mesh.visible = hatchShouldBeVisible;
       });
+if (selectedModel.includes("model_1")) {
+  import("./Models/model_1.js").then((module) => {
+    if (selectedModel === "model_1_variant1") {
+      module.applyModel1_1Scaling();
+      widthScaling(widthSliderRef.current, handleWidthChange);
+      widthScaling_mod_1_1(widthSliderRef.current, handleWidthChange);
+      heightScaling_mod_1_1(
+        heightSliderRef.current,
+        setHeightScaleValue,
+        (beamMax) => setHorizontalBeamMax(beamMax)
+      );
+    } else if (selectedModel === "model_1_variant2") {
+      module.applyModel1_2Scaling();
+      model_1_variant2WidthScaling(widthSliderRef.current, true);
+      widthScaling_mod_1_1(widthSliderRef.current);
 
-      if (selectedModel.includes("model_1")) {
-        import("./Models/model_1.js").then((module) => {
-          if (selectedModel === "model_1_variant1") {
-            module.applyModel1_1Scaling();
+      // hatch sizing listens to the BEAM slider
+      heightScaling_mod_1_1(horizontalBeamSliderRef.current);
+    }
 
-            widthScaling(widthSliderRef.current, handleWidthChange);
-            widthScaling_mod_1_1(widthSliderRef.current, handleWidthChange);
-            heightScaling_mod_1_1(
-              heightSliderRef.current,
-              setHeightScaleValue,
-              (beamMax) => setHorizontalBeamMax(beamMax)
-            );
-          } else if (selectedModel === "model_1_variant2") {
-            module.applyModel1_2Scaling();
-            model_1_variant2WidthScaling(widthSliderRef.current, true);
-            widthScaling_mod_1_1(widthSliderRef.current);
-            heightScaling_mod_1_1(horizontalBeamSliderRef.current);
+    resetMaterials();
+    if (heightSliderRef.current) heightSliderRef.current.value = 1000;
+    if (widthSliderRef.current) widthSliderRef.current.value = 500;
+    setHeightScaleValue(1000);
+    setWidthScaleValue(500);
+
+    // attach generic beam listener before spawning the hatch
+    if (horizontalBeamSliderRef.current) {
+      horizontalBeamPositioning(
+        horizontalBeamSliderRef.current,
+        setHorizontalBeamValue
+      );
+      setHorizontalBeamValue(
+        parseFloat(horizontalBeamSliderRef.current.value)
+      );
+    }
+
+    // spawn the hatch and fire once when it's actually in the scene
+    if (
+      selectedModel === "model_1_variant1" ||
+      selectedModel === "model_1_variant2"
+    ) {
+      spawnWindowAddon({  }, () => {
+        // keep visibility consistent with your state (optional)
+       
+
+        // run the hatch sizing once now that meshes exist
+        requestAnimationFrame(() => {
+          const sliderElement = horizontalBeamSliderRef.current;
+          if (sliderElement) {
+            sliderElement.dispatchEvent(new Event("input", { bubbles: true }));
           }
-
-          resetMaterials();
-
-          if (heightSliderRef.current) heightSliderRef.current.value = 1000;
-          if (widthSliderRef.current) widthSliderRef.current.value = 500;
-          setHeightScaleValue(1000);
-          setWidthScaleValue(500);
         });
-      }
-      if (horizontalBeamSliderRef.current) {
-        horizontalBeamPositioning(
-          horizontalBeamSliderRef.current,
-          setHorizontalBeamValue
-        );
-        setHorizontalBeamValue(
-          parseFloat(horizontalBeamSliderRef.current.value)
-        );
-      }
+      });
+    }
+  });
+}
+
 
       if (selectedModel.includes("model_2")) {
         import("./Models/model_2.js").then((module) => {
