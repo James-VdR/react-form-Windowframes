@@ -8,6 +8,10 @@ import {
 } from "./MaterialLibrary.js";
 import { ColorSelectorGroup } from "./ColorSelectorGroup.js";
 
+import * as THREE from 'three';
+import { FontLoader } from 'three/examples/jsm/loaders/FontLoader.js';
+import { TextGeometry } from 'three/examples/jsm/geometries/TextGeometry.js';
+
 import {
   initThree,
   loadHDRI,
@@ -66,7 +70,12 @@ const verticalBeamPositioningFunctions = {
   model_4_variant1: model4VerticalBeamPositioningManual,
 };
 
+
+
 function App() {
+  const glassLabelMeshRef = useRef(null);
+  const fontRef = useRef(null);
+
   const mountRef = useRef(null);
   const heightSliderRef = useRef();
   const widthSliderRef = useRef();
@@ -93,6 +102,8 @@ function App() {
   //this has to do with vertical beam
   const [, setVerticalBeamPositions] = useState([]);
 
+  
+
   const handleWidthChange = (newWidth) => {
     setWidthScaleValue(newWidth);
     window.currentModelWidth = newWidth;
@@ -102,6 +113,8 @@ function App() {
     const dynamicVerticalMax = baseVerticalMax + (newWidth - 1000);
 
     setVerticalBeamMax(dynamicVerticalMax);
+
+    
 
     setVerticalBeamSliderValue((prevValue) => {
       const clamped = Math.min(prevValue, dynamicVerticalMax);
@@ -119,12 +132,23 @@ function App() {
     });
   };
 
+  
+
+  
+
   // Load material library ONCE when component mounts
   useEffect(() => {
     loadMaterialLibrary("/models/Materials.glb", () => {
       const options = getMaterialColorOptions();
       setColorOptions(options);
       setMaterialsLoaded(true);
+    });
+  }, []);
+
+  useEffect(() => {
+    const loader = new FontLoader();
+    loader.load('/fonts/helvetiker_regular.typeface.json', (font) => {
+      fontRef.current = font;
     });
   }, []);
 
@@ -254,6 +278,8 @@ function App() {
         });
       }
 
+      
+
       // Repeat for other models...
       if (heightSliderRef.current) {
         heightScaling(
@@ -280,6 +306,7 @@ function App() {
 
         setHeightScaleValue(parseFloat(heightSliderRef.current.value));
       }
+      
 
       widthScaling(widthSliderRef.current, (newWidth) => {
         setWidthScaleValue(newWidth);
@@ -324,6 +351,8 @@ function App() {
       setVerticalBeamPositions(initialPositions);
     });
   }, [selectedModel]);
+
+  
   // Selection page JSX
   if (!selectedBaseModel && !selectedModel) {
     return (
@@ -363,6 +392,8 @@ function App() {
     model_3: 3,
     model_4: 1,
   };
+
+  
 
   // If base model is selected but variant isn't
   if (selectedBaseModel && !selectedModel) {
@@ -429,6 +460,7 @@ function App() {
   function applyGlassMaterialToScene(index) {
     glassParts.forEach((mesh) => applyGlassMaterial(mesh, index));
   }
+  
 
   // Set the glass thickness for all glass meshes
   function setGlassThicknessToScene(value) {
@@ -438,6 +470,42 @@ function App() {
       }
     });
   }
+
+  const setGlassThickness = (type) => {
+    if (!glassParts || glassParts.length === 0) return;
+
+    const thicknessValue = type === 'HR++' ? 0.01 : 0.02;
+    glassParts.forEach((mesh) => {
+      if (mesh.material) {
+        mesh.material.thickness = thicknessValue;
+        mesh.material.needsUpdate = true;
+      }
+    });
+
+    displayGlassLabel(type);
+  };
+
+  const displayGlassLabel = (text) => {
+    if (!glassParts || glassParts.length === 0 || !fontRef.current) return;
+
+    const glass = glassParts[0];
+    if (glassLabelMeshRef.current) {
+      glass.remove(glassLabelMeshRef.current);
+      glassLabelMeshRef.current = null;
+    }
+
+    const geometry = new TextGeometry(text, {
+      font: fontRef.current,
+      size: 0.5,
+      height: 0.005,
+    });
+
+    const material = new THREE.MeshBasicMaterial({ color: 0x000000 });
+    const mesh = new THREE.Mesh(geometry, material);
+    mesh.position.set(0, 0, 0.02);
+    glass.add(mesh);
+    glassLabelMeshRef.current = mesh;
+  };
 
   return (
     <div className="container">
@@ -452,16 +520,23 @@ function App() {
           Back to selection
         </button>
 
-             <select
-  id="hdriSelect"
-  onChange={(e) => loadHDRI(e.target.value)}
-  defaultValue="Background.hdr"
->
-  <option value="Background.hdr">Default</option>
-  <option value="qwantani_noon_puresky_4K.hdr">Pure Sky</option>
-  <option value="lakeside_sunrise_4K.hdr">Sunrise</option>
-  <option value="satara_night_4K.hdr">Night</option>
-</select>
+          <div>
+      <p>Type combinatie glass</p>
+      <button onClick={() => setGlassThickness('HR++')}>HR++</button>
+      <button onClick={() => setGlassThickness('HR+++')}>HR+++</button>
+      {/* other UI */}
+    </div>
+
+        <select
+          id="hdriSelect"
+          onChange={(e) => loadHDRI(e.target.value)}
+          defaultValue="Background.hdr"
+        >
+          <option value="Background.hdr">Default</option>
+          <option value="qwantani_noon_puresky_4K.hdr">Pure Sky</option>
+          <option value="lakeside_sunrise_4K.hdr">Sunrise</option>
+          <option value="satara_night_4K.hdr">Night</option>
+        </select>
         <div className="heightSlider">
           <p>Height</p>
           <input
@@ -560,8 +635,6 @@ function App() {
           {dimensionsLocked ? "✅ Confirmed" : "Confirm Selection"}
         </button>
 
-        
-
         <div style={{ marginTop: "20px" }}>
           <label htmlFor="actionDropdown">Draai Kiepraam Selectie .1:</label>
           <select
@@ -600,14 +673,6 @@ function App() {
             </button>
             <button id="glassOptions" onClick={() => applyGlassMaterial(2)}>
               Binnenzijde gelaagd
-            </button>
-
-            <p>type combinatie glass</p>
-            <button id="glassOptions" onClick={() => "Thin Glass"}>
-              HR++
-            </button>
-            <button id="glassOptions" onClick={() => "Thick Glass"}>
-              HR+++
             </button>
           </div>
         )}
@@ -665,6 +730,8 @@ function App() {
         {/* 3D scene renders here */}
       </main>
     </div>
+
+    
   );
 }
 
