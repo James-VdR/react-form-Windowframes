@@ -3,6 +3,8 @@ import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import {  glassParts,mainFrameParts,insideFrameParts  } from './Scene';
 const materialLibrary = {};
 
+ let glassLabel = null; // To store the current label mesh
+
 //---------------------------
 /**
  * 
@@ -195,6 +197,56 @@ export function applyGlassMaterial(index = 0) {
         mesh.material = material;
         mesh.material.needsUpdate = true; // make sure Three.js refreshes the material
     });
+}
+
+function createTextTexture(text) {
+  const size = 512;
+  const canvas = document.createElement('canvas');
+  canvas.width = size;
+  canvas.height = size;
+  const ctx = canvas.getContext('2d');
+
+  // Transparent background
+  ctx.clearRect(0, 0, size, size);
+
+  // Draw text
+  ctx.font = 'bold 64px Arial';
+  ctx.fillStyle = 'black';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(text, size / 2, size / 2);
+
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.needsUpdate = true;
+  return texture;
+}
+
+function createLabelMesh(text, width = 1, height = 0.3) {
+  const texture = createTextTexture(text);
+  const material = new THREE.MeshBasicMaterial({
+    map: texture,
+    transparent: true,
+  });
+  const geometry = new THREE.PlaneGeometry(width, height);
+  const mesh = new THREE.Mesh(geometry, material);
+
+  mesh.renderOrder = 999; // Ensure it renders on top
+  mesh.position.set(0, 0, 0.01); // Slightly in front of glass
+  return mesh;
+}
+
+export function updateGlassLabel(text) {
+  if (!glassParts || glassParts.length === 0) return;
+
+  // Remove the old label
+  if (glassLabel) {
+    glassParts[0].remove(glassLabel);
+    glassLabel = null;
+  }
+
+  // Create and add the new label
+  glassLabel = createLabelMesh(text, 1.5, 0.5); // adjust size
+  glassParts[0].add(glassLabel);
 }
 
 export function resetMaterials() {

@@ -584,9 +584,9 @@ function setGlassThicknessToScene(value) {
     <button id="glassOptions" onClick={() => applyGlassMaterial(1)}>Dubbelzijdig gelaagd</button>
     <button id="glassOptions" onClick={() => applyGlassMaterial(2)}>Binnenzijde gelaagd</button>
 
-    <p>Glass Thickness</p>
-    <button onClick={() => setGlassThicknessToScene(0.01)}>Thin</button>
-    <button onClick={() => setGlassThicknessToScene(0.05)}>Thick</button>
+    <p>type combinatie glass</p>
+    <button id="glassOptions" onClick={() => updateGlassLabel("Thin Glass")}>HR++</button>
+<button id="glassOptions" onClick={() => updateGlassLabel("Thick Glass")}>HR+++</button>
   </div>
 )}
 
