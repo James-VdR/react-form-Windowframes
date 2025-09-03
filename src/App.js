@@ -132,10 +132,6 @@ function App() {
     });
   };
 
-  
-
-  
-
   // Load material library ONCE when component mounts
   useEffect(() => {
     loadMaterialLibrary("/models/Materials.glb", () => {
@@ -143,6 +139,12 @@ function App() {
       setColorOptions(options);
       setMaterialsLoaded(true);
     });
+  }, []);
+
+   const containerRef = useRef(null);
+
+   useEffect(() => {
+      if (containerRef.current) initThree(containerRef.current);
   }, []);
 
   useEffect(() => {
@@ -171,7 +173,7 @@ function App() {
   useEffect(() => {
     if (!selectedModel || !mountRef.current) return;
 
-    initThree(mountRef.current);
+    if (mountRef.current) initThree(mountRef.current);
 
     registerOnModelReady(() => {
       const hatchShouldBeVisible =
@@ -510,10 +512,13 @@ if (selectedModel.includes("model_1")) {
     if (!glassParts || glassParts.length === 0 || !fontRef.current) return;
 
     const glass = glassParts[0];
-    if (glassLabelMeshRef.current) {
-      glass.remove(glassLabelMeshRef.current);
-      glassLabelMeshRef.current = null;
-    }
+
+   if (glassLabelMeshRef.current) {
+    glass.remove(glassLabelMeshRef.current);
+    glassLabelMeshRef.current.geometry.dispose();
+    glassLabelMeshRef.current.material.dispose();
+    glassLabelMeshRef.current = null;
+  }
 
     const geometry = new TextGeometry(text, {
       font: fontRef.current,
@@ -521,9 +526,25 @@ if (selectedModel.includes("model_1")) {
       height: 0.005,
     });
 
+    const glassGeometry = glass.geometry;
+  glassGeometry.computeBoundingBox();
+  const glassWidth = glassGeometry.boundingBox.max.x - glassGeometry.boundingBox.min.x;
+  const glassHeight = glassGeometry.boundingBox.max.y - glassGeometry.boundingBox.min.y;
+
+
+     geometry.computeBoundingBox();
+  const bbox = geometry.boundingBox;
+  const textWidth = bbox.max.x - bbox.min.x;
+  const textHeight = bbox.max.y - bbox.min.y;
+
     const material = new THREE.MeshBasicMaterial({ color: 0x000000 });
     const mesh = new THREE.Mesh(geometry, material);
-    mesh.position.set(0, 0, 0.02);
+
+    mesh.position.x = -textWidth / 2;
+  mesh.position.y = -textHeight / 2;
+   mesh.position.z = 0.02;
+   mesh.scale.set(0.5, 0.5, 0.5);
+
     glass.add(mesh);
     glassLabelMeshRef.current = mesh;
   };
